@@ -52,3 +52,8 @@ body {
   max-width: 300px;
   object-fit: contain;
 }
+
+#penalties-title {
+  text-align: center;
+  flex: 0 0 auto;
+}
