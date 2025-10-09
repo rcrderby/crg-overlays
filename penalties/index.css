@@ -57,3 +57,10 @@ body {
   text-align: center;
   flex: 0 0 auto;
 }
+
+#penalties-title h1 {
+  color: white;
+  font-size: 48px;
+  font-weight: bold;
+  margin: 0;
+}
