@@ -1,5 +1,24 @@
 /* CSS for custom penalties overlay - index.html */
 
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 body {
-    background-color: rgba(0, 0, 0, 0); /* Transparent Background */
+    font-family: Arial, sans-serif;
+    background: transparent;
+    margin: 0;
+    overflow: hidden;
+    padding: 0;
+}
+
+/* OBS settings */
+#overlay {
+    width: 1920px;
+    height: 1080px;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
 }
