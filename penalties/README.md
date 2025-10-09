@@ -9,3 +9,5 @@ CRG repository `https://github.com/rollerderby/scoreboard`
 <!-- TODO add information about custom colors -->
 
 <!-- TODO add information about team logos -->
+
+<!-- TODO add information about tournament label -->
