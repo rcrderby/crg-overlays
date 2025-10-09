@@ -95,25 +95,34 @@
     <!-- Game information -->
     <div id="game-info">
       <div class="game-info-wrapper">
+
+        <!-- Tournament name - displayed by JavaScript if available -->
         <div id="tournament-name" style="display: none;"></div>
-        
+
         <div id="game-details">
+
+          <!-- Placeholder for optional custom logo - displayed by JavaScript if available -->
           <div id="custom-logo-space"></div>
-          
+
           <div id="teams-scores">
             <div class="team-score-block">
+
+              <!-- Team 1 name and score - populated by JavaScript -->
               <div id="team1-name" class="team-name"></div>
               <div id="team1-score" class="score"></div>
             </div>
             
             <div id="vs-clock-container">
               <div class="vs-text">vs.</div>
+
+              <!-- Clock and clock label - populated by JavaScript -->
               <div id="clock-container">
                 <div id="game-clock"></div>
               </div>
-              <div id="period-info"></div>
+              <div id="clock-label"></div>
             </div>
             
+            <!-- Team 2 name and score - populated by JavaScript -->
             <div class="team-score-block">
               <div id="team2-name" class="team-name"></div>
               <div id="team2-score" class="score"></div>
