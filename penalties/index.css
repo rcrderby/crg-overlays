@@ -22,3 +22,13 @@ body {
     flex-direction: column;
     padding: 20px;
 }
+
+#teams-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 40px;
+  width: 80%;
+  margin: 0 auto;
+  margin-bottom: 10px;
+}
