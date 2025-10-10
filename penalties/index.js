@@ -30,6 +30,10 @@ $(function() {
 
     // Listen for period/intermission state
     WS.Register(['ScoreBoard.CurrentGame'], updatePeriodInfo);
+
+    // Listen for event/tournament name
+    WS.Register(['ScoreBoard.CurrentGame.EventInfo(Tournament)'], updateTournamentName);
+    
   }
 
   // Start initialization when WS is ready
