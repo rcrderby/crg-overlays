@@ -49,6 +49,10 @@ $(function() {
     // TODO
   }
 
+  function updatePenaltyTotal(teamNum, total) {
+    $('#team' + teamNum + '-total .total-count').text(total || '0');
+  }
+
   function updateClock() {
     // Determine which clock is running based on state
     var intermissionRunning = WS.state['ScoreBoard.CurrentGame.Clock(Intermission).Running'] === 'true';
