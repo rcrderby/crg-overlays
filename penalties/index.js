@@ -1,8 +1,7 @@
-// CSS for custom penalties overlay - index.html
 $(function() {
   'use strict';
 
-  // Wait for WebSocket listeners to be loaded by core.js
+  // Wait for WS to be loaded by core.js
   function waitForWS() {
     if (typeof WS === 'undefined') {
       setTimeout(waitForWS, 100);
@@ -45,10 +44,58 @@ $(function() {
     // Listen for team penalty totals
     WS.Register(['ScoreBoard.CurrentGame.Team(1).TotalPenalties'], function(k, v) { updatePenaltyTotal(1, v); });
     WS.Register(['ScoreBoard.CurrentGame.Team(2).TotalPenalties'], function(k, v) { updatePenaltyTotal(2, v); });
+    
+    // Initial render
+    // TODO
   }
 
-  // Render initial data
-  // TODO
+  function updateClock() {
+    // Determine which clock is running based on state
+    var intermissionRunning = WS.state['ScoreBoard.CurrentGame.Clock(Intermission).Running'] === 'true';
+    var periodRunning = WS.state['ScoreBoard.CurrentGame.Clock(Period).Running'] === 'true';
+    var jamRunning = WS.state['ScoreBoard.CurrentGame.Clock(Jam).Running'] === 'true';
+    var lineupRunning = WS.state['ScoreBoard.CurrentGame.Clock(Lineup).Running'] === 'true';
+    var timeoutRunning = WS.state['ScoreBoard.CurrentGame.Clock(Timeout).Running'] === 'true';
+    
+    var time, clockName;
+    
+    if (periodRunning) {
+      time = WS.state['ScoreBoard.CurrentGame.Clock(Period).Time'];
+      clockName = WS.state['ScoreBoard.CurrentGame.Clock(Period).Name'];
+    } else if (jamRunning) {
+      time = WS.state['ScoreBoard.CurrentGame.Clock(Jam).Time'];
+      clockName = WS.state['ScoreBoard.CurrentGame.Clock(Jam).Name'];
+    } else if (lineupRunning) {
+      time = WS.state['ScoreBoard.CurrentGame.Clock(Lineup).Time'];
+      clockName = WS.state['ScoreBoard.CurrentGame.Clock(Lineup).Name'];
+    } else if (timeoutRunning) {
+      time = WS.state['ScoreBoard.CurrentGame.Clock(Timeout).Time'];
+      clockName = WS.state['ScoreBoard.CurrentGame.Clock(Timeout).Name'];
+    } else if (intermissionRunning) {
+      time = WS.state['ScoreBoard.CurrentGame.Clock(Intermission).Time'];
+      clockName = '';  // Don't show "Intermission" text
+    } else {
+      // No clock running, show intermission clock by default
+      time = WS.state['ScoreBoard.CurrentGame.Clock(Intermission).Time'];
+      clockName = '';  // Don't show "Intermission" text
+    }
+    
+    if (time !== undefined && time !== null) {
+      var ms = parseInt(time);
+      var totalSeconds = Math.floor(ms / 1000);
+      var minutes = Math.floor(totalSeconds / 60);
+      var seconds = totalSeconds % 60;
+      var timeStr = minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+      
+      if (clockName && clockName !== 'Period' && clockName !== 'Jam') {
+        $('#game-clock').html('<div style="font-size: 20px; margin-bottom: 5px;">' + clockName + '</div><div style="font-size: 42px; font-weight: bold;">' + timeStr + '</div>');
+      } else {
+        $('#game-clock').html('<div style="font-size: 42px; font-weight: bold;">' + timeStr + '</div>');
+      }
+    } else {
+      $('#game-clock').html('<div style="font-size: 42px; font-weight: bold;">0:00</div>');
+    }
+  }
 
   function updatePeriodInfo() {
     var inPeriod = WS.state['ScoreBoard.CurrentGame.InPeriod'] === 'true';
