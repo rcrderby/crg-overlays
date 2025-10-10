@@ -257,3 +257,8 @@ body {
   margin-top: 5px;
   text-align: center;
 }
+
+.score {
+  font-size: 48px;
+  font-weight: bold;
+}
