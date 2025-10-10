@@ -13,7 +13,9 @@ $(function() {
 
   // Initialize WebSocket listeners
   function init() {
-    // TODO
+    // WebSocket connection using CRG ScoreBoard API
+    WS.Connect();
+    WS.AutoRegister();
   }
 
   // Start initialization when WS is ready
