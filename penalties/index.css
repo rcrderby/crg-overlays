@@ -141,16 +141,28 @@ body {
   min-width: 0;
 }
 
-.penalties {
-  background-color: black;
-  color: white;
+#team1-penalties {
+  background-color: var(--team1-bg);
+  color: var(--team1-fg);
   padding: 10px;
   flex: 1;
   overflow-y: auto;
   font-size: 24px;
   line-height: 1.5;
   min-height: 0;
-  border: 1px solid black;
+  border: 1px solid var(--team1-border);
+}
+
+#team2-penalties {
+  background-color: var(--team2-bg);
+  color: var(--team2-fg);
+  padding: 10px;
+  flex: 1;
+  overflow-y: auto;
+  font-size: 24px;
+  line-height: 1.5;
+  min-height: 0;
+  border: 1px solid var(--team2-border);
 }
 
 .penalty-line {
@@ -179,25 +191,25 @@ body {
 }
 
 #team1-total {
-  background-color: var(--team1-bg);
-  color: var(--team1-fg);
+  background-color: black;
+  color: white;
   padding: 10px;
   display: flex;
   justify-content: space-between;
   font-size: 24px;
   font-weight: bold;
-  border: 1px solid black;
+  border: 1px solid white;
 }
 
 #team2-total {
-  background-color: var(--team2-bg);
-  color: var(--team2-fg);
+  background-color: black;
+  color: white;
   padding: 10px;
   display: flex;
   justify-content: space-between;
   font-size: 24px;
   font-weight: bold;
-  border: 1px solid black;
+  border: 1px solid white;
 }
 
 #game-info {
