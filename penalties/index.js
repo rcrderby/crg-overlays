@@ -34,6 +34,9 @@ $(function() {
     // Listen for event/tournament name
     WS.Register(['ScoreBoard.CurrentGame.EventInfo(Tournament)'], updateTournamentName);
     
+    // Listen for players in the current game
+    WS.Register(['ScoreBoard.CurrentGame.Team(1).Skater(*)'], function(k, v) { updateSkater(1, k, v); });
+    WS.Register(['ScoreBoard.CurrentGame.Team(2).Skater(*)'], function(k, v) { updateSkater(2, k, v); });
   }
 
   // Start initialization when WS is ready
