@@ -178,9 +178,20 @@ body {
   flex-shrink: 0;
 }
 
-.penalty-total {
-  background-color: black;
-  color: white;
+#team1-total {
+  background-color: var(--team1-bg);
+  color: var(--team1-fg);
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 24px;
+  font-weight: bold;
+  border: 1px solid black;
+}
+
+#team2-total {
+  background-color: var(--team2-bg);
+  color: var(--team2-fg);
   padding: 10px;
   display: flex;
   justify-content: space-between;
