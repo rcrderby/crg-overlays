@@ -49,6 +49,32 @@ $(function() {
     // TODO
   }
 
+  function updateRoster(teamNum) {
+    var skaters = teamNum === 1 ? team1Skaters : team2Skaters;
+    var rosterDiv = $('#team' + teamNum + '-roster');
+    
+    // Sort skaters by number
+    var sortedSkaters = Object.values(skaters).sort(function(a, b) {
+      var numA = a.number === '' ? Infinity : (isNaN(a.number) ? a.number : parseInt(a.number));
+      var numB = b.number === '' ? Infinity : (isNaN(b.number) ? b.number : parseInt(b.number));
+      if (typeof numA === 'number' && typeof numB === 'number') {
+        return numA - numB;
+      }
+      return String(numA).localeCompare(String(numB));
+    });
+    
+    rosterDiv.empty();
+    
+    sortedSkaters.forEach(function(skater) {
+      if (skater.number || skater.name) {
+        var line = $('<div class="roster-line"></div>');
+        line.append('<div class="roster-number">' + (skater.number || '') + '</div>');
+        line.append('<div class="roster-name">' + (skater.name || '') + '</div>');
+        rosterDiv.append(line);
+      }
+    });
+  }
+
   function updatePenalties(teamNum) {
     var skaters = teamNum === 1 ? team1Skaters : team2Skaters;
     
