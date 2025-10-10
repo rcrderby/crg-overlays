@@ -121,22 +121,26 @@ $(function() {
     }
   }
 
+  // Update team names
   function updateTeamName(teamNum, value) {
     teams[teamNum].name = value || ('Team ' + teamNum);
     var $nameElement = teamNum === 1 ? $team1Name : $team2Name;
     $nameElement.text(teams[teamNum].name);
   }
 
+  // Update team scores
   function updateTeamScore(teamNum, value) {
     var $scoreElement = teamNum === 1 ? $team1Score : $team2Score;
     $scoreElement.text(value || '0');
   }
 
+  // Update team logos
   function updateTeamLogo(teamNum, value) {
     teams[teamNum].logo = value || '';
     checkAndDisplayLogos();
   }
 
+  // Check for team logos and display if logos are available for both teams
   function checkAndDisplayLogos() {
     var shouldShow = teams[1].logo && teams[2].logo;
     
@@ -155,6 +159,7 @@ $(function() {
     }
   }
 
+  // Update team penalty colors based on custom penalty whiteboard color settings
   function updatePenaltyColors(teamNum) {
     var fgKey = 'ScoreBoard.CurrentGame.Team(' + teamNum + ').Color(whiteboard.fg)';
     var bgKey = 'ScoreBoard.CurrentGame.Team(' + teamNum + ').Color(whiteboard.bg)';
@@ -169,7 +174,7 @@ $(function() {
     teams[teamNum].colors.fg = fgColor;
     teams[teamNum].colors.bg = bgColor;
     
-    // Use CSS variables for better performance
+    // Use CSS variables
     var root = document.documentElement;
     
     if (fgColor && bgColor) {
@@ -183,6 +188,7 @@ $(function() {
     }
   }
 
+  // Update player info and penalties
   function updateSkater(teamNum, key, value) {
     var match = key.match(/Skater\(([^)]+)\)/);
     if (!match) return;
@@ -204,6 +210,7 @@ $(function() {
     updatePenalties(teamNum);
   }
 
+  // Sort players by derby number
   function sortSkaters(skaters) {
     return Object.values(skaters).sort(function(a, b) {
       var numA = a.number === '' ? Infinity : (isNaN(a.number) ? a.number : parseInt(a.number));
@@ -215,6 +222,7 @@ $(function() {
     });
   }
 
+  // Update roster data
   function updateRoster(teamNum) {
     var skaters = teams[teamNum].skaters;
     var $rosterDiv = teamNum === 1 ? $team1Roster : $team2Roster;
@@ -234,6 +242,7 @@ $(function() {
     $rosterDiv.html(html);
   }
 
+  // Update player penalties
   function updatePenalties(teamNum) {
     var skaters = teams[teamNum].skaters;
     
@@ -261,6 +270,7 @@ $(function() {
     renderPenalties(teamNum);
   }
 
+  // Render penalty data
   function renderPenalties(teamNum) {
     var skaters = teams[teamNum].skaters;
     var $penaltiesDiv = teamNum === 1 ? $team1Penalties : $team2Penalties;
@@ -281,11 +291,13 @@ $(function() {
     $penaltiesDiv.html(html);
   }
 
+  // Update team penalty totals
   function updatePenaltyTotal(teamNum, total) {
     var $totalElement = teamNum === 1 ? $team1Total : $team2Total;
     $totalElement.text(total || '0');
   }
 
+  // Update clock
   function updateClock() {
     try {
       var intermissionRunning = WS.state['ScoreBoard.CurrentGame.Clock(Intermission).Running'] === 'true';
@@ -334,6 +346,7 @@ $(function() {
     }
   }
 
+  // Update period info
   function updatePeriodInfo() {
     try {
       var inPeriod = WS.state['ScoreBoard.CurrentGame.InPeriod'] === 'true';
@@ -362,6 +375,7 @@ $(function() {
     }
   }
 
+  // Update tournament name
   function updateTournamentName() {
     var name = WS.state['ScoreBoard.CurrentGame.EventInfo(Tournament)'];
     if (name) {
@@ -371,6 +385,7 @@ $(function() {
     }
   }
 
+  // Update custom logo if available
   function loadCustomLogo() {
     var logoImg = new Image();
     logoImg.onload = function() {
@@ -382,6 +397,7 @@ $(function() {
     logoImg.src = 'banner-logo.png';
   }
 
+  // Initialize overlay screen data
   function initializeDisplay() {
     try {
       updateTeamName(1, WS.state['ScoreBoard.CurrentGame.Team(1).AlternateName(operator)'] || WS.state['ScoreBoard.CurrentGame.Team(1).Name']);
