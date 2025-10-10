@@ -180,8 +180,6 @@ body {
   border: 1px solid black;
 }
 
-/* Placeholder for JavaScript-populated total penalty count class */
-
 #game-info {
   margin-top: 20px;
   display: flex;
