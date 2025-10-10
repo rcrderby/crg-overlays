@@ -27,7 +27,9 @@ $(function() {
     WS.Register(['ScoreBoard.CurrentGame.Clock(Jam)'], updateClock);
     WS.Register(['ScoreBoard.CurrentGame.Clock(Lineup)'], updateClock);
     WS.Register(['ScoreBoard.CurrentGame.Clock(Timeout)'], updateClock);
-    
+
+    // Listen for period/intermission state
+    WS.Register(['ScoreBoard.CurrentGame'], updatePeriodInfo);
   }
 
   // Start initialization when WS is ready
