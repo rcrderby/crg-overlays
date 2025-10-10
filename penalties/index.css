@@ -6,6 +6,15 @@
   padding: 0;
 }
 
+:root {
+  --team1-fg: white;
+  --team1-bg: black;
+  --team1-border: white;
+  --team2-fg: white;
+  --team2-bg: black;
+  --team2-border: white;
+}
+
 body {
   font-family: Arial, sans-serif;
   background: transparent;
