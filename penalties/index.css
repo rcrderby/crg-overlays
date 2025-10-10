@@ -236,3 +236,8 @@ body {
   margin-bottom: 5px;
   text-align: center;
 }
+
+#clock-container {
+  margin-top: 0;
+  min-width: 200px;
+}
