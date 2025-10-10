@@ -49,6 +49,53 @@ $(function() {
     // TODO
   }
 
+  function updateTeam(teamNum, key, value) {
+    var teamId = 'team' + teamNum;
+    
+    // Update team name - check AlternateName first
+    if (key.match(/^ScoreBoard\.CurrentGame\.Team\(\d+\)\.AlternateName\(operator\)$/)) {
+      if (value) {
+        if (teamNum === 1) {
+          team1Name = value;
+        } else {
+          team2Name = value;
+        }
+        updateTeamNamesDisplay();
+      }
+    }
+    else if (key.match(/^ScoreBoard\.CurrentGame\.Team\(\d+\)\.Name$/) && key.indexOf('AlternateName') === -1) {
+      // Only use regular name if no alternate name is set
+      var altNameKey = 'ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(operator)';
+      if (!WS.state[altNameKey]) {
+        if (teamNum === 1) {
+          team1Name = value || 'Team 1';
+        } else {
+          team2Name = value || 'Team 2';
+        }
+        updateTeamNamesDisplay();
+      }
+    }
+    else if (key.match(/^ScoreBoard\.CurrentGame\.Team\(\d+\)\.Score$/) && key.indexOf('Skater') === -1) {
+      $('#' + teamId + '-score').text(value || '0');
+    }
+    else if (key.match(/^ScoreBoard\.CurrentGame\.Team\(\d+\)\.Logo$/)) {
+      if (teamNum === 1) {
+        team1Logo = value || '';
+      } else {
+        team2Logo = value || '';
+      }
+      checkAndDisplayLogos();
+    }
+    else if (key.indexOf('.Color(whiteboard.fg)') > -1 || key.indexOf('.Color(whiteboard.bg)') > -1) {
+      setTimeout(function() { updatePenaltyColors(teamNum); }, 100);
+    }
+  }
+
+  function updateTeamNamesDisplay() {
+    $('#team1-name').text(team1Name || 'Team 1');
+    $('#team2-name').text(team2Name || 'Team 2');
+  }
+
   function checkAndDisplayLogos() {
     // Only display logos if both teams have them
     if (team1Logo && team2Logo) {
