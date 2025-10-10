@@ -49,6 +49,37 @@ $(function() {
     // TODO
   }
 
+  function updatePenaltyColors(teamNum) {
+    var fgKey = 'ScoreBoard.CurrentGame.Team(' + teamNum + ').Color(whiteboard.fg)';
+    var bgKey = 'ScoreBoard.CurrentGame.Team(' + teamNum + ').Color(whiteboard.bg)';
+    var fgColor = WS.state[fgKey];
+    var bgColor = WS.state[bgKey];
+    
+    if (fgColor && bgColor) {
+      $('#team' + teamNum + '-penalties').css({
+        'color': fgColor,
+        'background-color': bgColor
+      });
+      // Set border colors for penalty lines
+      $('#team' + teamNum + '-penalties .penalty-line').css('border-bottom-color', fgColor);
+      $('#team' + teamNum + '-total').css({
+        'color': fgColor,
+        'background-color': bgColor
+      });
+    } else {
+      $('#team' + teamNum + '-penalties').css({
+        'color': 'white',
+        'background-color': 'black'
+      });
+      // Set default border colors to pure white
+      $('#team' + teamNum + '-penalties .penalty-line').css('border-bottom-color', 'white');
+      $('#team' + teamNum + '-total').css({
+        'color': 'white',
+        'background-color': 'black'
+      });
+    }
+  }
+
   function updateSkater(teamNum, key, value) {
     var match = key.match(/Skater\(([^)]+)\)/);
     if (!match) return;
