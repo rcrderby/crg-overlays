@@ -37,6 +37,10 @@ $(function() {
     // Listen for players in the current game
     WS.Register(['ScoreBoard.CurrentGame.Team(1).Skater(*)'], function(k, v) { updateSkater(1, k, v); });
     WS.Register(['ScoreBoard.CurrentGame.Team(2).Skater(*)'], function(k, v) { updateSkater(2, k, v); });
+
+    // Listen for player penalties in the current game
+    WS.Register(['ScoreBoard.CurrentGame.Team(1).Skater(*).Penalty(*)'], function(k, v) { updatePenalties(1); });
+    WS.Register(['ScoreBoard.CurrentGame.Team(2).Skater(*).Penalty(*)'], function(k, v) { updatePenalties(2); });
   }
 
   // Start initialization when WS is ready
