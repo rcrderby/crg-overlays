@@ -171,3 +171,18 @@ body {
   justify-content: center;
   white-space: nowrap;
 }
+
+#game-details {
+  background-color: #666666;
+  color: white;
+  padding: 20px;
+  padding-left: 140px;
+  padding-right: 140px;
+  padding-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+  min-height: 140px;
+  width: 100%;
+  justify-content: center;
+}
