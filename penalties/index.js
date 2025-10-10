@@ -54,6 +54,17 @@ $(function() {
     WS.Register(['ScoreBoard.CurrentGame.Team(1).TotalPenalties'], function(k, v) { updatePenaltyTotal(1, v); });
     WS.Register(['ScoreBoard.CurrentGame.Team(2).TotalPenalties'], function(k, v) { updatePenaltyTotal(2, v); });
     
+    // Load custom logo if file exists
+    var logoImg = new Image();
+    logoImg.onload = function() {
+      $('#custom-logo-space').html('<img src="banner-logo.png" style="max-width: 100%; max-height: 100%; object-fit: contain;" />');
+    };
+    logoImg.onerror = function() {
+      // Logo file not found, leave space empty
+      $('#custom-logo-space').empty();
+    };
+    logoImg.src = 'banner-logo.png';
+    
     // Initial render
     // TODO
   }
