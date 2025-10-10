@@ -156,3 +156,18 @@ body {
   width: auto;
   max-width: 90%;
 }
+
+#tournament-name {
+  background-color: #333333;
+  color: white;
+  text-align: center;
+  padding: 15px;
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
