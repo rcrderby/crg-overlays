@@ -49,6 +49,38 @@ $(function() {
     // TODO
   }
 
+  function renderPenalties(teamNum) {
+    var skaters = teamNum === 1 ? team1Skaters : team2Skaters;
+    var penaltiesDiv = $('#team' + teamNum + '-penalties');
+    
+    // Sort skaters by number for penalty display
+    var sortedSkaters = Object.values(skaters).sort(function(a, b) {
+      var numA = a.number === '' ? Infinity : (isNaN(a.number) ? a.number : parseInt(a.number));
+      var numB = b.number === '' ? Infinity : (isNaN(b.number) ? b.number : parseInt(b.number));
+      if (typeof numA === 'number' && typeof numB === 'number') {
+        return numA - numB;
+      }
+      return String(numA).localeCompare(String(numB));
+    });
+    
+    penaltiesDiv.empty();
+    
+    sortedSkaters.forEach(function(skater) {
+      if (skater.number || skater.name) {
+        var line = $('<div class="penalty-line"></div>');
+        var codes = skater.penalties.length > 0 ? skater.penalties.join(' ') : '';
+        var codesDiv = $('<div class="penalty-codes"></div>').text(codes);
+        var countDiv = $('<div class="penalty-count"></div>').text(skater.penalties.length || '0');
+        line.append(codesDiv);
+        line.append(countDiv);
+        penaltiesDiv.append(line);
+      }
+    });
+    
+    // Update border colors after rendering
+    updatePenaltyColors(teamNum);
+  }
+
   function updatePenaltyTotal(teamNum, total) {
     $('#team' + teamNum + '-total .total-count').text(total || '0');
   }
