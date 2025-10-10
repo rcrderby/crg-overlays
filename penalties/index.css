@@ -1,7 +1,6 @@
 /* CSS for custom penalties overlay - index.html */
 
 * {
-  box-sizing: border-box;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -19,12 +18,12 @@
 body {
   font-family: Arial, sans-serif;
   background: transparent;
+  background-color: rgba(0, 0, 0, 0);
   overflow: hidden;
   margin: 0;
   padding: 0;
 }
 
-/* OBS settings */
 #overlay {
   width: 1920px;
   height: 1080px;
@@ -135,7 +134,7 @@ body {
 }
 
 .penalties-column {
-  flex: 0.65;
+  flex: 0.75;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -167,7 +166,6 @@ body {
   text-align: left;
   flex: 1;
   margin-right: 10px;
-  font-weight: bold;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
