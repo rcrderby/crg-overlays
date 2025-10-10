@@ -269,23 +269,24 @@ $(function() {
     try {
       var state = WS.state;
       var officialScore = isTrue(state['ScoreBoard.CurrentGame.OfficialScore']);
-      var inPeriod = isTrue(state['ScoreBoard.CurrentGame.InPeriod']);
-      var gameState = state['ScoreBoard.CurrentGame.State'];
       var currentPeriod = parseInt(state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
-      var intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']);
+      var intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']) || 0;
+      var periodTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Period).Time']) || 0;
       var numPeriods = parseInt(state['ScoreBoard.CurrentGame.Rule(Period.Number)']) || 2;
       var intermissionRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']);
       
-      // Check if game is completely over (finished all periods)
-      var gameOver = !inPeriod && currentPeriod >= numPeriods;
+      // Game is over - hide clock
+      // Only when we're past all periods, OR at final period with intermission running (post-game)
+      var gameOver = currentPeriod > numPeriods || 
+                    (currentPeriod >= numPeriods && (intermissionRunning || intermissionTime > 0));
       
       if (officialScore || gameOver) {
         $elements.gameClock.html('&nbsp;');
         return;
       }
       
-      // Time to Derby phase
-      if (gameState === 'Prepared' || currentPeriod === 0) {
+      // Before game starts (Time to Derby)
+      if (currentPeriod === 0) {
         if (intermissionTime <= 0) {
           $elements.gameClock.html('&nbsp;');
         } else {
@@ -294,20 +295,19 @@ $(function() {
         return;
       }
       
-      // Between periods - show intermission clock
-      if ((intermissionRunning || intermissionTime > 0) && !inPeriod && currentPeriod > 0 && currentPeriod < numPeriods) {
+      // Between periods (intermission running with time)
+      if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionTime > 0) {
         $elements.gameClock.text(formatTime(intermissionTime));
         return;
       }
       
-      // During game - always show period clock
-      var periodTime = state['ScoreBoard.CurrentGame.Clock(Period).Time'];
-      $elements.gameClock.text(periodTime ? formatTime(parseInt(periodTime)) : '0:00');
+      // During a period or waiting to start a period - show period clock
+      $elements.gameClock.text(formatTime(periodTime));
       
     } catch(error) {
       console.error('Error updating clock:', error);
     }
-}
+  }
 
   // Format time from milliseconds
   function formatTime(ms) {
@@ -321,11 +321,10 @@ $(function() {
   function updateGameState() {
     try {
       var state = WS.state;
-      var inPeriod = isTrue(state['ScoreBoard.CurrentGame.InPeriod']);
       var currentPeriod = parseInt(state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
       var inOvertime = isTrue(state['ScoreBoard.CurrentGame.InOvertime']);
       var officialScore = isTrue(state['ScoreBoard.CurrentGame.OfficialScore']);
-      var intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']);
+      var intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']) || 0;
       var numPeriods = parseInt(state['ScoreBoard.CurrentGame.Rule(Period.Number)']) || 2;
       var intermissionRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']);
       
@@ -337,28 +336,27 @@ $(function() {
         official: state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)'] || 'Final Score'
       };
       
-      // Determine if game is over (all periods completed)
-      var gameOver = currentPeriod >= numPeriods && !inPeriod;
+      // Game is over when past all periods OR at final period with post-game intermission
+      var gameOver = currentPeriod > numPeriods || 
+                    (currentPeriod >= numPeriods && (intermissionRunning || intermissionTime > 0));
       
       var text = '';
       
-      // Check for final/unofficial score first
+      // Determine label
       if (officialScore) {
         text = labels.official;
       } else if (gameOver) {
-        // Game is over but score not yet official
         text = labels.unofficial;
       } else if (inOvertime) {
         text = 'Overtime';
-      } else if ((intermissionRunning || intermissionTime > 0) && currentPeriod > 0 && currentPeriod < numPeriods && !inPeriod) {
-        // Between periods only (not after final period)
+      } else if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionTime > 0) {
         text = labels.intermission;
       } else if (currentPeriod > 0 && currentPeriod <= numPeriods) {
-        // Show period label when in any valid period
         text = 'Period ' + currentPeriod;
-      } else if (currentPeriod === 0) {
-        // Before game starts
-        text = intermissionTime <= 0 ? 'Coming Up' : labels.preGame;
+      } else if (currentPeriod === 0 && intermissionTime > 0) {
+        text = labels.preGame;
+      } else if (currentPeriod === 0 && intermissionTime <= 0) {
+        text = 'Coming Up';
       } else {
         text = labels.intermission;
       }
