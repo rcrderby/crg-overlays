@@ -50,6 +50,15 @@ $(function() {
   // Render initial data
   // TODO
 
+  function updateTournamentName() {
+    var name = WS.state['ScoreBoard.CurrentGame.EventInfo(Tournament)'];
+    if (name) {
+      $('#tournament-name').text(name).show();
+    } else {
+      $('#tournament-name').hide();
+    }
+  }
+
   // Start init function when WS is ready
   waitForWS();
 });
