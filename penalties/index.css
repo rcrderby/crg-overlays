@@ -181,6 +181,8 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: bold;
+  word-spacing: 0.3em;
 }
 
 .penalty-count {
