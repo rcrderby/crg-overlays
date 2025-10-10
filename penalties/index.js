@@ -104,8 +104,8 @@ $(function() {
     var teamNum = parseInt(match[1]);
     var team = $elements['team' + teamNum];
     
-    if (key.includes('.AlternateName(operator)') || (key.match(/\.Name$/) && !key.includes('AlternateName'))) {
-      var altName = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(operator)'];
+    if (key.includes('.AlternateName(whiteboard)') || (key.match(/\.Name$/) && !key.includes('AlternateName'))) {
+      var altName = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)'];
       team.name.text(altName || value || 'Team ' + teamNum);
     } else if (key.match(/\.Score$/) && !key.includes('Skater')) {
       team.score.text(value || '0');
@@ -274,6 +274,7 @@ $(function() {
       var currentPeriod = parseInt(state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
       var intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']);
       var numPeriods = parseInt(state['ScoreBoard.CurrentGame.Rule(Period.Number)']) || 2;
+      var intermissionRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']);
       
       // Check if game is completely over (finished all periods)
       var gameOver = !inPeriod && currentPeriod >= numPeriods;
@@ -293,33 +294,20 @@ $(function() {
         return;
       }
       
-      // Determine which clock to show
-      var clockRunning = {
-        intermission: isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']),
-        timeout: isTrue(state['ScoreBoard.CurrentGame.Clock(Timeout).Running']),
-        lineup: isTrue(state['ScoreBoard.CurrentGame.Clock(Lineup).Running']),
-        jam: isTrue(state['ScoreBoard.CurrentGame.Clock(Jam).Running'])
-      };
-      
-      var time;
-      if (clockRunning.timeout) {
-        time = state['ScoreBoard.CurrentGame.Clock(Timeout).Time'];
-      } else if (clockRunning.lineup) {
-        time = state['ScoreBoard.CurrentGame.Clock(Lineup).Time'];
-      } else if (clockRunning.jam) {
-        time = state['ScoreBoard.CurrentGame.Clock(Jam).Time'];
-      } else if (clockRunning.intermission || (!inPeriod && intermissionTime > 0)) {
-        time = state['ScoreBoard.CurrentGame.Clock(Intermission).Time'];
-      } else {
-        time = state['ScoreBoard.CurrentGame.Clock(Period).Time'];
+      // Between periods - show intermission clock
+      if ((intermissionRunning || intermissionTime > 0) && !inPeriod && currentPeriod > 0 && currentPeriod < numPeriods) {
+        $elements.gameClock.text(formatTime(intermissionTime));
+        return;
       }
       
-      $elements.gameClock.text(time ? formatTime(parseInt(time)) : '0:00');
+      // During game - always show period clock
+      var periodTime = state['ScoreBoard.CurrentGame.Clock(Period).Time'];
+      $elements.gameClock.text(periodTime ? formatTime(parseInt(periodTime)) : '0:00');
       
     } catch(error) {
       console.error('Error updating clock:', error);
     }
-  }
+}
 
   // Format time from milliseconds
   function formatTime(ms) {
@@ -339,6 +327,7 @@ $(function() {
       var officialScore = isTrue(state['ScoreBoard.CurrentGame.OfficialScore']);
       var intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']);
       var numPeriods = parseInt(state['ScoreBoard.CurrentGame.Rule(Period.Number)']) || 2;
+      var intermissionRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']);
       
       // Read intermission labels
       var labels = {
@@ -346,13 +335,6 @@ $(function() {
         intermission: state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)'] || 'Intermission',
         unofficial: state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)'] || 'Unofficial Score',
         official: state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)'] || 'Final Score'
-      };
-      
-      var clockRunning = {
-        intermission: isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']),
-        timeout: isTrue(state['ScoreBoard.CurrentGame.Clock(Timeout).Running']),
-        lineup: isTrue(state['ScoreBoard.CurrentGame.Clock(Lineup).Running']),
-        jam: isTrue(state['ScoreBoard.CurrentGame.Clock(Jam).Running'])
       };
       
       // Determine if game is over (all periods completed)
@@ -368,13 +350,7 @@ $(function() {
         text = labels.unofficial;
       } else if (inOvertime) {
         text = 'Overtime';
-      } else if (clockRunning.timeout) {
-        text = state['ScoreBoard.CurrentGame.Clock(Timeout).Name'] || 'Timeout';
-      } else if (clockRunning.lineup) {
-        text = state['ScoreBoard.CurrentGame.Clock(Lineup).Name'] || 'Lineup';
-      } else if (clockRunning.jam) {
-        text = state['ScoreBoard.CurrentGame.Clock(Jam).Name'] || 'Jam';
-      } else if ((clockRunning.intermission || intermissionTime > 0) && currentPeriod > 0 && currentPeriod < numPeriods && !inPeriod) {
+      } else if ((intermissionRunning || intermissionTime > 0) && currentPeriod > 0 && currentPeriod < numPeriods && !inPeriod) {
         // Between periods only (not after final period)
         text = labels.intermission;
       } else if (currentPeriod > 0 && currentPeriod <= numPeriods) {
@@ -424,7 +400,7 @@ $(function() {
       
       // Initialize team names
       [1, 2].forEach(function(teamNum) {
-        var altName = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(operator)'];
+        var altName = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)'];
         var name = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name'];
         $elements['team' + teamNum].name.text(altName || name || 'Team ' + teamNum);
         
