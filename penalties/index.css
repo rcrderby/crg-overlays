@@ -4,6 +4,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 :root {
@@ -166,6 +167,7 @@ body {
   text-align: left;
   flex: 1;
   margin-right: 10px;
+  font-weight: bold;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
