@@ -49,6 +49,28 @@ $(function() {
     // TODO
   }
 
+  function updateSkater(teamNum, key, value) {
+    var match = key.match(/Skater\(([^)]+)\)/);
+    if (!match) return;
+    
+    var skaterId = match[1];
+    var skaters = teamNum === 1 ? team1Skaters : team2Skaters;
+    
+    if (!skaters[skaterId]) {
+      skaters[skaterId] = { id: skaterId, number: '', name: '', penalties: [] };
+    }
+    
+    if (key.indexOf('.RosterNumber') > -1) {
+      skaters[skaterId].number = value || '';
+    }
+    else if (key.indexOf('.Name') > -1 && key.indexOf('Pronoun') === -1) {
+      skaters[skaterId].name = value || '';
+    }
+    
+    updateRoster(teamNum);
+    updatePenalties(teamNum);
+  }
+
   function updateRoster(teamNum) {
     var skaters = teamNum === 1 ? team1Skaters : team2Skaters;
     var rosterDiv = $('#team' + teamNum + '-roster');
