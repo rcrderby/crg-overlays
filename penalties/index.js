@@ -10,6 +10,15 @@ $(function() {
     init();
   }
 
+  // Store player data for each team
+  var team1Skaters = {};
+  var team2Skaters = {};
+  var team1Name = '';
+  var team2Name = '';
+  var team1Logo = '';
+  var team2Logo = '';
+  var bothTeamsHaveLogos = false;
+
   // Initialize WebSocket listeners
   function init() {
     // WebSocket connection using CRG ScoreBoard API
