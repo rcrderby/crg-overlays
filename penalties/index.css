@@ -144,7 +144,30 @@ body {
   border: 1px solid black;
 }
 
-/* Placeholder for JavaScript-populated penalty code and individual count classes */
+.penalty-line {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  align-items: center;
+  border-bottom: 1px solid;
+  padding-bottom: 2px;
+}
+
+.penalty-codes {
+  text-align: left;
+  flex: 1;
+  margin-right: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.penalty-count {
+  text-align: right;
+  min-width: 40px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
 
 .penalty-total {
   background-color: black;
