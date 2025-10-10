@@ -66,7 +66,17 @@ $(function() {
     logoImg.src = 'banner-logo.png';
     
     // Initial render
-    // TODO
+    setTimeout(function() {
+      updateTeamNamesDisplay();
+      updatePenaltyColors(1);
+      updatePenaltyColors(2);
+      updateTournamentName();
+      updateClock();
+      updatePeriodInfo();
+      checkAndDisplayLogos();
+      updatePenaltyTotal(1, WS.state['ScoreBoard.CurrentGame.Team(1).TotalPenalties']);
+      updatePenaltyTotal(2, WS.state['ScoreBoard.CurrentGame.Team(2).TotalPenalties']);
+    }, 500);
   }
 
   function updateTeam(teamNum, key, value) {
