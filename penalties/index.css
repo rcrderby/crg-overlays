@@ -105,7 +105,24 @@ body {
   border: 1px solid black;
 }
 
-/* Placeholder for JavaScript-populated roster classes */
+.roster-line {
+  display: flex;
+  margin-bottom: 4px;
+  border-bottom: 1px solid white;
+  padding-bottom: 2px;
+}
+
+.roster-number {
+  text-align: right;
+  min-width: 60px;
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.roster-name {
+  text-align: left;
+  flex: 1;
+}
 
 .penalties-column {
   flex: 0.65;
