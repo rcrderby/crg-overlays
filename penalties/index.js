@@ -49,6 +49,25 @@ $(function() {
     // TODO
   }
 
+  function checkAndDisplayLogos() {
+    // Only display logos if both teams have them
+    if (team1Logo && team2Logo) {
+      if (!bothTeamsHaveLogos) {
+        bothTeamsHaveLogos = true;
+        $('#team1-logo').attr('src', team1Logo).show();
+        $('#team2-logo').attr('src', team2Logo).show();
+        $('.team-logo-container').show();
+      }
+    } else {
+      if (bothTeamsHaveLogos || team1Logo || team2Logo) {
+        bothTeamsHaveLogos = false;
+        $('#team1-logo').hide();
+        $('#team2-logo').hide();
+        $('.team-logo-container').hide();
+      }
+    }
+  }
+
   function updatePenaltyColors(teamNum) {
     var fgKey = 'ScoreBoard.CurrentGame.Team(' + teamNum + ').Color(whiteboard.fg)';
     var bgKey = 'ScoreBoard.CurrentGame.Team(' + teamNum + ').Color(whiteboard.bg)';
