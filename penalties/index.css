@@ -186,3 +186,15 @@ body {
   width: 100%;
   justify-content: center;
 }
+
+#custom-logo-space {
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: 20px;
+  top: 20px;
+}
