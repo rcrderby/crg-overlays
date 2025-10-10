@@ -104,3 +104,55 @@ body {
   line-height: 1.5;
   border: 1px solid black;
 }
+
+/* Placeholder for JavaScript-populated roster classes */
+
+.penalties-column {
+  flex: 0.65;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.penalties {
+  background-color: black;
+  color: white;
+  padding: 10px;
+  flex: 1;
+  overflow-y: auto;
+  font-size: 24px;
+  line-height: 1.5;
+  min-height: 0;
+  border: 1px solid black;
+}
+
+/* Placeholder for JavaScript-populated penalty code and individual count classes */
+
+.penalty-total {
+  background-color: black;
+  color: white;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 24px;
+  font-weight: bold;
+  border: 1px solid black;
+}
+
+/* Placeholder for JavaScript-populated total penalty count class */
+
+#game-info {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.game-info-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: auto;
+  max-width: 90%;
+}
