@@ -47,6 +47,9 @@ $(function() {
     WS.Register(['ScoreBoard.CurrentGame.Team(2).TotalPenalties'], function(k, v) { updatePenaltyTotal(2, v); });
   }
 
-  // Start initialization when WS is ready
+  // Render initial data
+  // TODO
+
+  // Start init function when WS is ready
   waitForWS();
 });
