@@ -17,7 +17,7 @@ $(function() {
     WS.Connect();
     WS.AutoRegister();
 
-    // Listen for current game team data
+    // Listen for team data
     WS.Register(['ScoreBoard.CurrentGame.Team(1)'], function(k, v) { updateTeam(1, k, v); });
     WS.Register(['ScoreBoard.CurrentGame.Team(2)'], function(k, v) { updateTeam(2, k, v); });
 
@@ -34,11 +34,11 @@ $(function() {
     // Listen for event/tournament name
     WS.Register(['ScoreBoard.CurrentGame.EventInfo(Tournament)'], updateTournamentName);
     
-    // Listen for players in the current game
+    // Listen for players
     WS.Register(['ScoreBoard.CurrentGame.Team(1).Skater(*)'], function(k, v) { updateSkater(1, k, v); });
     WS.Register(['ScoreBoard.CurrentGame.Team(2).Skater(*)'], function(k, v) { updateSkater(2, k, v); });
 
-    // Listen for player penalties in the current game
+    // Listen for player penalties
     WS.Register(['ScoreBoard.CurrentGame.Team(1).Skater(*).Penalty(*)'], function(k, v) { updatePenalties(1); });
     WS.Register(['ScoreBoard.CurrentGame.Team(2).Skater(*).Penalty(*)'], function(k, v) { updatePenalties(2); });
 
