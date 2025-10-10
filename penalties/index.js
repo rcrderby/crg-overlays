@@ -20,6 +20,14 @@ $(function() {
     // Listen for current game team data
     WS.Register(['ScoreBoard.CurrentGame.Team(1)'], function(k, v) { updateTeam(1, k, v); });
     WS.Register(['ScoreBoard.CurrentGame.Team(2)'], function(k, v) { updateTeam(2, k, v); });
+
+    // Listen for clocks of different types
+    WS.Register(['ScoreBoard.CurrentGame.Clock(Intermission)'], updateClock);
+    WS.Register(['ScoreBoard.CurrentGame.Clock(Period)'], updateClock);
+    WS.Register(['ScoreBoard.CurrentGame.Clock(Jam)'], updateClock);
+    WS.Register(['ScoreBoard.CurrentGame.Clock(Lineup)'], updateClock);
+    WS.Register(['ScoreBoard.CurrentGame.Clock(Timeout)'], updateClock);
+    
   }
 
   // Start initialization when WS is ready
