@@ -49,6 +49,33 @@ $(function() {
     // TODO
   }
 
+  function updatePenalties(teamNum) {
+    var skaters = teamNum === 1 ? team1Skaters : team2Skaters;
+    
+    // Clear penalty lists for all skaters
+    Object.keys(skaters).forEach(function(skaterId) {
+      skaters[skaterId].penalties = [];
+    });
+    
+    // Get all penalties from WebSocket state
+    var stateKeys = Object.keys(WS.state);
+    var penaltyPattern = new RegExp('ScoreBoard\\.CurrentGame\\.Team\\(' + teamNum + '\\)\\.Skater\\(([^)]+)\\)\\.Penalty\\(([^)]+)\\)\\.Code');
+    
+    stateKeys.forEach(function(key) {
+      var match = key.match(penaltyPattern);
+      if (match) {
+        var skaterId = match[1];
+        var code = WS.state[key];
+        
+        if (skaters[skaterId] && code) {
+          skaters[skaterId].penalties.push(code);
+        }
+      }
+    });
+    
+    renderPenalties(teamNum);
+  }
+
   function renderPenalties(teamNum) {
     var skaters = teamNum === 1 ? team1Skaters : team2Skaters;
     var penaltiesDiv = $('#team' + teamNum + '-penalties');
