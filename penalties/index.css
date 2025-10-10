@@ -241,3 +241,11 @@ body {
   margin-top: 0;
   min-width: 200px;
 }
+
+#game-clock {
+  font-size: 42px;
+  font-weight: bold;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  min-width: 200px;
+}
