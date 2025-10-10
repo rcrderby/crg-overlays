@@ -204,14 +204,19 @@ $(function() {
     sortedSkaters.forEach(function(skater) {
       if (skater.number || skater.name) {
         rosterHtml += '<div class="roster-line">' +
-                     '<div class="roster-number">' + (skater.number || '') + '</div>' +
-                     '<div class="roster-name">' + (skater.name || '') + '</div>' +
-                     '</div>';
+                    '<div class="roster-number">' + (skater.number || '') + '</div>' +
+                    '<div class="roster-name">' + (skater.name || '') + '</div>' +
+                    '</div>';
         
-        var codes = skater.penalties.length > 0 ? skater.penalties.join(' ') : '';
+        // Filter out FO and EXP codes from display
+        var displayCodes = skater.penalties.filter(function(code) {
+          return code !== 'FO' && code !== 'EXP';
+        });
+        var codes = displayCodes.length > 0 ? displayCodes.join(' ') : '';
+        
         penaltiesHtml += '<div class="penalty-line">' +
                         '<div class="penalty-codes">' + codes + '</div>' +
-                        '<div class="penalty-count">' + (skater.penalties.length || '0') + '</div>' +
+                        '<div class="penalty-count">' + (displayCodes.length || '0') + '</div>' +
                         '</div>';
       }
     });
