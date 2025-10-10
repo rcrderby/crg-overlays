@@ -50,6 +50,49 @@ $(function() {
   // Render initial data
   // TODO
 
+  function updatePeriodInfo() {
+    var inPeriod = WS.state['ScoreBoard.CurrentGame.InPeriod'] === 'true';
+    var currentPeriod = WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber'] || '0';
+    var inOvertime = WS.state['ScoreBoard.CurrentGame.InOvertime'] === 'true';
+    var officialScore = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === 'true';
+    var state = WS.state['ScoreBoard.CurrentGame.State'];
+    
+    // Get the current intermission label if available
+    var intermissionLabel = '';
+    var labelKeys = Object.keys(WS.state);
+    for (var i = 0; i < labelKeys.length; i++) {
+      if (labelKeys[i].indexOf('ScoreBoard.CurrentGame.Label(') === 0) {
+        var labelType = labelKeys[i].match(/Label\(([^)]+)\)/);
+        if (labelType && labelType[1] !== 'Replaced' && labelType[1] !== 'Undo') {
+          var labelValue = WS.state[labelKeys[i]];
+          if (labelValue && labelValue !== '---') {
+            // Check if this label matches current state
+            if (state === 'Prepared' && labelType[1] === 'Start') {
+              intermissionLabel = 'Time To Derby';
+              break;
+            }
+          }
+        }
+      }
+    }
+    
+    var text = '';
+    
+    if (officialScore) {
+      text = 'Final Score';
+    } else if (inOvertime) {
+      text = 'Overtime';
+    } else if (inPeriod && parseInt(currentPeriod) > 0) {
+      text = 'Period ' + currentPeriod;
+    } else if (state === 'Prepared') {
+      text = intermissionLabel || 'Time To Derby';
+    } else {
+      text = 'Intermission';
+    }
+    
+    $('#clock-label').text(text);
+  }
+
   function updateTournamentName() {
     var name = WS.state['ScoreBoard.CurrentGame.EventInfo(Tournament)'];
     if (name) {
