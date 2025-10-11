@@ -110,6 +110,7 @@ $(function() {
     if (key.includes('.AlternateName(whiteboard)') || (key.match(/\.Name$/) && !key.includes('AlternateName'))) {
       var altName = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)'];
       team.name.text(altName || value || 'Team ' + teamNum);
+      setTimeout(equalizeTeamBoxWidths, 10);
     } else if (key.match(/\.Score$/) && !key.includes('Skater')) {
       team.score.text(value || '0');
     } else if (key.match(/\.Logo$/)) {
@@ -192,6 +193,31 @@ $(function() {
         $elements.logoContainers.hide();
       }
     }
+  }
+
+  // Equalize team score block widths and set wrapper width
+  function equalizeTeamBoxWidths() {
+    // Temporarily remove width constraints to measure natural width
+    $('.team-score-block').css('width', 'auto');
+    
+    // Small delay to let the browser recalculate
+    setTimeout(function() {
+      var team1Width = $elements.team1.name.parent().outerWidth();
+      var team2Width = $elements.team2.name.parent().outerWidth();
+      var maxWidth = Math.max(team1Width, team2Width);
+      
+      // Set both boxes to the same width
+      $('.team-score-block').css('width', maxWidth + 'px');
+      
+      // Calculate total width needed
+      var vsClockWidth = $('#vs-clock-container').outerWidth();
+      var hasLogo = $('.game-info-wrapper').hasClass('has-logo');
+      var padding = hasLogo ? 280 : 40;
+      
+      var totalWidth = (maxWidth * 2) + vsClockWidth + padding;
+      
+      $('.game-info-wrapper').css('width', totalWidth + 'px');
+    }, 0);
   }
 
   // Sort skaters by number
@@ -419,6 +445,7 @@ $(function() {
       updateClock();
       updateGameState();
       checkAndDisplayLogos();
+      equalizeTeamBoxWidths();
       
     } catch(error) {
       console.error('Error during initialization:', error);

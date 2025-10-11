@@ -225,13 +225,8 @@ body {
 .game-info-wrapper {
   display: flex;
   flex-direction: column;
-  width: 50%;
+  width: auto;
   transition: width 0.3s ease;
-}
-
-/* Expand wrapper when custom logo is present */
-.game-info-wrapper.has-logo {
-  width: 68%;
 }
 
 #tournament-name {
@@ -290,7 +285,8 @@ body {
 .team-score-block {
   text-align: center;
   flex: 0 0 auto;
-  width: 350px;
+  width: auto;
+  min-width: 150px;
 }
 
 .team-name {
