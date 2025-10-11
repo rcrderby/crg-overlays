@@ -3,6 +3,9 @@
 $(function() {
   'use strict';
 
+  // Constants
+  const BANNER_LOGO_PATH = 'logos/banner-logo.png';
+
   // Cache DOM selectors
   var $elements = {
     team1: {
@@ -385,14 +388,14 @@ $(function() {
     var $wrapper = $('.game-info-wrapper');
     
     logoImg.onload = function() {
-      $elements.customLogoSpace.html('<img src="banner-logo.png" style="max-width: 100%; max-height: 100%; object-fit: contain;" />');
+      $elements.customLogoSpace.html('<img src="' + BANNER_LOGO_PATH + '" style="max-width: 100%; max-height: 100%; object-fit: contain;" />');
       $wrapper.addClass('has-logo');
     };
     logoImg.onerror = function() {
       $elements.customLogoSpace.empty();
       $wrapper.removeClass('has-logo');
     };
-    logoImg.src = 'banner-logo.png';
+    logoImg.src = BANNER_LOGO_PATH;
   }
 
   // Initialize display
