@@ -226,7 +226,7 @@ body {
   display: flex;
   flex-direction: column;
   width: auto;
-  max-width: 90%;
+  transition: width 0.3s ease;
 }
 
 #tournament-name {
@@ -248,15 +248,18 @@ body {
   background-color: #666666;
   color: white;
   padding: 20px;
-  padding-left: 140px;
-  padding-right: 140px;
-  padding-bottom: 20px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
   position: relative;
   min-height: 140px;
   width: 100%;
-  justify-content: center;
+}
+
+/* Add equal padding on both sides when logo is present to keep content centered */
+.game-info-wrapper.has-logo #game-details {
+  padding-left: 140px;
+  padding-right: 140px;
 }
 
 #custom-logo-space {
@@ -268,20 +271,21 @@ body {
   justify-content: center;
   position: absolute;
   left: 20px;
-  top: 20px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 #teams-scores {
-  flex: 1;
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
   align-items: flex-start;
-  gap: 20px;
+  width: 100%;
 }
 
 .team-score-block {
   text-align: center;
   flex: 0 0 auto;
+  width: auto;
   min-width: 150px;
 }
 
@@ -290,6 +294,8 @@ body {
   font-weight: bold;
   margin-bottom: 5px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #vs-clock-container {
@@ -298,20 +304,20 @@ body {
   align-items: center;
   flex-shrink: 0;
   justify-content: flex-start;
-  min-width: 200px;
+  width: 200px;
   gap: 0;
-  position: relative;
 }
 
 .vs-text {
-  font-size: 20px;
+  font-size: 28px;
   margin-bottom: 5px;
   text-align: center;
+  width: 100%;
 }
 
 #clock-container {
   margin-top: 0;
-  min-width: 200px;
+  width: 100%;
 }
 
 #game-clock {
@@ -319,7 +325,7 @@ body {
   font-weight: bold;
   text-align: center;
   font-variant-numeric: tabular-nums;
-  min-width: 200px;
+  width: 100%;
 }
 
 #period-info {
@@ -328,6 +334,7 @@ body {
   font-weight: bold;
   margin-top: 5px;
   text-align: center;
+  width: 100%;
 }
 
 .score {

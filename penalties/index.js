@@ -3,6 +3,9 @@
 $(function() {
   'use strict';
 
+  // Constants
+  const BANNER_LOGO_PATH = 'logos/banner-logo.png';
+
   // Cache DOM selectors
   var $elements = {
     team1: {
@@ -104,9 +107,10 @@ $(function() {
     var teamNum = parseInt(match[1]);
     var team = $elements['team' + teamNum];
     
-    if (key.includes('.AlternateName(operator)') || (key.match(/\.Name$/) && !key.includes('AlternateName'))) {
-      var altName = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(operator)'];
+    if (key.includes('.AlternateName(whiteboard)') || (key.match(/\.Name$/) && !key.includes('AlternateName'))) {
+      var altName = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)'];
       team.name.text(altName || value || 'Team ' + teamNum);
+      setTimeout(equalizeTeamBoxWidths, 10);
     } else if (key.match(/\.Score$/) && !key.includes('Skater')) {
       team.score.text(value || '0');
     } else if (key.match(/\.Logo$/)) {
@@ -191,6 +195,31 @@ $(function() {
     }
   }
 
+  // Equalize team score block widths and set wrapper width
+  function equalizeTeamBoxWidths() {
+    // Temporarily remove width constraints to measure natural width
+    $('.team-score-block').css('width', 'auto');
+    
+    // Small delay to let the browser recalculate
+    setTimeout(function() {
+      var team1Width = $elements.team1.name.parent().outerWidth();
+      var team2Width = $elements.team2.name.parent().outerWidth();
+      var maxWidth = Math.max(team1Width, team2Width);
+      
+      // Set both boxes to the same width
+      $('.team-score-block').css('width', maxWidth + 'px');
+      
+      // Calculate total width needed
+      var vsClockWidth = $('#vs-clock-container').outerWidth();
+      var hasLogo = $('.game-info-wrapper').hasClass('has-logo');
+      var padding = hasLogo ? 280 : 40;
+      
+      var totalWidth = (maxWidth * 2) + vsClockWidth + padding;
+      
+      $('.game-info-wrapper').css('width', totalWidth + 'px');
+    }, 0);
+  }
+
   // Sort skaters by number
   function sortSkaters(skaters) {
     return Object.values(skaters).sort(function(a, b) {
@@ -269,22 +298,24 @@ $(function() {
     try {
       var state = WS.state;
       var officialScore = isTrue(state['ScoreBoard.CurrentGame.OfficialScore']);
-      var inPeriod = isTrue(state['ScoreBoard.CurrentGame.InPeriod']);
-      var gameState = state['ScoreBoard.CurrentGame.State'];
       var currentPeriod = parseInt(state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
-      var intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']);
+      var intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']) || 0;
+      var periodTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Period).Time']) || 0;
       var numPeriods = parseInt(state['ScoreBoard.CurrentGame.Rule(Period.Number)']) || 2;
+      var intermissionRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']);
       
-      // Check if game is completely over (finished all periods)
-      var gameOver = !inPeriod && currentPeriod >= numPeriods;
+      // Game is over - hide clock
+      // Only when we're past all periods, OR at final period with intermission running (post-game)
+      var gameOver = currentPeriod > numPeriods || 
+                    (currentPeriod >= numPeriods && (intermissionRunning || intermissionTime > 0));
       
       if (officialScore || gameOver) {
         $elements.gameClock.html('&nbsp;');
         return;
       }
       
-      // Time to Derby phase
-      if (gameState === 'Prepared' || currentPeriod === 0) {
+      // Before game starts (Time to Derby)
+      if (currentPeriod === 0) {
         if (intermissionTime <= 0) {
           $elements.gameClock.html('&nbsp;');
         } else {
@@ -293,28 +324,14 @@ $(function() {
         return;
       }
       
-      // Determine which clock to show
-      var clockRunning = {
-        intermission: isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']),
-        timeout: isTrue(state['ScoreBoard.CurrentGame.Clock(Timeout).Running']),
-        lineup: isTrue(state['ScoreBoard.CurrentGame.Clock(Lineup).Running']),
-        jam: isTrue(state['ScoreBoard.CurrentGame.Clock(Jam).Running'])
-      };
-      
-      var time;
-      if (clockRunning.timeout) {
-        time = state['ScoreBoard.CurrentGame.Clock(Timeout).Time'];
-      } else if (clockRunning.lineup) {
-        time = state['ScoreBoard.CurrentGame.Clock(Lineup).Time'];
-      } else if (clockRunning.jam) {
-        time = state['ScoreBoard.CurrentGame.Clock(Jam).Time'];
-      } else if (clockRunning.intermission || (!inPeriod && intermissionTime > 0)) {
-        time = state['ScoreBoard.CurrentGame.Clock(Intermission).Time'];
-      } else {
-        time = state['ScoreBoard.CurrentGame.Clock(Period).Time'];
+      // Between periods (intermission running with time)
+      if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionTime > 0) {
+        $elements.gameClock.text(formatTime(intermissionTime));
+        return;
       }
       
-      $elements.gameClock.text(time ? formatTime(parseInt(time)) : '0:00');
+      // During a period or waiting to start a period - show period clock
+      $elements.gameClock.text(formatTime(periodTime));
       
     } catch(error) {
       console.error('Error updating clock:', error);
@@ -333,12 +350,12 @@ $(function() {
   function updateGameState() {
     try {
       var state = WS.state;
-      var inPeriod = isTrue(state['ScoreBoard.CurrentGame.InPeriod']);
       var currentPeriod = parseInt(state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
       var inOvertime = isTrue(state['ScoreBoard.CurrentGame.InOvertime']);
       var officialScore = isTrue(state['ScoreBoard.CurrentGame.OfficialScore']);
-      var intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']);
+      var intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']) || 0;
       var numPeriods = parseInt(state['ScoreBoard.CurrentGame.Rule(Period.Number)']) || 2;
+      var intermissionRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']);
       
       // Read intermission labels
       var labels = {
@@ -348,41 +365,27 @@ $(function() {
         official: state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)'] || 'Final Score'
       };
       
-      var clockRunning = {
-        intermission: isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']),
-        timeout: isTrue(state['ScoreBoard.CurrentGame.Clock(Timeout).Running']),
-        lineup: isTrue(state['ScoreBoard.CurrentGame.Clock(Lineup).Running']),
-        jam: isTrue(state['ScoreBoard.CurrentGame.Clock(Jam).Running'])
-      };
-      
-      // Determine if game is over (all periods completed)
-      var gameOver = currentPeriod >= numPeriods && !inPeriod;
+      // Game is over when past all periods OR at final period with post-game intermission
+      var gameOver = currentPeriod > numPeriods || 
+                    (currentPeriod >= numPeriods && (intermissionRunning || intermissionTime > 0));
       
       var text = '';
       
-      // Check for final/unofficial score first
+      // Determine label
       if (officialScore) {
         text = labels.official;
       } else if (gameOver) {
-        // Game is over but score not yet official
         text = labels.unofficial;
       } else if (inOvertime) {
         text = 'Overtime';
-      } else if (clockRunning.timeout) {
-        text = state['ScoreBoard.CurrentGame.Clock(Timeout).Name'] || 'Timeout';
-      } else if (clockRunning.lineup) {
-        text = state['ScoreBoard.CurrentGame.Clock(Lineup).Name'] || 'Lineup';
-      } else if (clockRunning.jam) {
-        text = state['ScoreBoard.CurrentGame.Clock(Jam).Name'] || 'Jam';
-      } else if ((clockRunning.intermission || intermissionTime > 0) && currentPeriod > 0 && currentPeriod < numPeriods && !inPeriod) {
-        // Between periods only (not after final period)
+      } else if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionTime > 0) {
         text = labels.intermission;
       } else if (currentPeriod > 0 && currentPeriod <= numPeriods) {
-        // Show period label when in any valid period
         text = 'Period ' + currentPeriod;
-      } else if (currentPeriod === 0) {
-        // Before game starts
-        text = intermissionTime <= 0 ? 'Coming Up' : labels.preGame;
+      } else if (currentPeriod === 0 && intermissionTime > 0) {
+        text = labels.preGame;
+      } else if (currentPeriod === 0 && intermissionTime <= 0) {
+        text = 'Coming Up';
       } else {
         text = labels.intermission;
       }
@@ -408,13 +411,17 @@ $(function() {
   // Load custom logo
   function loadCustomLogo() {
     var logoImg = new Image();
+    var $wrapper = $('.game-info-wrapper');
+    
     logoImg.onload = function() {
-      $elements.customLogoSpace.html('<img src="banner-logo.png" style="max-width: 100%; max-height: 100%; object-fit: contain;" />');
+      $elements.customLogoSpace.html('<img src="' + BANNER_LOGO_PATH + '" style="max-width: 100%; max-height: 100%; object-fit: contain;" />');
+      $wrapper.addClass('has-logo');
     };
     logoImg.onerror = function() {
       $elements.customLogoSpace.empty();
+      $wrapper.removeClass('has-logo');
     };
-    logoImg.src = 'banner-logo.png';
+    logoImg.src = BANNER_LOGO_PATH;
   }
 
   // Initialize display
@@ -424,7 +431,7 @@ $(function() {
       
       // Initialize team names
       [1, 2].forEach(function(teamNum) {
-        var altName = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(operator)'];
+        var altName = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)'];
         var name = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name'];
         $elements['team' + teamNum].name.text(altName || name || 'Team ' + teamNum);
         
@@ -438,6 +445,7 @@ $(function() {
       updateClock();
       updateGameState();
       checkAndDisplayLogos();
+      equalizeTeamBoxWidths();
       
     } catch(error) {
       console.error('Error during initialization:', error);
