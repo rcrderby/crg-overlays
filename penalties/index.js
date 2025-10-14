@@ -44,6 +44,23 @@ $(function() {
     return value === true || value === 'true';
   }
 
+  // Helper function to check if game start time is in the past
+  function isStartTimeInPast() {
+    var startDate = WS.state['ScoreBoard.CurrentGame.EventInfo(Date)'];
+    var startTime = WS.state['ScoreBoard.CurrentGame.EventInfo(StartTime)'];
+    
+    if (!startDate || !startTime) {
+      return false;
+    }
+    
+    try {
+      var startDateTime = new Date(startDate + 'T' + startTime);
+      return startDateTime < new Date();
+    } catch(e) {
+      return false;
+    }
+  }
+
   // Debounce helper
   function debounce(func, wait) {
     var timeout;
@@ -87,6 +104,10 @@ $(function() {
 
       // Tournament info
       WS.Register(['ScoreBoard.CurrentGame.EventInfo(Tournament)'], updateTournamentName);
+      
+      // Event info for start time checking
+      WS.Register(['ScoreBoard.CurrentGame.EventInfo(Date)'], updateGameState);
+      WS.Register(['ScoreBoard.CurrentGame.EventInfo(StartTime)'], updateGameState);
       
       loadCustomLogo();
       setTimeout(initializeDisplay, 200);
@@ -316,7 +337,8 @@ $(function() {
       
       // Before game starts (Time to Derby)
       if (currentPeriod === 0) {
-        if (intermissionTime <= 0) {
+        // If start time is in the past OR no time left, don't show countdown
+        if (intermissionTime <= 0 || isStartTimeInPast()) {
           $elements.gameClock.html('&nbsp;');
         } else {
           $elements.gameClock.text(formatTime(intermissionTime));
@@ -382,9 +404,9 @@ $(function() {
         text = labels.intermission;
       } else if (currentPeriod > 0 && currentPeriod <= numPeriods) {
         text = 'Period ' + currentPeriod;
-      } else if (currentPeriod === 0 && intermissionTime > 0) {
+      } else if (currentPeriod === 0 && intermissionTime > 0 && !isStartTimeInPast()) {
         text = labels.preGame;
-      } else if (currentPeriod === 0 && intermissionTime <= 0) {
+      } else if (currentPeriod === 0) {
         text = 'Coming Up';
       } else {
         text = labels.intermission;
