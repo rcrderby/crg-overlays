@@ -206,7 +206,7 @@ $(function() {
     
     if (key.includes('.AlternateName(whiteboard)') || (REGEX_PATTERNS.teamName.test(key) && !key.includes('AlternateName') && !key.includes('.Skater('))) {
       var altName = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)'];
-      team.name.text(altName || value || 'Team ' + teamNum);
+      team.name.text(altName || value || '');
       updateQueue.schedule(equalizeTeamBoxWidths);
     } else if (REGEX_PATTERNS.teamScore.test(key) && !key.includes('Skater')) {
       team.score.text(value || '0');
@@ -563,7 +563,7 @@ $(function() {
         var name = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name'];
         var total = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').TotalPenalties'];
         
-        $elements['team' + teamNum].name.text(altName || name || 'Team ' + teamNum);
+        $elements['team' + teamNum].name.text(altName || name || '');
         $elements['team' + teamNum].total.text(total || '0');
         
         updateTeamColors(teamNum);
@@ -575,6 +575,17 @@ $(function() {
       updateGameState();
       checkAndDisplayLogos();
       equalizeTeamBoxWidths();
+      
+      // After a delay, set default names if still empty
+      setTimeout(function() {
+        for (var teamNum = 1; teamNum <= 2; teamNum++) {
+          var currentText = $elements['team' + teamNum].name.text();
+          if (!currentText || currentText.trim() === '') {
+            $elements['team' + teamNum].name.text('Team ' + teamNum);
+            updateQueue.schedule(equalizeTeamBoxWidths);
+          }
+        }
+      }, 500);
       
     } catch(error) {
       console.error('Error during initialization:', error);
