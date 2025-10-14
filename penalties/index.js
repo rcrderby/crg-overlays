@@ -123,6 +123,30 @@ $(function() {
     }
   };
 
+  // Helper function to determine penalty count CSS class
+  function getPenaltyCountClass(penalties, displayCount) {
+    // Check for expelled status (EXP code)
+    if (penalties.indexOf('EXP') !== -1) {
+      return 'penalty-count-expelled';
+    }
+    
+    // Check for fouled out (FO code or 7+ penalties)
+    if (penalties.indexOf('FO') !== -1 || penalties.length >= 7) {
+      return 'penalty-count-foulout';
+    }
+    
+    // Color code based on display count (excluding FO and EXP)
+    if (displayCount === 6) {
+      return 'penalty-count-6';
+    }
+    
+    if (displayCount === 5) {
+      return 'penalty-count-5';
+    }
+    
+    return '';
+  }
+
   // Wait for WS to be loaded
   function waitForWS() {
     if (typeof WS === 'undefined') {
@@ -326,13 +350,15 @@ $(function() {
     for (var i = 0; i < sortedSkaters.length; i++) {
       var skater = sortedSkaters[i];
       
-      if (!skater.number && !skater.name) continue;
+      // Skip skaters that don't have both number and name
+      // This prevents ghost entries from appearing
+      if (!skater.number || !skater.name) continue;
       
       // Build roster HTML
       rosterParts.push(
         '<div class="roster-line">',
-        '<div class="roster-number">', skater.number || '', '</div>',
-        '<div class="roster-name">', skater.name || '', '</div>',
+        '<div class="roster-number">', skater.number, '</div>',
+        '<div class="roster-name">', skater.name, '</div>',
         '</div>'
       );
       
@@ -346,12 +372,15 @@ $(function() {
       }
       
       var codes = displayCodes.join(' ');
-      var count = displayCodes.length || 0;
+      var displayCount = displayCodes.length;
+      
+      // Get the appropriate CSS class for the penalty count
+      var countClass = getPenaltyCountClass(skater.penalties, displayCount);
       
       penaltyParts.push(
         '<div class="penalty-line">',
         '<div class="penalty-codes">', codes, '</div>',
-        '<div class="penalty-count">', count, '</div>',
+        '<div class="penalty-count ', countClass, '">', displayCount, '</div>',
         '</div>'
       );
     }
