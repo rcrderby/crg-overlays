@@ -112,7 +112,7 @@ body {
   line-height: 1.5;
 }
 
-/* Team-specific roster styles - inherit custom colors from 'whiteboard' */
+/* Team-specific roster styles - inherit custom colors */
 #team1-roster {
   background-color: var(--team1-bg);
   color: var(--team1-fg);
@@ -130,6 +130,14 @@ body {
   margin-bottom: 4px;
   border-bottom: 1px solid;
   padding-bottom: 2px;
+}
+
+/* Text shadow for roster and penalty text */
+.roster-number,
+.roster-name,
+.penalty-codes,
+.penalty-count {
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4), 0 0 4px rgba(0, 0, 0, 0.5);
 }
 
 .roster-number {
