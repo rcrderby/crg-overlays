@@ -103,21 +103,32 @@ body {
   flex: 1;
 }
 
+/* Base roster styles - shared properties */
 .roster {
-  background-color: black;
-  color: white;
   padding: 10px;
   flex: 1;
   overflow-y: auto;
   font-size: 24px;
   line-height: 1.5;
-  border: 1px solid black;
+}
+
+/* Team-specific roster styles - inherit custom colors from 'whiteboard' */
+#team1-roster {
+  background-color: var(--team1-bg);
+  color: var(--team1-fg);
+  border: 1px solid var(--team1-border);
+}
+
+#team2-roster {
+  background-color: var(--team2-bg);
+  color: var(--team2-fg);
+  border: 1px solid var(--team2-border);
 }
 
 .roster-line {
   display: flex;
   margin-bottom: 4px;
-  border-bottom: 1px solid white;
+  border-bottom: 1px solid;
   padding-bottom: 2px;
 }
 
@@ -141,28 +152,29 @@ body {
   min-width: 0;
 }
 
+/* Team penalties - fixed black background with white text */
 #team1-penalties {
-  background-color: var(--team1-bg);
-  color: var(--team1-fg);
+  background-color: black;
+  color: white;
   padding: 10px;
   flex: 1;
   overflow-y: auto;
   font-size: 24px;
   line-height: 1.5;
   min-height: 0;
-  border: 1px solid var(--team1-border);
+  border: 1px solid white;
 }
 
 #team2-penalties {
-  background-color: var(--team2-bg);
-  color: var(--team2-fg);
+  background-color: black;
+  color: white;
   padding: 10px;
   flex: 1;
   overflow-y: auto;
   font-size: 24px;
   line-height: 1.5;
   min-height: 0;
-  border: 1px solid var(--team2-border);
+  border: 1px solid white;
 }
 
 .penalty-line {
