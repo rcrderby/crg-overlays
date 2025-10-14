@@ -204,7 +204,7 @@ $(function() {
     var teamNum = parseInt(match[1]);
     var team = $elements['team' + teamNum];
     
-    if (key.includes('.AlternateName(whiteboard)') || (REGEX_PATTERNS.teamName.test(key) && !key.includes('AlternateName'))) {
+    if (key.includes('.AlternateName(whiteboard)') || (REGEX_PATTERNS.teamName.test(key) && !key.includes('AlternateName') && !key.includes('.Skater('))) {
       var altName = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)'];
       team.name.text(altName || value || 'Team ' + teamNum);
       updateQueue.schedule(equalizeTeamBoxWidths);
