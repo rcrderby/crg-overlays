@@ -5,6 +5,21 @@ $(function() {
 
   // Constants
   const BANNER_LOGO_PATH = 'logos/banner-logo.png';
+  const FILTERED_PENALTY_CODES = ['FO', 'EXP'];
+  
+  // Cached regex patterns
+  const REGEX_PATTERNS = {
+    teamNumber: /Team\((\d+)\)/,
+    teamScore: /\.Score$/,
+    teamLogo: /\.Logo$/,
+    teamColor: /\.Color\(whiteboard\./,
+    teamPenalties: /\.TotalPenalties/,
+    teamName: /\.Name$/,
+    skaterNumber: /\.RosterNumber/,
+    skaterName: /\.Name/,
+    skaterNameExclude: /Pronoun/,
+    skaterPattern: /Team\((\d+)\)\.Skater\(([^)]+)\)/
+  };
 
   // Cache DOM selectors
   var $elements = {
@@ -28,7 +43,10 @@ $(function() {
     tournamentName: $('#tournament-name'),
     gameClock: $('#game-clock'),
     periodInfo: $('#period-info'),
-    customLogoSpace: $('#custom-logo-space')
+    customLogoSpace: $('#custom-logo-space'),
+    teamScoreBlocks: $('.team-score-block'),
+    vsClockContainer: $('#vs-clock-container'),
+    gameInfoWrapper: $('.game-info-wrapper')
   };
 
   // Store skater data for each team
@@ -38,25 +56,40 @@ $(function() {
   };
   var bothTeamsHaveLogos = false;
   var root = document.documentElement;
+  var startTimePastCache = null;
+  var startTimeCacheExpiry = 0;
 
   // Helper function to check boolean values from WebSocket
   function isTrue(value) {
     return value === true || value === 'true';
   }
 
-  // Helper function to check if game start time is in the past
+  // Helper function to check if game start time is in the past (with caching)
   function isStartTimeInPast() {
+    var now = Date.now();
+    
+    // Return cached value if still valid (cache for 30 seconds)
+    if (startTimePastCache !== null && now < startTimeCacheExpiry) {
+      return startTimePastCache;
+    }
+    
     var startDate = WS.state['ScoreBoard.CurrentGame.EventInfo(Date)'];
     var startTime = WS.state['ScoreBoard.CurrentGame.EventInfo(StartTime)'];
     
     if (!startDate || !startTime) {
+      startTimePastCache = false;
+      startTimeCacheExpiry = now + 30000;
       return false;
     }
     
     try {
       var startDateTime = new Date(startDate + 'T' + startTime);
-      return startDateTime < new Date();
+      startTimePastCache = startDateTime < new Date();
+      startTimeCacheExpiry = now + 30000;
+      return startTimePastCache;
     } catch(e) {
+      startTimePastCache = false;
+      startTimeCacheExpiry = now + 30000;
       return false;
     }
   }
@@ -70,6 +103,25 @@ $(function() {
       timeout = setTimeout(function() { func.apply(context, args); }, wait);
     };
   }
+
+  // Batch update helper for reducing reflows
+  var updateQueue = {
+    pending: false,
+    callbacks: [],
+    schedule: function(callback) {
+      this.callbacks.push(callback);
+      if (!this.pending) {
+        this.pending = true;
+        requestAnimationFrame(this.flush.bind(this));
+      }
+    },
+    flush: function() {
+      var callbacks = this.callbacks;
+      this.callbacks = [];
+      this.pending = false;
+      callbacks.forEach(function(cb) { cb(); });
+    }
+  };
 
   // Wait for WS to be loaded
   function waitForWS() {
@@ -122,31 +174,31 @@ $(function() {
 
   // Unified team update handler
   function handleTeamUpdate(key, value) {
-    var match = key.match(/Team\((\d+)\)/);
+    var match = key.match(REGEX_PATTERNS.teamNumber);
     if (!match) return;
     
     var teamNum = parseInt(match[1]);
     var team = $elements['team' + teamNum];
     
-    if (key.includes('.AlternateName(whiteboard)') || (key.match(/\.Name$/) && !key.includes('AlternateName'))) {
+    if (key.includes('.AlternateName(whiteboard)') || (REGEX_PATTERNS.teamName.test(key) && !key.includes('AlternateName'))) {
       var altName = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)'];
       team.name.text(altName || value || 'Team ' + teamNum);
-      setTimeout(equalizeTeamBoxWidths, 10);
-    } else if (key.match(/\.Score$/) && !key.includes('Skater')) {
+      updateQueue.schedule(equalizeTeamBoxWidths);
+    } else if (REGEX_PATTERNS.teamScore.test(key) && !key.includes('Skater')) {
       team.score.text(value || '0');
-    } else if (key.match(/\.Logo$/)) {
+    } else if (REGEX_PATTERNS.teamLogo.test(key)) {
       teams[teamNum].logo = value || '';
       checkAndDisplayLogos();
-    } else if (key.includes('.Color(whiteboard.')) {
-      setTimeout(function() { updateTeamColors(teamNum); }, 50);
-    } else if (key.includes('.TotalPenalties')) {
+    } else if (REGEX_PATTERNS.teamColor.test(key)) {
+      updateQueue.schedule(function() { updateTeamColors(teamNum); });
+    } else if (REGEX_PATTERNS.teamPenalties.test(key)) {
       team.total.text(value || '0');
     }
   }
 
   // Unified skater update handler
   function handleSkaterUpdate(key, value) {
-    var match = key.match(/Team\((\d+)\)\.Skater\(([^)]+)\)/);
+    var match = key.match(REGEX_PATTERNS.skaterPattern);
     if (!match) return;
     
     var teamNum = parseInt(match[1]);
@@ -157,10 +209,10 @@ $(function() {
       skaters[skaterId] = { id: skaterId, number: '', name: '', penalties: [] };
     }
     
-    if (key.includes('.RosterNumber')) {
+    if (REGEX_PATTERNS.skaterNumber.test(key)) {
       skaters[skaterId].number = value || '';
       updateRosterAndPenalties(teamNum);
-    } else if (key.includes('.Name') && !key.includes('Pronoun')) {
+    } else if (REGEX_PATTERNS.skaterName.test(key) && !REGEX_PATTERNS.skaterNameExclude.test(key)) {
       skaters[skaterId].name = value || '';
       updateRosterAndPenalties(teamNum);
     }
@@ -168,7 +220,7 @@ $(function() {
 
   // Handle penalty updates
   function handlePenaltyUpdate(key, value) {
-    var match = key.match(/Team\((\d+)\)/);
+    var match = key.match(REGEX_PATTERNS.teamNumber);
     if (match) {
       updatePenalties(parseInt(match[1]));
     }
@@ -176,25 +228,26 @@ $(function() {
 
   // Update team colors
   function updateTeamColors(teamNum) {
-    var fgColor = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Color(whiteboard.fg)'];
-    var bgColor = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Color(whiteboard.bg)'];
+    var state = WS.state;
+    var fgColor = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Color(whiteboard.fg)'];
+    var bgColor = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Color(whiteboard.bg)'];
+    var colors = teams[teamNum].colors;
     
-    if (teams[teamNum].colors.fg === fgColor && teams[teamNum].colors.bg === bgColor) {
+    // Skip if colors haven't changed
+    if (colors.fg === fgColor && colors.bg === bgColor) {
       return;
     }
     
-    teams[teamNum].colors.fg = fgColor;
-    teams[teamNum].colors.bg = bgColor;
+    colors.fg = fgColor;
+    colors.bg = bgColor;
     
-    if (fgColor && bgColor) {
-      root.style.setProperty('--team' + teamNum + '-fg', fgColor);
-      root.style.setProperty('--team' + teamNum + '-bg', bgColor);
-      root.style.setProperty('--team' + teamNum + '-border', fgColor);
-    } else {
-      root.style.setProperty('--team' + teamNum + '-fg', 'white');
-      root.style.setProperty('--team' + teamNum + '-bg', 'black');
-      root.style.setProperty('--team' + teamNum + '-border', 'white');
-    }
+    // Use default colors if not set
+    var finalFg = fgColor || 'white';
+    var finalBg = bgColor || 'black';
+    
+    root.style.setProperty('--team' + teamNum + '-fg', finalFg);
+    root.style.setProperty('--team' + teamNum + '-bg', finalBg);
+    root.style.setProperty('--team' + teamNum + '-border', finalFg);
   }
 
   // Check and display logos
@@ -219,97 +272,124 @@ $(function() {
   // Equalize team score block widths and set wrapper width
   function equalizeTeamBoxWidths() {
     // Temporarily remove width constraints to measure natural width
-    $('.team-score-block').css('width', 'auto');
+    $elements.teamScoreBlocks.css('width', 'auto');
     
-    // Small delay to let the browser recalculate
-    setTimeout(function() {
+    // Use requestAnimationFrame for next frame calculation
+    requestAnimationFrame(function() {
       var team1Width = $elements.team1.name.parent().outerWidth();
       var team2Width = $elements.team2.name.parent().outerWidth();
       var maxWidth = Math.max(team1Width, team2Width);
       
       // Set both boxes to the same width
-      $('.team-score-block').css('width', maxWidth + 'px');
+      $elements.teamScoreBlocks.css('width', maxWidth + 'px');
       
       // Calculate total width needed
-      var vsClockWidth = $('#vs-clock-container').outerWidth();
-      var hasLogo = $('.game-info-wrapper').hasClass('has-logo');
+      var vsClockWidth = $elements.vsClockContainer.outerWidth();
+      var hasLogo = $elements.gameInfoWrapper.hasClass('has-logo');
       var padding = hasLogo ? 280 : 40;
       
       var totalWidth = (maxWidth * 2) + vsClockWidth + padding;
       
-      $('.game-info-wrapper').css('width', totalWidth + 'px');
-    }, 0);
-  }
-
-  // Sort skaters by number
-  function sortSkaters(skaters) {
-    return Object.values(skaters).sort(function(a, b) {
-      var numA = a.number === '' ? Infinity : (isNaN(a.number) ? a.number : parseInt(a.number));
-      var numB = b.number === '' ? Infinity : (isNaN(b.number) ? b.number : parseInt(b.number));
-      if (typeof numA === 'number' && typeof numB === 'number') {
-        return numA - numB;
-      }
-      return String(numA).localeCompare(String(numB));
+      $elements.gameInfoWrapper.css('width', totalWidth + 'px');
     });
   }
 
-  // Combined roster and penalties update
+  // Sort skaters by number (optimized)
+  function sortSkaters(skaters) {
+    return Object.values(skaters).sort(function(a, b) {
+      var numA = a.number === '' ? Infinity : parseInt(a.number);
+      var numB = b.number === '' ? Infinity : parseInt(b.number);
+      
+      // Handle NaN values
+      if (isNaN(numA)) numA = Infinity;
+      if (isNaN(numB)) numB = Infinity;
+      
+      if (numA === numB) {
+        // Fallback to string comparison if numbers are equal
+        return String(a.number).localeCompare(String(b.number));
+      }
+      
+      return numA - numB;
+    });
+  }
+
+  // Combined roster and penalties update (optimized)
   function updateRosterAndPenalties(teamNum) {
     var skaters = teams[teamNum].skaters;
     var sortedSkaters = sortSkaters(skaters);
     var team = $elements['team' + teamNum];
     
-    // Build roster HTML
-    var rosterHtml = '';
-    var penaltiesHtml = '';
+    // Use arrays for efficient string building
+    var rosterParts = [];
+    var penaltyParts = [];
     
-    sortedSkaters.forEach(function(skater) {
-      if (skater.number || skater.name) {
-        rosterHtml += '<div class="roster-line">' +
-                    '<div class="roster-number">' + (skater.number || '') + '</div>' +
-                    '<div class="roster-name">' + (skater.name || '') + '</div>' +
-                    '</div>';
-        
-        // Filter out FO and EXP codes from display
-        var displayCodes = skater.penalties.filter(function(code) {
-          return code !== 'FO' && code !== 'EXP';
-        });
-        var codes = displayCodes.length > 0 ? displayCodes.join(' ') : '';
-        
-        penaltiesHtml += '<div class="penalty-line">' +
-                        '<div class="penalty-codes">' + codes + '</div>' +
-                        '<div class="penalty-count">' + (displayCodes.length || '0') + '</div>' +
-                        '</div>';
+    for (var i = 0; i < sortedSkaters.length; i++) {
+      var skater = sortedSkaters[i];
+      
+      if (!skater.number && !skater.name) continue;
+      
+      // Build roster HTML
+      rosterParts.push(
+        '<div class="roster-line">',
+        '<div class="roster-number">', skater.number || '', '</div>',
+        '<div class="roster-name">', skater.name || '', '</div>',
+        '</div>'
+      );
+      
+      // Filter out FO and EXP codes from display
+      var displayCodes = [];
+      for (var j = 0; j < skater.penalties.length; j++) {
+        var code = skater.penalties[j];
+        if (FILTERED_PENALTY_CODES.indexOf(code) === -1) {
+          displayCodes.push(code);
+        }
       }
-    });
+      
+      var codes = displayCodes.join(' ');
+      var count = displayCodes.length || 0;
+      
+      penaltyParts.push(
+        '<div class="penalty-line">',
+        '<div class="penalty-codes">', codes, '</div>',
+        '<div class="penalty-count">', count, '</div>',
+        '</div>'
+      );
+    }
     
-    team.roster.html(rosterHtml);
-    team.penalties.html(penaltiesHtml);
+    // Single DOM update per team
+    team.roster.html(rosterParts.join(''));
+    team.penalties.html(penaltyParts.join(''));
   }
 
-  // Update penalties only
+  // Update penalties only (optimized)
   function updatePenalties(teamNum) {
     var skaters = teams[teamNum].skaters;
+    var state = WS.state;
     
     // Clear penalty lists
-    Object.keys(skaters).forEach(function(skaterId) {
-      skaters[skaterId].penalties = [];
-    });
+    for (var skaterId in skaters) {
+      if (skaters.hasOwnProperty(skaterId)) {
+        skaters[skaterId].penalties = [];
+      }
+    }
     
-    // Get all penalties from WebSocket state
+    // Build regex once
     var penaltyPattern = new RegExp('ScoreBoard\\.CurrentGame\\.Team\\(' + teamNum + '\\)\\.Skater\\(([^)]+)\\)\\.Penalty\\(([^)]+)\\)\\.Code');
     
-    Object.keys(WS.state).forEach(function(key) {
+    // Get all penalties from WebSocket state
+    for (var key in state) {
+      if (!state.hasOwnProperty(key)) continue;
+      
       var match = key.match(penaltyPattern);
       if (match) {
         var skaterId = match[1];
-        var code = WS.state[key];
+        var code = state[key];
         
         if (skaters[skaterId] && code) {
           skaters[skaterId].penalties.push(code);
         }
       }
-    });
+    }
     
     updateRosterAndPenalties(teamNum);
   }
@@ -368,7 +448,7 @@ $(function() {
     return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
   }
 
-  // Update game state (period info)
+  // Update game state (period info) - optimized
   function updateGameState() {
     try {
       var state = WS.state;
@@ -379,7 +459,7 @@ $(function() {
       var numPeriods = parseInt(state['ScoreBoard.CurrentGame.Rule(Period.Number)']) || 2;
       var intermissionRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']);
       
-      // Read intermission labels
+      // Read intermission labels once
       var labels = {
         preGame: state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)'] || 'Time to Derby',
         intermission: state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)'] || 'Intermission',
@@ -391,9 +471,9 @@ $(function() {
       var gameOver = currentPeriod > numPeriods || 
                     (currentPeriod >= numPeriods && (intermissionRunning || intermissionTime > 0));
       
-      var text = '';
+      var text;
       
-      // Determine label
+      // Determine label with early returns for efficiency
       if (officialScore) {
         text = labels.official;
       } else if (gameOver) {
@@ -446,23 +526,24 @@ $(function() {
     logoImg.src = BANNER_LOGO_PATH;
   }
 
-  // Initialize display
+  // Initialize display (optimized)
   function initializeDisplay() {
     try {
       var state = WS.state;
       
-      // Initialize team names
-      [1, 2].forEach(function(teamNum) {
+      // Initialize both teams in one loop
+      for (var teamNum = 1; teamNum <= 2; teamNum++) {
         var altName = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)'];
         var name = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name'];
+        var total = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').TotalPenalties'];
+        
         $elements['team' + teamNum].name.text(altName || name || 'Team ' + teamNum);
+        $elements['team' + teamNum].total.text(total || '0');
         
         updateTeamColors(teamNum);
-        
-        var total = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').TotalPenalties'];
-        $elements['team' + teamNum].total.text(total || '0');
-      });
+      }
       
+      // Batch these operations
       updateTournamentName();
       updateClock();
       updateGameState();
