@@ -318,22 +318,19 @@ $(function() {
     });
   }
 
-  // Sort skaters by number (optimized)
+  // Sort skaters alphabetically by number (as text)
   function sortSkaters(skaters) {
     return Object.values(skaters).sort(function(a, b) {
-      var numA = a.number === '' ? Infinity : parseInt(a.number);
-      var numB = b.number === '' ? Infinity : parseInt(b.number);
+      var numA = String(a.number || '');
+      var numB = String(b.number || '');
       
-      // Handle NaN values
-      if (isNaN(numA)) numA = Infinity;
-      if (isNaN(numB)) numB = Infinity;
+      // Empty strings sort last
+      if (numA === '' && numB === '') return 0;
+      if (numA === '') return 1;
+      if (numB === '') return -1;
       
-      if (numA === numB) {
-        // Fallback to string comparison if numbers are equal
-        return String(a.number).localeCompare(String(b.number));
-      }
-      
-      return numA - numB;
+      // Alphabetical string comparison
+      return numA.localeCompare(numB);
     });
   }
 
