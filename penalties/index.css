@@ -132,7 +132,7 @@ body {
   padding-bottom: 2px;
 }
 
-/* Text shadow for roster and penalty text */
+/* Shared text shadow for roster and penalty text */
 .roster-number,
 .roster-name,
 .penalty-codes,
@@ -153,7 +153,7 @@ body {
 }
 
 .penalties-column {
-  flex: 0.75;
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -207,9 +207,29 @@ body {
 
 .penalty-count {
   text-align: right;
-  min-width: 40px;
+  min-width: 60px;
   font-weight: bold;
   flex-shrink: 0;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: background-color 0.3s ease;
+}
+
+/* Penalty count color warnings */
+.penalty-count-5 {
+  background-color: #b8860b; /* Dark yellow */
+}
+
+.penalty-count-6 {
+  background-color: #cc6600; /* Dark orange */
+}
+
+.penalty-count-foulout {
+  background-color: #8b0000; /* Dark red */
+}
+
+.penalty-count-expelled {
+  background-color: #8b0000; /* Dark red */
 }
 
 #team1-total {
