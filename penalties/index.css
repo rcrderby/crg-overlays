@@ -13,6 +13,7 @@
   --team2-fg: white;
   --team2-bg: black;
   --team2-border: white;
+  --row-height: 40px;
 }
 
 body {
@@ -130,6 +131,8 @@ body {
   margin-bottom: 4px;
   border-bottom: 1px solid;
   padding-bottom: 2px;
+  height: var(--row-height);
+  align-items: center;
 }
 
 /* Shared text shadow for roster and penalty text */
@@ -153,7 +156,7 @@ body {
 }
 
 .penalties-column {
-  flex: 1;
+  flex: 0.85;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -192,6 +195,7 @@ body {
   align-items: center;
   border-bottom: 1px solid;
   padding-bottom: 2px;
+  height: var(--row-height);
 }
 
 .penalty-codes {
@@ -213,6 +217,8 @@ body {
   padding: 2px 6px;
   border-radius: 3px;
   transition: background-color 0.3s ease;
+  line-height: 1.5;
+  display: inline-block;
 }
 
 /* Penalty count color warnings */
