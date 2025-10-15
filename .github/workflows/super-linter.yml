@@ -1,0 +1,46 @@
+# Perform linting with GitHub Super Linter
+# https://github.com/github/super-linter
+
+---
+# Name of the action
+name: Lint Code Base
+
+# Events that trigger the action
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  run-lint:
+    name: Run Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      # checkout action documentation
+      # https://github.com/marketplace/actions/checkout
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          # Full git history is needed to get a proper list of changed files within `super-linter`
+          fetch-depth: 0
+
+      # Super Linter action documentation
+      # https://github.com/marketplace/actions/super-linter
+      - name: Lint Code Base
+        uses: super-linter/super-linter@v8
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_CSS: true
+          # VALIDATE_CSS_PRETTIER: true
+          VALIDATE_GITHUB_ACTIONS: true
+          VALIDATE_GITLEAKS: true
+          VALIDATE_HTML: true
+          # VALIDATE_HTML_PRETTIER: true
+          VALIDATE_JAVASCRIPT_ES: true
+          # VALIDATE_JAVASCRIPT_PRETTIER: true
+          VALIDATE_MARKDOWN: true
+          VALIDATE_YAML: true
+          # Language-specific configuration
+          YAML_ERROR_ON_WARNING: true
