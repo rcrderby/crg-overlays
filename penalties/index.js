@@ -5,7 +5,7 @@ $(function() {
 
   // Constants
   const BANNER_LOGO_PATH = 'logos/banner-logo.png';
-  const FILTERED_PENALTY_CODES = ['FO'];
+  const FILTERED_PENALTY_CODES = ['FO']; // Only FO - EXP doesn't exist as a penalty code
   
   // Cached regex patterns
   const REGEX_PATTERNS = {
@@ -280,7 +280,7 @@ $(function() {
         id: skaterId, 
         number: '', 
         name: '', 
-        penalties: [],  // Just codes
+        penalties: [],  // Just codes for backward compatibility
         penaltyIds: [], // Just IDs
         penaltyDetails: [] // Objects with {code, id} for filtering
       };
@@ -444,13 +444,35 @@ $(function() {
       var codes = displayCodes.join(' ');
       var displayCount = displayCodes.length;
       
+      // Check if player is expelled or fouled out
+      var isExpelled = isSkaterExpelled(teamNum, skater.id);
+      var isFouledOut = false;
+      
+      // Check for fouled out status (FO code or 7+ total penalties)
+      if (!isExpelled) {
+        var normalizedPenalties = skater.penalties.map(function(p) { 
+          return String(p || '').trim().toUpperCase(); 
+        });
+        isFouledOut = normalizedPenalties.indexOf('FO') !== -1 || skater.penalties.length >= 7;
+      }
+      
+      // Determine what to display: EXP, FO, or count
+      var displayValue;
+      if (isExpelled) {
+        displayValue = 'EXP';
+      } else if (isFouledOut) {
+        displayValue = 'FO';
+      } else {
+        displayValue = displayCount;
+      }
+      
       // Get the appropriate CSS class for the penalty count
       var countClass = getPenaltyCountClass(teamNum, skater.id, displayCount);
       
       penaltyParts.push(
         '<div class="penalty-line">',
         '<div class="penalty-codes">', codes, '</div>',
-        '<div class="penalty-count ', countClass, '">', displayCount, '</div>',
+        '<div class="penalty-count ', countClass, '">', displayValue, '</div>',
         '</div>'
       );
     }
