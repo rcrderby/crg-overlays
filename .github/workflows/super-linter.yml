@@ -32,6 +32,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_ALL_CODEBASE: false
+          VALIDATE_CSS: true
+          # VALIDATE_CSS_PRETTIER: true
           VALIDATE_GITHUB_ACTIONS: true
           VALIDATE_GITLEAKS: true
           VALIDATE_HTML: true
