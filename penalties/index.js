@@ -58,6 +58,7 @@ $(function() {
   var root = document.documentElement;
   var startTimePastCache = null;
   var startTimeCacheExpiry = 0;
+  var initialLoadComplete = false;
 
   // Helper function to check boolean values from WebSocket
   function isTrue(value) {
@@ -241,6 +242,18 @@ $(function() {
 
   // Debounced clock update
   var debouncedClockUpdate = debounce(updateClock, 50);
+  
+  // Debounced penalty update - longer delay during initial load
+  var debouncedPenaltyUpdate = {
+    timers: {},
+    update: function(teamNum) {
+      var delay = initialLoadComplete ? 50 : 300; // Longer delay during initialization
+      clearTimeout(this.timers[teamNum]);
+      this.timers[teamNum] = setTimeout(function() {
+        updatePenalties(teamNum);
+      }, delay);
+    }
+  };
 
   // Unified team update handler
   function handleTeamUpdate(key, value) {
@@ -252,8 +265,14 @@ $(function() {
     
     if (key.includes('.AlternateName(whiteboard)') || (REGEX_PATTERNS.teamName.test(key) && !key.includes('AlternateName') && !key.includes('.Skater('))) {
       var altName = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)'];
-      team.name.text(altName || value || '');
-      updateQueue.schedule(equalizeTeamBoxWidths);
+      var name = altName || value;
+      
+      // Only update if we have a name, or if current display is empty/default
+      var currentText = team.name.text();
+      if (name || !currentText || currentText === 'Team ' + teamNum) {
+        team.name.text(name || '');
+        updateQueue.schedule(equalizeTeamBoxWidths);
+      }
     } else if (REGEX_PATTERNS.teamScore.test(key) && !key.includes('Skater')) {
       team.score.text(value || '0');
     } else if (REGEX_PATTERNS.teamLogo.test(key)) {
@@ -299,7 +318,7 @@ $(function() {
   function handlePenaltyUpdate(key, value) {
     var match = key.match(REGEX_PATTERNS.teamNumber);
     if (match) {
-      updatePenalties(parseInt(match[1]));
+      debouncedPenaltyUpdate.update(parseInt(match[1]));
     }
   }
 
@@ -394,7 +413,7 @@ $(function() {
     });
   }
 
-  // Combined roster and penalties update
+  // Combined roster and penalties update (optimized)
   function updateRosterAndPenalties(teamNum) {
     var skaters = teams[teamNum].skaters;
     var sortedSkaters = sortSkaters(skaters);
@@ -482,7 +501,7 @@ $(function() {
     team.penalties.html(penaltyParts.join(''));
   }
 
-  // Update penalties only
+  // Update penalties only (optimized)
   function updatePenalties(teamNum) {
     var skaters = teams[teamNum].skaters;
     var state = WS.state;
@@ -594,7 +613,7 @@ $(function() {
     return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
   }
 
-  // Update game state (period info)
+  // Update game state (period info) - optimized
   function updateGameState() {
     try {
       var state = WS.state;
@@ -672,7 +691,7 @@ $(function() {
     logoImg.src = BANNER_LOGO_PATH;
   }
 
-  // Initialize display
+  // Initialize display (optimized)
   function initializeDisplay() {
     try {
       var state = WS.state;
@@ -696,11 +715,20 @@ $(function() {
       checkAndDisplayLogos();
       equalizeTeamBoxWidths();
       
-      // After a delay, set default names if still empty
+      // Mark initial load as complete after a delay
+      setTimeout(function() {
+        initialLoadComplete = true;
+      }, 800);
+      
+      // After a delay, set default names if still empty AND no name data exists in state
       setTimeout(function() {
         for (var teamNum = 1; teamNum <= 2; teamNum++) {
           var currentText = $elements['team' + teamNum].name.text();
-          if (!currentText || currentText.trim() === '') {
+          var altName = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)'];
+          var name = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name'];
+          
+          // Only set default if BOTH DOM is empty AND WebSocket state has no name
+          if ((!currentText || currentText.trim() === '') && !altName && !name) {
             $elements['team' + teamNum].name.text('Team ' + teamNum);
             updateQueue.schedule(equalizeTeamBoxWidths);
           }
