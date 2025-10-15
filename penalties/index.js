@@ -5,7 +5,7 @@ $(function() {
 
   // Constants
   const BANNER_LOGO_PATH = 'logos/banner-logo.png';
-  const FILTERED_PENALTY_CODES = ['FO', 'EXP'];
+  const FILTERED_PENALTY_CODES = ['FO'];
   
   // Cached regex patterns
   const REGEX_PATTERNS = {
@@ -62,6 +62,26 @@ $(function() {
   // Helper function to check boolean values from WebSocket
   function isTrue(value) {
     return value === true || value === 'true';
+  }
+
+  // Helper function to check if a skater is expelled
+  function isSkaterExpelled(teamNum, skaterId) {
+    var state = WS.state;
+    var skater = teams[teamNum].skaters[skaterId];
+    
+    if (!skater || !skater.penaltyIds) return false;
+    
+    // Check if any of this skater's penalty IDs match an expulsion entry
+    for (var key in state) {
+      if (key.indexOf('ScoreBoard.CurrentGame.Expulsion(') === 0 && key.indexOf(').Id') > 0) {
+        var expulsionId = state[key];
+        if (skater.penaltyIds.indexOf(expulsionId) !== -1) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
   }
 
   // Helper function to check if game start time is in the past (with caching)
@@ -124,18 +144,26 @@ $(function() {
   };
 
   // Helper function to determine penalty count CSS class
-  function getPenaltyCountClass(penalties, displayCount) {
-    // Check for expelled status (EXP code)
-    if (penalties.indexOf('EXP') !== -1) {
+  function getPenaltyCountClass(teamNum, skaterId, displayCount) {
+    // Check for expelled status
+    if (isSkaterExpelled(teamNum, skaterId)) {
       return 'penalty-count-expelled';
     }
     
-    // Check for fouled out (FO code or 7+ penalties)
-    if (penalties.indexOf('FO') !== -1 || penalties.length >= 7) {
+    var skater = teams[teamNum].skaters[skaterId];
+    if (!skater) return '';
+    
+    // Normalize penalties for checking (uppercase and trim)
+    var normalizedPenalties = skater.penalties.map(function(p) { 
+      return String(p || '').trim().toUpperCase(); 
+    });
+    
+    // Check for fouled out (FO code or 7+ total penalties)
+    if (normalizedPenalties.indexOf('FO') !== -1 || skater.penalties.length >= 7) {
       return 'penalty-count-foulout';
     }
     
-    // Color code based on display count (excluding FO and EXP)
+    // Color code based on display count (excluding FO)
     if (displayCount === 6) {
       return 'penalty-count-6';
     }
@@ -166,6 +194,9 @@ $(function() {
       WS.Register(['ScoreBoard.CurrentGame.Team(*)'], handleTeamUpdate);
       WS.Register(['ScoreBoard.CurrentGame.Team(*).Skater(*)'], handleSkaterUpdate);
       WS.Register(['ScoreBoard.CurrentGame.Team(*).Skater(*).Penalty(*)'], handlePenaltyUpdate);
+      
+      // Register for expulsion updates
+      WS.Register(['ScoreBoard.CurrentGame.Expulsion(*)'], handleExpulsionUpdate);
       
       // Clock and game state
       WS.Register(['ScoreBoard.CurrentGame.Clock(*)'], debouncedClockUpdate);
@@ -230,7 +261,7 @@ $(function() {
     var skaters = teams[teamNum].skaters;
     
     if (!skaters[skaterId]) {
-      skaters[skaterId] = { id: skaterId, number: '', name: '', penalties: [] };
+      skaters[skaterId] = { id: skaterId, number: '', name: '', penalties: [], penaltyIds: [] };
     }
     
     if (REGEX_PATTERNS.skaterNumber.test(key)) {
@@ -248,6 +279,13 @@ $(function() {
     if (match) {
       updatePenalties(parseInt(match[1]));
     }
+  }
+
+  // Handle expulsion updates
+  function handleExpulsionUpdate(key, value) {
+    // When an expulsion is added or changed, update both teams' displays
+    updateRosterAndPenalties(1);
+    updateRosterAndPenalties(2);
   }
 
   // Update team colors
@@ -334,7 +372,7 @@ $(function() {
     });
   }
 
-  // Combined roster and penalties update (optimized)
+  // Combined roster and penalties update
   function updateRosterAndPenalties(teamNum) {
     var skaters = teams[teamNum].skaters;
     var sortedSkaters = sortSkaters(skaters);
@@ -359,11 +397,13 @@ $(function() {
         '</div>'
       );
       
-      // Filter out FO and EXP codes from display
+      // Filter out FO codes from display
       var displayCodes = [];
       for (var j = 0; j < skater.penalties.length; j++) {
-        var code = skater.penalties[j];
-        if (FILTERED_PENALTY_CODES.indexOf(code) === -1) {
+        var code = String(skater.penalties[j] || '').trim();
+        var codeUpper = code.toUpperCase();
+        
+        if (FILTERED_PENALTY_CODES.indexOf(codeUpper) === -1) {
           displayCodes.push(code);
         }
       }
@@ -372,7 +412,7 @@ $(function() {
       var displayCount = displayCodes.length;
       
       // Get the appropriate CSS class for the penalty count
-      var countClass = getPenaltyCountClass(skater.penalties, displayCount);
+      var countClass = getPenaltyCountClass(teamNum, skater.id, displayCount);
       
       penaltyParts.push(
         '<div class="penalty-line">',
@@ -387,32 +427,46 @@ $(function() {
     team.penalties.html(penaltyParts.join(''));
   }
 
-  // Update penalties only (optimized)
+  // Update penalties only
   function updatePenalties(teamNum) {
     var skaters = teams[teamNum].skaters;
     var state = WS.state;
     
-    // Clear penalty lists
+    // Clear penalty lists and IDs
     for (var skaterId in skaters) {
       if (skaters.hasOwnProperty(skaterId)) {
         skaters[skaterId].penalties = [];
+        skaters[skaterId].penaltyIds = [];
       }
     }
     
     // Build regex once
-    var penaltyPattern = new RegExp('ScoreBoard\\.CurrentGame\\.Team\\(' + teamNum + '\\)\\.Skater\\(([^)]+)\\)\\.Penalty\\(([^)]+)\\)\\.Code');
+    var penaltyCodePattern = new RegExp('ScoreBoard\\.CurrentGame\\.Team\\(' + teamNum + '\\)\\.Skater\\(([^)]+)\\)\\.Penalty\\(([^)]+)\\)\\.Code');
+    var penaltyIdPattern = new RegExp('ScoreBoard\\.CurrentGame\\.Team\\(' + teamNum + '\\)\\.Skater\\(([^)]+)\\)\\.Penalty\\(([^)]+)\\)\\.Id');
     
     // Get all penalties from WebSocket state
     for (var key in state) {
       if (!state.hasOwnProperty(key)) continue;
       
-      var match = key.match(penaltyPattern);
-      if (match) {
-        var skaterId = match[1];
+      // Get penalty codes
+      var codeMatch = key.match(penaltyCodePattern);
+      if (codeMatch) {
+        var skaterId = codeMatch[1];
         var code = state[key];
         
         if (skaters[skaterId] && code) {
           skaters[skaterId].penalties.push(code);
+        }
+      }
+      
+      // Get penalty IDs (needed to check for expulsions)
+      var idMatch = key.match(penaltyIdPattern);
+      if (idMatch) {
+        var skaterId = idMatch[1];
+        var penaltyId = state[key];
+        
+        if (skaters[skaterId] && penaltyId) {
+          skaters[skaterId].penaltyIds.push(penaltyId);
         }
       }
     }
@@ -474,7 +528,7 @@ $(function() {
     return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
   }
 
-  // Update game state (period info) - optimized
+  // Update game state (period info)
   function updateGameState() {
     try {
       var state = WS.state;
@@ -552,7 +606,7 @@ $(function() {
     logoImg.src = BANNER_LOGO_PATH;
   }
 
-  // Initialize display (optimized)
+  // Initialize display
   function initializeDisplay() {
     try {
       var state = WS.state;
