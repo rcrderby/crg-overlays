@@ -64,20 +64,35 @@ $(function() {
     return value === true || value === 'true';
   }
 
+  // Helper function to get expulsion penalty IDs
+  function getExpulsionPenaltyIds() {
+    var state = WS.state;
+    var expulsionIds = [];
+    
+    for (var key in state) {
+      if (key.indexOf('ScoreBoard.CurrentGame.Expulsion(') === 0 && key.indexOf(').Id') > 0) {
+        var expulsionId = state[key];
+        if (expulsionId) {
+          expulsionIds.push(expulsionId);
+        }
+      }
+    }
+    
+    return expulsionIds;
+  }
+
   // Helper function to check if a skater is expelled
   function isSkaterExpelled(teamNum, skaterId) {
-    var state = WS.state;
     var skater = teams[teamNum].skaters[skaterId];
     
     if (!skater || !skater.penaltyIds) return false;
     
+    var expulsionIds = getExpulsionPenaltyIds();
+    
     // Check if any of this skater's penalty IDs match an expulsion entry
-    for (var key in state) {
-      if (key.indexOf('ScoreBoard.CurrentGame.Expulsion(') === 0 && key.indexOf(').Id') > 0) {
-        var expulsionId = state[key];
-        if (skater.penaltyIds.indexOf(expulsionId) !== -1) {
-          return true;
-        }
+    for (var i = 0; i < expulsionIds.length; i++) {
+      if (skater.penaltyIds.indexOf(expulsionIds[i]) !== -1) {
+        return true;
       }
     }
     
@@ -261,7 +276,14 @@ $(function() {
     var skaters = teams[teamNum].skaters;
     
     if (!skaters[skaterId]) {
-      skaters[skaterId] = { id: skaterId, number: '', name: '', penalties: [], penaltyIds: [] };
+      skaters[skaterId] = { 
+        id: skaterId, 
+        number: '', 
+        name: '', 
+        penalties: [],  // Just codes
+        penaltyIds: [], // Just IDs
+        penaltyDetails: [] // Objects with {code, id} for filtering
+      };
     }
     
     if (REGEX_PATTERNS.skaterNumber.test(key)) {
@@ -378,6 +400,9 @@ $(function() {
     var sortedSkaters = sortSkaters(skaters);
     var team = $elements['team' + teamNum];
     
+    // Get expulsion penalty IDs to filter them out
+    var expulsionIds = getExpulsionPenaltyIds();
+    
     // Use arrays for efficient string building
     var rosterParts = [];
     var penaltyParts = [];
@@ -397,15 +422,23 @@ $(function() {
         '</div>'
       );
       
-      // Filter out FO codes from display
+      // Filter out FO codes AND penalties that caused expulsions
       var displayCodes = [];
-      for (var j = 0; j < skater.penalties.length; j++) {
-        var code = String(skater.penalties[j] || '').trim();
-        var codeUpper = code.toUpperCase();
+      for (var j = 0; j < skater.penaltyDetails.length; j++) {
+        var penalty = skater.penaltyDetails[j];
+        var codeUpper = String(penalty.code || '').trim().toUpperCase();
         
-        if (FILTERED_PENALTY_CODES.indexOf(codeUpper) === -1) {
-          displayCodes.push(code);
+        // Skip if this is a FO code
+        if (FILTERED_PENALTY_CODES.indexOf(codeUpper) !== -1) {
+          continue;
         }
+        
+        // Skip if this penalty ID matches an expulsion
+        if (expulsionIds.indexOf(penalty.id) !== -1) {
+          continue;
+        }
+        
+        displayCodes.push(penalty.code);
       }
       
       var codes = displayCodes.join(' ');
@@ -432,41 +465,52 @@ $(function() {
     var skaters = teams[teamNum].skaters;
     var state = WS.state;
     
-    // Clear penalty lists and IDs
+    // Clear penalty lists
     for (var skaterId in skaters) {
       if (skaters.hasOwnProperty(skaterId)) {
         skaters[skaterId].penalties = [];
         skaters[skaterId].penaltyIds = [];
+        skaters[skaterId].penaltyDetails = [];
       }
     }
     
-    // Build regex once
-    var penaltyCodePattern = new RegExp('ScoreBoard\\.CurrentGame\\.Team\\(' + teamNum + '\\)\\.Skater\\(([^)]+)\\)\\.Penalty\\(([^)]+)\\)\\.Code');
-    var penaltyIdPattern = new RegExp('ScoreBoard\\.CurrentGame\\.Team\\(' + teamNum + '\\)\\.Skater\\(([^)]+)\\)\\.Penalty\\(([^)]+)\\)\\.Id');
+    // First pass: collect penalty IDs and codes by penalty number
+    var penaltyData = {}; // skaterId -> penaltyNumber -> {code, id}
     
-    // Get all penalties from WebSocket state
     for (var key in state) {
       if (!state.hasOwnProperty(key)) continue;
       
-      // Get penalty codes
-      var codeMatch = key.match(penaltyCodePattern);
-      if (codeMatch) {
-        var skaterId = codeMatch[1];
-        var code = state[key];
+      var match = key.match(/ScoreBoard\.CurrentGame\.Team\((\d+)\)\.Skater\(([^)]+)\)\.Penalty\(([^)]+)\)\.(Code|Id)/);
+      if (match && match[1] == teamNum) {
+        var skaterId = match[2];
+        var penaltyNum = match[3];
+        var field = match[4]; // "Code" or "Id"
         
-        if (skaters[skaterId] && code) {
-          skaters[skaterId].penalties.push(code);
+        if (!penaltyData[skaterId]) {
+          penaltyData[skaterId] = {};
+        }
+        if (!penaltyData[skaterId][penaltyNum]) {
+          penaltyData[skaterId][penaltyNum] = { code: null, id: null };
+        }
+        
+        if (field === 'Code') {
+          penaltyData[skaterId][penaltyNum].code = state[key];
+        } else if (field === 'Id') {
+          penaltyData[skaterId][penaltyNum].id = state[key];
         }
       }
-      
-      // Get penalty IDs (needed to check for expulsions)
-      var idMatch = key.match(penaltyIdPattern);
-      if (idMatch) {
-        var skaterId = idMatch[1];
-        var penaltyId = state[key];
-        
-        if (skaters[skaterId] && penaltyId) {
-          skaters[skaterId].penaltyIds.push(penaltyId);
+    }
+    
+    // Second pass: populate skater penalty arrays
+    for (var skaterId in penaltyData) {
+      if (skaters[skaterId]) {
+        for (var penaltyNum in penaltyData[skaterId]) {
+          var penalty = penaltyData[skaterId][penaltyNum];
+          if (penalty.code && penalty.id) {
+            skaters[skaterId].penalties.push(penalty.code);
+            skaters[skaterId].penaltyIds.push(penalty.id);
+            skaters[skaterId].penaltyDetails.push({ code: penalty.code, id: penalty.id });
+          }
         }
       }
     }
