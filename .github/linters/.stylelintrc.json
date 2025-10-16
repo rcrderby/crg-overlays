@@ -6,5 +6,8 @@
       "files": ["*.scss", "**/*.scss"],
       "customSyntax": "postcss-scss"
     }
-  ]
+  ],
+  "rules": {
+    "color-hex-length": "long"
+  }
 }
