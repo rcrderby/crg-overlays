@@ -16,6 +16,20 @@
   --row-height: 40px;
 }
 
+/* Shared text shadow */
+.penalty-codes,
+.penalty-count,
+.roster-number,
+.roster-name,
+.score,
+.team-name,
+.vs-text,
+#game-clock,
+#penalties-title h1,
+#period-info {
+  text-shadow: 1px 1px 2px rgb(0 0 0 / 40%), 0 0 4px rgb(0 0 0 / 50%);
+}
+
 body {
   font-family: Arial, sans-serif;
   background: transparent;
@@ -77,7 +91,6 @@ body {
   color: white;
   font-size: 48px;
   font-weight: bold;
-  text-shadow: 2px 2px 4px rgb(0 0 0 / 80%);
   margin: 0;
 }
 
@@ -138,14 +151,6 @@ body {
   padding-bottom: 2px;
   height: var(--row-height);
   align-items: center;
-}
-
-/* Shared text shadow for roster and penalty text */
-.roster-number,
-.roster-name,
-.penalty-codes,
-.penalty-count {
-  text-shadow: 1px 1px 2px rgb(0 0 0 / 40%), 0 0 4px rgb(0 0 0 / 50%);
 }
 
 .roster-number {
