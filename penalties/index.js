@@ -717,7 +717,7 @@ $(function() {
     var $wrapper = $('.game-info-wrapper');
     
     logoImg.onload = function() {
-      $elements.customLogoSpace.html('<img src="' + BANNER_LOGO_PATH + '" style="max-width: 100%; max-height: 100%; object-fit: contain;" />');
+      $elements.customLogoSpace.html('<img src="' + BANNER_LOGO_PATH + '" class="custom-logo" />');
       $wrapper.addClass('has-logo');
     };
     logoImg.onerror = function() {
