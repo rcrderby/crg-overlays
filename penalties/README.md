@@ -68,7 +68,9 @@ The overlay extracts game information from the CRG "IGRF" and "Teams" tabs, so y
 
 ## Usage
 
-To make this overlay to your video streaming team, you need to download the files from the repository and place them in a specific folder within your CRG instance.  
+To make this overlay to your video streaming team, you need to download the overlay files from the repository and place them in a specific folder within your CRG instance.  There are several ways to download the overlay files, and the following steps detail one of those methods:
+
+1. Navigate to the [Releases page](/releases/latest "Latest Release") of this repository.
 
 ### Open Broadcaster Software (OBS) Details
 
@@ -79,13 +81,5 @@ To make this overlay to your video streaming team, you need to download the file
 | URL        | `https://<crg-ip-address>:8000/custom/overlay/penalties` [^1] |
 
 ### Optional Custom Logo
-
-<!-- 
-
-- Custom logo
-- Resolution
-- Background transparency
-
- -->
 
 [^1]: Replace `<crg-ip-address>` with the IP address of your CRG instance
