@@ -70,7 +70,7 @@ The overlay extracts game information from the CRG "IGRF" and "Teams" tabs, so y
 
 To make this overlay to your video streaming team, you need to download the overlay files from the repository and place them in a specific folder within your CRG instance.  There are several ways to download the overlay files, and the following steps detail one of those methods:
 
-1. Navigate to the [Releases page](/releases "Releases Page") of this repository.
+1. Navigate to the [Releases page](releases/latest "Releases Page") of this repository.
 
 ### Open Broadcaster Software (OBS) Details
 
