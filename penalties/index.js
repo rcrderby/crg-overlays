@@ -256,6 +256,7 @@ $(function() {
 
       // Tournament info
       WS.Register(['ScoreBoard.CurrentGame.EventInfo(Tournament)'], updateTournamentName);
+      WS.Register(['ScoreBoard.CurrentGame.EventInfo(GameNo)'], updateTournamentName);
       
       // Event info for start time checking
       WS.Register(['ScoreBoard.CurrentGame.EventInfo(Date)'], updateGameState);
@@ -711,17 +712,23 @@ $(function() {
     }
   }
 
-  // Update tournament name
+  // Update tournament name and game number if available
   function updateTournamentName() {
-    var name = WS.state['ScoreBoard.CurrentGame.EventInfo(Tournament)'];
-    if (name) {
-      $elements.tournamentName.text(name).show();
+    var tournament = WS.state['ScoreBoard.CurrentGame.EventInfo(Tournament)'];
+    var gameNo = WS.state['ScoreBoard.CurrentGame.EventInfo(GameNo)'];
+    
+    if (tournament) {
+      var displayText = tournament;
+      if (gameNo) {
+        displayText = tournament + ' - Game ' + gameNo;
+      }
+      $elements.tournamentName.text(displayText).show();
     } else {
       $elements.tournamentName.hide();
     }
   }
 
-  // Load custom logo
+  // Load custom logo if available
   function loadCustomLogo() {
     var logoImg = new Image();
     var $wrapper = $('.game-info-wrapper');
