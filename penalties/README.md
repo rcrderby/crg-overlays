@@ -39,8 +39,6 @@ The overlay extracts game information from the CRG "IGRF" and "Teams" tabs, so y
   - Displays "EXP" for players who are expelled after fouling out.
 - Displays the total penalty count for each team.
 
----
-
 ### Game Information Area
 
 - Displays the tournament name and game number if both are set.
@@ -60,8 +58,6 @@ The overlay extracts game information from the CRG "IGRF" and "Teams" tabs, so y
 - Optionally displays a custom logo to provide league, tournament, or sanctioning body branding
   - Sized to fit a 100px x 100px container.
 
----
-
 ## Compatibility
 
 | CRG Version | Description        |
@@ -80,8 +76,6 @@ Open Broadcaster Software (OBS) Settings
 | Background | Transparent |
 
 ### General
-
----
 
 ## Optional Custom Logo
 
