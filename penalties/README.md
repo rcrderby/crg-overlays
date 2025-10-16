@@ -102,11 +102,13 @@ To make this overlay available to your video streaming team, you need to downloa
 
 Provide this information to your video streaming team, to give them access to the overlay:
 
-| Setting    | Value                                                         |
-| ---------- | ------------------------------------------------------------- |
-| Resolution | 1920 x 1080                                                   |
-| Background | Transparent                                                   |
-| URL        | `https://<crg-ip-address>:8000/custom/overlay/penalties` [^1] |
+| Setting    | Value                                                        |
+| ---------- | ------------------------------------------------------------ |
+| Resolution | 1920 x 1080                                                  |
+| Background | Transparent                                                  |
+| URL        | `https://<crg-ip-address>:8000/custom/overlay/penalties`[^1] |
+
+[^1]: Replace `<crg-ip-address>` with the IP address of your CRG instance
 
 ### Optional Custom Logo
 
@@ -120,7 +122,7 @@ To add a custom logo to the left side game information area of the overlay:
 6. Open the `logos` folder.
 7. Copy and paste or move the `banner-logo.png` file into the `logos` folder.
 
-The logo will display in the game information area once you refresh your browser.
+[^2]: The overlay will constrain your logo to a 100 x 100px container and apply a drop shadow.
+  Logos with a 1:1 aspect ratio and a transparent background will produce will look best.
 
-[^1]: Replace `<crg-ip-address>` with the IP address of your CRG instance
-[^2]: The overlay will constrain your logo to a 100 x 100px container and apply a drop shadow.  Logos with a 1:1 aspect ratio and a transparent background will produce will look best.
+The logo will display in the game information area once you refresh your browser.
