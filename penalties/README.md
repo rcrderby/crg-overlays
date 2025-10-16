@@ -17,6 +17,9 @@ It's common for streamers to display a penalty overlay data during timeouts, alt
 
 ## Features
 
+- Displays team logos, if available for both teams
+- Customizable roster display colors
+
 <!-- 
 
 - Team colors
