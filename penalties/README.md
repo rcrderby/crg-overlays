@@ -71,6 +71,8 @@ The overlay extracts game information from the CRG "IGRF" and "Teams" tabs, so y
 To make this overlay to your video streaming team, you need to download the overlay files from the repository and place them in a specific folder within your CRG instance.  There are several ways to download the overlay files, and the following steps detail one of those methods:
 
 1. Navigate to the [Releases page](https://github.com/rcrderby/crg-overlays/releases "Releases Page") of this repository.
+2. Click on one "Source code" links in the "Assets" section of the latest release to download a compressed/zipped copy of the overlay files.
+3. Extract the `.zip` or `tar.gz` file you downloaded.
 
 ### Open Broadcaster Software (OBS) Details
 
