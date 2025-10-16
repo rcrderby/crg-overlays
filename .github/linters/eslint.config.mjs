@@ -36,6 +36,9 @@ export default defineConfig([
         ...globals.node,
       },
     },
+      rules: {
+        "no-undef": "off"
+      }
   },
   {
     files: ["**/*.json"],
