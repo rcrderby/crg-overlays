@@ -2,7 +2,7 @@
 
 ## Preview
 
-<!-- TODO -->
+Coming soon.
 
 ## Overview
 
@@ -19,21 +19,43 @@ It's common for streamers to display a penalty overlay data during timeouts, alt
 
 ## Features
 
-- Displays team logos, if available for both teams
-- Customizable roster display colors
+The overlay extracts game information from the CRG "IGRF" and "Teams" tabs, so you only need to set that information in one place.  The information displays in two separate areas; one for rosters and penalty data, and one for game information:
 
-<!-- 
+### Rosters & Penalties Area
 
-- Team colors
-- Team logos
-- Custom logo
-- Penalty color-coding
-- Tournament banner
-- Resolution
-- Background
-- Compatibility
+- Displays team logos, if available for both teams.
+  - Sized to fit 180px x 180px containers.
+- Displays roster number, name, penalty codes, and total penalty counts for each player.
+  - Hides roster names that don't include a roster name and number.
+- Customizable roster display colors.
+  - Uses each team's "whiteboard" background and text colors if set.
+  - Defaults to a black background with white text.
+- Highlights player penalty counts at specific thresholds.
+  - 5 penalties in <code style="color : gold">yellow</code>.
+  - 6 penalties in <code style="color : darkorange">orange</code>.
+  - 7+ penalties, foul outs, and expulsions in <code style="color : red">red</code>.
+- Changes player numeric penalty counts to "FO" or "EXP" for foul outs and expulsions, respectively.
+  - Displays "EXP" for players who are expelled after fouling out.
+- Displays the total penalty count for each team.
 
- -->
+### Game Information Area
+
+- Displays the tournament name and game number if both are set.
+- Displays team names if set.
+  - Uses the "whiteboard" alternate name text for each team if set.
+  - Uses the "Team" fields in the "Teams" tab if the "whiteboard" name is not set.
+  - Defaults to "Team 1" and "Team 2".
+- Displays each team's points.
+- Displays the game clock and a labels read from the "Intermission Labels" section of the "Settings" tab:
+  - **Pre Game** - defaults to "Time to Derby".
+  - **Intermission** - defaults to "Intermission".
+  - **Unofficial Score** - defaults to "Unofficial Score".
+  **- Official Score** - defaults to "Official Score".
+- Displays game clock labels for other game states:
+  - "Period N" - during each period.
+  - "Overtime" - during overtime jams.
+- Optionally displays a custom logo to provide league, tournament, or sanctioning body branding
+  - Sized to fit a 100px x 100px container.
 
 ## Compatibility
 
@@ -45,4 +67,11 @@ It's common for streamers to display a penalty overlay data during timeouts, alt
 
 ## Usage
 
-<!-- TODO -->
+<!-- 
+
+- Custom logo
+- Resolution
+- Background
+- Compatibility
+
+ -->
