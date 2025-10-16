@@ -68,11 +68,28 @@ The overlay extracts game information from the CRG "IGRF" and "Teams" tabs, so y
 
 ## Usage
 
-To make this overlay to your video streaming team, you need to download the overlay files from the repository and place them in a specific folder within your CRG instance.  There are several ways to download the overlay files, and the following steps detail one of those methods:
+To make this overlay to your video streaming team, you need to download the overlay files from the repository and place them in a specific folder within your CRG instance.  There are several ways to download the overlay files, and the following steps detail one of those methods.
+
+**Download the overlay files:**
 
 1. Navigate to the [Releases page](https://github.com/rcrderby/crg-overlays/releases "Releases Page") of this repository.
-2. Click on one "Source code" links in the "Assets" section of the latest release to download a compressed/zipped copy of the overlay files.
+2. Click on one **Source code** links in the **Assets** section of the latest release to download a compressed/zipped copy of the overlay files.
 3. Extract the `.zip` or `tar.gz` file you downloaded.
+4. From the extracted files, locate the `penalties`folder; you will copy this folder to your CRG instance.
+
+**Copy the overlay files to CRG:**
+
+1. Open your CRG folder in your instance of CRG (e.g., `crg-scoreboard_v202X.X`).
+2. Open the `html` folder.
+3. Open the `custom` folder.
+4. Open the `overlay` folder.
+5. Copy and paste or move the `penalties` folder you downloaded into the `overlay` folder.
+
+**Verify the availability of the penalties overlay:**
+
+1. Access your running instance of CRG using your web browser (`https://<crg-ip-address>:8000`).[^1]
+2. In the **BROADCAST OVERLAYS** section on the left side of the main page, click the **Custom Overlays** link.
+3. From the displayed list of files and directories, click the **penalties** link to display the overlay.
 
 ### Open Broadcaster Software (OBS) Details
 
