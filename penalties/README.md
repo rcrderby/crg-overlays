@@ -2,10 +2,10 @@
 
 ## Contents
 
-[Preview](#preview "Overlay Preview")
-[Features](#features "Overlay Features")
-[Compatibility](#compatibility "Overlay CRG Compatibility")
-[Usage](#usage "Overlay Usage Instructions")
+- [Preview](#preview "Overlay Preview")
+- [Features](#features "Overlay Features")
+- [Compatibility](#compatibility "Overlay CRG Compatibility")
+- [Usage](#usage "Overlay Usage Instructions")
 
 ## Preview
 
