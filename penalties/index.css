@@ -26,7 +26,7 @@
 #team2-total,
 #tournament-name,
 #game-details {
-  box-shadow: 0 4px 12px rgb(0 0 0 / 0.6);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 60%);
 }
 
 /* Shared text shadow */
@@ -46,7 +46,7 @@
 /* Shared logo drop shadow */
 .team-logo,
 .custom-logo {
-  filter: drop-shadow(0 0 8px rgb(0 0 0 / 0.4));
+  filter: drop-shadow(0 0 8px rgb(0 0 0 / 40%));
 }
 
 /* Shared black background with white text and border */
@@ -55,20 +55,11 @@
 #team1-total,
 #team2-total {
   background-color: black;
-  color: white;
   border: 1px solid white;
+  color: white;
 }
 
-/* Shared padding */
-.roster,
-#team1-penalties,
-#team2-penalties,
-#team1-total,
-#team2-total {
-  padding: 10px;
-}
-
-/* Shared font size and line height */
+/* Shared padding, font size, and line height */
 .roster,
 #team1-penalties,
 #team2-penalties,
@@ -76,6 +67,7 @@
 #team2-total {
   font-size: 24px;
   line-height: 1.5;
+  padding: 10px;
 }
 
 /* Shared overflow for scrollable areas */
