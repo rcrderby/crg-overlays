@@ -87,7 +87,7 @@ $(function() {
     var ids = [];
     
     for (var key in state) {
-      if (state.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(state, key)) {
         var match = key.match(REGEX_PATTERNS.expulsionId);
         if (match) {
           var expulsionId = state[key];
@@ -153,7 +153,7 @@ $(function() {
       startTimePastCache = startDateTime < new Date();
       startTimeCacheExpiry = now + CACHE_EXPIRY_MS;
       return startTimePastCache;
-    } catch(e) {
+    } catch {
       startTimePastCache = false;
       startTimeCacheExpiry = now + CACHE_EXPIRY_MS;
       return false;
@@ -343,7 +343,7 @@ $(function() {
   }
 
   // Handle penalty updates
-  function handlePenaltyUpdate(key, value) {
+  function handlePenaltyUpdate(key, _value) {
     var match = key.match(REGEX_PATTERNS.teamNumber);
     if (match) {
       debouncedPenaltyUpdate.update(parseInt(match[1]));
@@ -351,7 +351,7 @@ $(function() {
   }
 
   // Handle expulsion updates
-  function handleExpulsionUpdate(key, value) {
+  function handleExpulsionUpdate(key, _value) {
     invalidateExpulsionCache();
     
     // Try to determine which team this affects by parsing the expulsion info
@@ -370,7 +370,7 @@ $(function() {
         for (var teamNum = 1; teamNum <= 2 && !foundTeam; teamNum++) {
           var skaters = teams[teamNum].skaters;
           for (var skaterId in skaters) {
-            if (skaters.hasOwnProperty(skaterId)) {
+            if (Object.prototype.hasOwnProperty.call(skaters, skaterId)) {
               var skater = skaters[skaterId];
               if (skater.penaltyIds && skater.penaltyIds.indexOf(id) !== -1) {
                 foundTeam = teamNum;
@@ -553,7 +553,7 @@ $(function() {
     
     // Clear penalty lists
     for (var skaterId in skaters) {
-      if (skaters.hasOwnProperty(skaterId)) {
+      if (Object.prototype.hasOwnProperty.call(skaters, skaterId)) {
         var skater = skaters[skaterId];
         skater.penalties = [];
         skater.penaltyIds = [];
@@ -565,37 +565,36 @@ $(function() {
     var penaltyData = {};
     
     for (var key in state) {
-      if (!state.hasOwnProperty(key)) continue;
-      
-      var match = key.match(REGEX_PATTERNS.penaltyPattern);
+      if (!Object.prototype.hasOwnProperty.call(state, key)) continue;
+        var match = key.match(REGEX_PATTERNS.penaltyPattern);
       if (match && match[1] == teamNum) {
-        var skaterId = match[2];
-        var penaltyNum = match[3];
+        var skaterIdMatch = match[2];
+        var penaltyNumMatch = match[3];
         var field = match[4];
         
-        if (!penaltyData[skaterId]) {
-          penaltyData[skaterId] = {};
+        if (!penaltyData[skaterIdMatch]) {
+          penaltyData[skaterIdMatch] = {};
         }
-        if (!penaltyData[skaterId][penaltyNum]) {
-          penaltyData[skaterId][penaltyNum] = { code: null, id: null };
+        if (!penaltyData[skaterIdMatch][penaltyNumMatch]) {
+          penaltyData[skaterIdMatch][penaltyNumMatch] = { code: null, id: null };
         }
         
-        penaltyData[skaterId][penaltyNum][field === 'Code' ? 'code' : 'id'] = state[key];
+        penaltyData[skaterIdMatch][penaltyNumMatch][field === 'Code' ? 'code' : 'id'] = state[key];
       }
     }
     
     // Populate skater penalty arrays
-    for (var skaterId in penaltyData) {
-      if (skaters[skaterId]) {
-        var skater = skaters[skaterId];
-        var penalties = penaltyData[skaterId];
+    for (var skaterKey in penaltyData) {
+      if (skaters[skaterKey]) {
+        var skaterObj = skaters[skaterKey];
+        var penalties = penaltyData[skaterKey];
         
-        for (var penaltyNum in penalties) {
-          var penalty = penalties[penaltyNum];
+        for (var penaltyKey in penalties) {
+          var penalty = penalties[penaltyKey];
           if (penalty.code && penalty.id) {
-            skater.penalties.push(penalty.code);
-            skater.penaltyIds.push(penalty.id);
-            skater.penaltyDetails.push({ code: penalty.code, id: penalty.id });
+            skaterObj.penalties.push(penalty.code);
+            skaterObj.penaltyIds.push(penalty.id);
+            skaterObj.penaltyDetails.push({ code: penalty.code, id: penalty.id });
           }
         }
       }
@@ -717,7 +716,7 @@ $(function() {
     var $wrapper = $('.game-info-wrapper');
     
     logoImg.onload = function() {
-      $elements.customLogoSpace.html('<img src="' + BANNER_LOGO_PATH + '" style="max-width: 100%; max-height: 100%; object-fit: contain;" />');
+      $elements.customLogoSpace.html('<img src="' + BANNER_LOGO_PATH + '" class="custom-logo" />');
       $wrapper.addClass('has-logo');
     };
     logoImg.onerror = function() {
