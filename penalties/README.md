@@ -110,4 +110,17 @@ Provide this information to your video streaming team, to give them access to th
 
 ### Optional Custom Logo
 
+To add a custom logo to the left side game information area of the overlay:
+
+1. Create a logo file with the name `banner-logo.png`.[^2]
+2. Open your CRG folder in your instance of CRG (e.g., `crg-scoreboard_v202X.X`).
+3. Open the `html` folder.
+4. Open the `custom` folder.
+5. Open the `overlay` folder.
+6. Open the `logos` folder.
+7. Copy and paste or move the `banner-logo.png` file into the `logos` folder.
+
+The logo will display in the game information area once you refresh your browser.
+
 [^1]: Replace `<crg-ip-address>` with the IP address of your CRG instance
+[^2]: The overlay will constrain your logo to a 100px x 100px container and apply a drop shadow.  Logos with a 1:1 aspect ratio and a transparent background will produce will look best.
