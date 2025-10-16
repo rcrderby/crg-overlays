@@ -5,6 +5,7 @@ $(function() {
 
   // Constants
   const BANNER_LOGO_PATH = 'logos/banner-logo.png';
+  const PRE_FIRST_PERIOD_LABEL = 'Period 1';
   const FILTERED_PENALTY_CODES = ['FO'];
   const CACHE_EXPIRY_MS = 30000;
   const DEBOUNCE_CLOCK_MS = 50;
@@ -139,8 +140,8 @@ $(function() {
     return false;
   }
 
-  // Helper function to check if game start time is in the past (with caching)
-  function isStartTimeInPast() {
+  // Helper function to check if game start time is missing or in the past (with caching)
+  function isStartTimeMissingOrPast() {
     var now = Date.now();
     
     if (startTimePastCache !== null && now < startTimeCacheExpiry) {
@@ -151,10 +152,11 @@ $(function() {
     var startDate = state['ScoreBoard.CurrentGame.EventInfo(Date)'];
     var startTime = state['ScoreBoard.CurrentGame.EventInfo(StartTime)'];
     
+    // If no date or time is set, treat as if start time is missing/past
     if (!startDate || !startTime) {
-      startTimePastCache = false;
+      startTimePastCache = true;
       startTimeCacheExpiry = now + CACHE_EXPIRY_MS;
-      return false;
+      return true;
     }
     
     try {
@@ -163,9 +165,10 @@ $(function() {
       startTimeCacheExpiry = now + CACHE_EXPIRY_MS;
       return startTimePastCache;
     } catch {
-      startTimePastCache = false;
+      // If date parsing fails, treat as missing
+      startTimePastCache = true;
       startTimeCacheExpiry = now + CACHE_EXPIRY_MS;
-      return false;
+      return true;
     }
   }
 
@@ -643,7 +646,10 @@ $(function() {
       }
       
       if (currentPeriod === 0) {
-        if (intermissionTime <= 0 || isStartTimeInPast()) {
+        // If start time is missing or in past, show period clock for the upcoming period
+        if (isStartTimeMissingOrPast()) {
+          $elements.gameClock.text(formatTime(periodTime));
+        } else if (intermissionTime <= 0) {
           $elements.gameClock.html('&nbsp;');
         } else {
           $elements.gameClock.text(formatTime(intermissionTime));
@@ -704,12 +710,13 @@ $(function() {
         text = labels.intermission;
       } else if (currentPeriod > 0 && currentPeriod <= numPeriods) {
         text = 'Period ' + currentPeriod;
-      } else if (currentPeriod === 0 && intermissionTime > 0 && !isStartTimeInPast()) {
+      } else if (currentPeriod === 0 && isStartTimeMissingOrPast()) {
+        // If start time is missing or in past, show "Period 1" for upcoming period
+        text = PRE_FIRST_PERIOD_LABEL;
+      } else if (currentPeriod === 0 && intermissionTime > 0) {
         text = labels.preGame;
-      } else if (currentPeriod === 0) {
-        text = 'Coming Up';
       } else {
-        text = labels.intermission;
+        text = 'Coming Up';
       }
       
       $elements.periodInfo.text(text);
