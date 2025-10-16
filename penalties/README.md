@@ -59,19 +59,29 @@ The overlay extracts game information from the CRG "IGRF" and "Teams" tabs, so y
 
 ## Compatibility
 
-| CRG Version | Description |
-| ----------- | ----------- |
+| CRG Version | Description        |
+| ----------- | -------------------|
 | 2025.x      | :white_check_mark: |
 | 2023.x      | Not Tested         |
 | Other       | :x:                |
 
 ## Usage
 
+Open Broadcaster Software (OBS) Settings
+
+| Setting    | Value       |
+| ---------- | ------------|
+| Resolution | 1920 x 1080 |
+| Background | Transparent |
+
+### General
+
+### Optional Custom Logo
+
 <!-- 
 
 - Custom logo
 - Resolution
-- Background
-- Compatibility
+- Background transparency
 
  -->
