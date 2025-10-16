@@ -6,7 +6,7 @@ Coming soon.
 
 ## Overview
 
-It's common for streamers to display a penalty overlay data during timeouts, although it isn't always easy for viewers to understand what that data means.  That's especially true when a penalty overlay might only be visible for a few seconds.  The intent of this overlay is to provide a simple view of penalty and game status information in a format that makes it easy to see:
+It's common for video streaming teams to display a penalty overlay data during timeouts, although it isn't always easy for viewers to understand what that data means.  That's especially true when a penalty overlay might only be visible for a few seconds.  The intent of this overlay is to provide a simple view of penalty and game status information in a format that makes it easy to see:
 
 - Which teams are playing each other.
 - The score, period, and game clock.
@@ -68,7 +68,7 @@ The overlay extracts game information from the CRG "IGRF" and "Teams" tabs, so y
 
 ## Usage
 
-To make this overlay to your video streaming team, you need to download the overlay files from the repository and place them in a specific folder within your CRG instance.  There are several ways to download the overlay files, and the following steps detail one of those methods.
+To make this overlay available to your video streaming team, you need to download the overlay files from the repository and place them in a specific folder within your CRG instance.  There are several ways to download the overlay files, and the following steps detail one of those methods.
 
 **Download the overlay files:**
 
@@ -92,6 +92,8 @@ To make this overlay to your video streaming team, you need to download the over
 3. From the displayed list of files and directories, click the **penalties** link to display the overlay.
 
 ### Open Broadcaster Software (OBS) Details
+
+Provide this information to your video streaming team, to give them access to the overlay:
 
 | Setting    | Value                                                         |
 | ---------- | ------------------------------------------------------------- |
