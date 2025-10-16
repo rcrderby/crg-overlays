@@ -16,7 +16,18 @@
   --row-height: 40px;
 }
 
-/* Shared text shadow */
+/* Shared box properties */
+.roster,
+#team1-penalties,
+#team2-penalties,
+#team1-total,
+#team2-total,
+#tournament-name,
+#game-details {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+/* Shared text properties */
 .penalty-codes,
 .penalty-count,
 .roster-number,
@@ -28,6 +39,12 @@
 #penalties-title h1,
 #period-info {
   text-shadow: 1px 1px 2px rgb(0 0 0 / 40%), 0 0 4px rgb(0 0 0 / 50%);
+}
+
+/* shared logo properties */
+.team-logo,
+.custom-logo {
+  filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.4));
 }
 
 body {
