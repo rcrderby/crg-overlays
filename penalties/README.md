@@ -68,16 +68,17 @@ The overlay extracts game information from the CRG "IGRF" and "Teams" tabs, so y
 
 ## Usage
 
-Open Broadcaster Software (OBS) Settings
+To make this overlay to your video streaming team, you need to download the files from the repository and place them in a specific folder within your CRG instance.  
 
-| Setting    | Value       |
-| ---------- | ------------|
-| Resolution | 1920 x 1080 |
-| Background | Transparent |
+### Open Broadcaster Software (OBS) Details
 
-### General
+| Setting    | Value                                                         |
+| ---------- | ------------------------------------------------------------- |
+| Resolution | 1920 x 1080                                                   |
+| Background | Transparent                                                   |
+| URL        | `https://<crg-ip-address>:8000/custom/overlay/penalties` [^1] |
 
-## Optional Custom Logo
+### Optional Custom Logo
 
 <!-- 
 
@@ -86,3 +87,5 @@ Open Broadcaster Software (OBS) Settings
 - Background transparency
 
  -->
+
+[^1]: Replace `<crg-ip-address>` with the IP address of your CRG instance
