@@ -31,7 +31,7 @@ The overlay extracts game information from the CRG "IGRF" and "Teams" tabs, so y
 ### Rosters & Penalties Area
 
 - Displays team logos, if available for both teams.
-  - Sized to fit 180px x 180px containers.
+  - Sized to fit 180 x 180px containers.
 - Displays roster number, name, penalty codes, and total penalty counts for each player.
   - Indicates the team captains with a "C".
   - Hides roster names that don't include a roster name and number.
@@ -63,7 +63,7 @@ The overlay extracts game information from the CRG "IGRF" and "Teams" tabs, so y
   - "Period N" - during each period.
   - "Overtime" - during overtime jams.
 - Optionally displays a custom logo to provide league, tournament, or sanctioning body branding
-  - Sized to fit a 100px x 100px container.
+  - Sized to fit a 100 x 100px container.
 
 ## Compatibility
 
@@ -123,4 +123,4 @@ To add a custom logo to the left side game information area of the overlay:
 The logo will display in the game information area once you refresh your browser.
 
 [^1]: Replace `<crg-ip-address>` with the IP address of your CRG instance
-[^2]: The overlay will constrain your logo to a 100px x 100px container and apply a drop shadow.  Logos with a 1:1 aspect ratio and a transparent background will produce will look best.
+[^2]: The overlay will constrain your logo to a 100 x 100px container and apply a drop shadow.  Logos with a 1:1 aspect ratio and a transparent background will produce will look best.
