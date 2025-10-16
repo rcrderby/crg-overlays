@@ -37,7 +37,13 @@ export default defineConfig([
       },
     },
       rules: {
-        "no-undef": "off"
+        "no-undef": "off",
+        "no-unused-vars": [
+          "error",
+          { 
+            "argsIgnorePattern": "^_"
+          }
+        ]
       }
   },
   {
