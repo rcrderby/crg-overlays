@@ -263,6 +263,13 @@ body {
   flex: 1;
 }
 
+.captain-indicator {
+  font-style: italic;
+  font-size: 20px;
+  opacity: 0.85;
+  margin-left: 4px;
+}
+
 /* ===== PENALTIES COLUMN ===== */
 
 .penalties-column {

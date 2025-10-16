@@ -24,6 +24,7 @@ $(function() {
     skaterNumber: /\.RosterNumber/,
     skaterName: /\.Name/,
     skaterNameExclude: /Pronoun/,
+    skaterFlags: /\.Flags$/,
     skaterPattern: /Team\((\d+)\)\.Skater\(([^)]+)\)/,
     penaltyPattern: /ScoreBoard\.CurrentGame\.Team\((\d+)\)\.Skater\(([^)]+)\)\.Penalty\(([^)]+)\)\.(Code|Id)/,
     expulsionId: /ScoreBoard\.CurrentGame\.Expulsion\(([^)]+)\)\.Id/
@@ -329,7 +330,8 @@ $(function() {
         name: '', 
         penalties: [],
         penaltyIds: [],
-        penaltyDetails: []
+        penaltyDetails: [],
+        flags: ''
       };
     }
     
@@ -338,6 +340,9 @@ $(function() {
       updateRosterAndPenalties(teamNum);
     } else if (REGEX_PATTERNS.skaterName.test(key) && !REGEX_PATTERNS.skaterNameExclude.test(key)) {
       skaters[skaterId].name = value || '';
+      updateRosterAndPenalties(teamNum);
+    } else if (REGEX_PATTERNS.skaterFlags.test(key)) {
+      skaters[skaterId].flags = value || '';
       updateRosterAndPenalties(teamNum);
     }
   }
@@ -486,10 +491,16 @@ $(function() {
       
       if (!skater.number || !skater.name) continue;
       
+      // Check if skater is a captain
+      var isCaptain = skater.flags && skater.flags.indexOf('C') !== -1;
+      
       rosterParts.push(
         '<div class="roster-line">',
         '<div class="roster-number">', skater.number, '</div>',
-        '<div class="roster-name">', skater.name, '</div>',
+        '<div class="roster-name">', 
+          skater.name,
+          isCaptain ? ' <span class="captain-indicator">C</span>' : '',
+        '</div>',
         '</div>'
       );
       
