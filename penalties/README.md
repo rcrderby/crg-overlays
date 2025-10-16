@@ -8,8 +8,7 @@ It's common for streamers to display a penalty overlay data during timeouts, alt
 - The score, period, and game clock.
 - Which team is on which side of the screen.
 - Which players have penalties, and how many they have.
-- Which players have high penalty counts.
-- Which players have fouled out or been expelled.
+- Which players have high penalty counts, fouled out, or been expelled.
 - How many penalties each team has.
 - Basic tournament information, if applicable.
 - Optionally, the host league or sanctioning body's logo.
