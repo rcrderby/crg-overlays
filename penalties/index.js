@@ -73,9 +73,17 @@ $(function() {
   var expulsionIdsCache = [];
   var expulsionIdsCacheValid = false;
 
-  // Helper function to check boolean values from WebSocket
+  // Helper function to check boolean values from the WebSocket
   function isTrue(value) {
     return value === true || value === 'true';
+  }
+
+  // Helper function to trim blank space values from the WebSocket
+  function trimValue(value) {
+    if (value === null || value === undefined) {
+      return '';
+    }
+    return String(value).trim();
   }
 
   // Helper function to get expulsion penalty IDs (cached)
@@ -294,8 +302,8 @@ $(function() {
     var team = $elements['team' + teamNum];
     
     if (key.includes('.AlternateName(whiteboard)') || (REGEX_PATTERNS.teamName.test(key) && !key.includes('AlternateName') && !key.includes('.Skater('))) {
-      var altName = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)'];
-      var name = altName || value;
+      var altName = trimValue(WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)']);
+      var name = altName || trimValue(value);
       
       // Only update if we have a name, or if current display is empty/default
       var currentText = team.name.text();
@@ -337,13 +345,13 @@ $(function() {
     }
     
     if (REGEX_PATTERNS.skaterNumber.test(key)) {
-      skaters[skaterId].number = value || '';
+      skaters[skaterId].number = trimValue(value);
       updateRosterAndPenalties(teamNum);
     } else if (REGEX_PATTERNS.skaterName.test(key) && !REGEX_PATTERNS.skaterNameExclude.test(key)) {
-      skaters[skaterId].name = value || '';
+      skaters[skaterId].name = trimValue(value);
       updateRosterAndPenalties(teamNum);
     } else if (REGEX_PATTERNS.skaterFlags.test(key)) {
-      skaters[skaterId].flags = value || '';
+      skaters[skaterId].flags = trimValue(value);
       updateRosterAndPenalties(teamNum);
     }
   }
@@ -675,10 +683,10 @@ $(function() {
       var intermissionRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']);
       
       var labels = {
-        preGame: state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)'] || 'Time to Derby',
-        intermission: state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)'] || 'Intermission',
-        unofficial: state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)'] || 'Unofficial Score',
-        official: state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)'] || 'Final Score'
+        preGame: trimValue(state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)']) || 'Time to Derby',
+        intermission: trimValue(state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)']) || 'Intermission',
+        unofficial: trimValue(state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)']) || 'Unofficial Score',
+        official: trimValue(state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)']) || 'Final Score'
       };
       
       var gameOver = currentPeriod > numPeriods || 
@@ -714,8 +722,8 @@ $(function() {
 
   // Update tournament name and game number if available
   function updateTournamentName() {
-    var tournament = WS.state['ScoreBoard.CurrentGame.EventInfo(Tournament)'];
-    var gameNo = WS.state['ScoreBoard.CurrentGame.EventInfo(GameNo)'];
+    var tournament = trimValue(WS.state['ScoreBoard.CurrentGame.EventInfo(Tournament)']);
+    var gameNo = trimValue(WS.state['ScoreBoard.CurrentGame.EventInfo(GameNo)']);
     
     if (tournament) {
       var displayText = tournament;
@@ -750,8 +758,8 @@ $(function() {
       var state = WS.state;
       
       for (var teamNum = 1; teamNum <= 2; teamNum++) {
-        var altName = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)'];
-        var name = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name'];
+        var altName = trimValue(state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)']);
+        var name = trimValue(state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name']);
         var total = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').TotalPenalties'];
         
         $elements['team' + teamNum].name.text(altName || name || '');
@@ -773,8 +781,8 @@ $(function() {
       setTimeout(function() {
         for (var teamNum = 1; teamNum <= 2; teamNum++) {
           var currentText = $elements['team' + teamNum].name.text();
-          var altName = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)'];
-          var name = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name'];
+          var altName = trimValue(WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)']);
+          var name = trimValue(WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name']);
           
           if ((!currentText || currentText.trim() === '') && !altName && !name) {
             $elements['team' + teamNum].name.text('Team ' + teamNum);
