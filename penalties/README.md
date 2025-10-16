@@ -33,6 +33,14 @@ It's common for streamers to display a penalty overlay data during timeouts, alt
 
  -->
 
+## Compatibility
+
+| CRG Version | Description |
+| ----------- | ----------- |
+| 2025.x      | :white_check_mark: |
+| 2023.x      | Not Tested         |
+| Other       | :x:                |
+
 ## Usage
 
 <!-- TODO -->
