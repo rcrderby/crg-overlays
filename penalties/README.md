@@ -26,6 +26,7 @@ The overlay extracts game information from the CRG "IGRF" and "Teams" tabs, so y
 - Displays team logos, if available for both teams.
   - Sized to fit 180px x 180px containers.
 - Displays roster number, name, penalty codes, and total penalty counts for each player.
+  - Indicates the team captains with a "C".
   - Hides roster names that don't include a roster name and number.
 - Customizable roster display colors.
   - Uses each team's "whiteboard" background and text colors if set.
