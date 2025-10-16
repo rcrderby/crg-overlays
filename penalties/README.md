@@ -1,13 +1,21 @@
-# TODO Penalties Overlay README
+# Penalties Overlay
 
-Created using `https://github.com/rollerderby/scoreboard/wiki/Custom-Screen-Creation-Tutorial`
+## Overview
 
-CRG repository `https://github.com/rollerderby/scoreboard`
+<!-- TODO -->
 
-<!-- TODO add banner logo directions -->
+## Features
 
-<!-- TODO add information about custom colors -->
+<!-- TODO -->
 
-<!-- TODO add information about team logos -->
+<!-- 
 
-<!-- TODO add information about tournament label -->
+- Team colors
+- Team logos
+- Custom logo
+- Penalty color-coding
+- Tournament banner
+
+ -->
+
+## Usage
