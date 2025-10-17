@@ -6,7 +6,9 @@
 
 ## Overview
 
-This repository hosts custom overlays for the [CRG Scoreboard](https://github.com/rollerderby/scoreboard "CRG Scoreboard Git Repository"), created using the tutorial in the [CRG Wiki](https://github.com/rollerderby/scoreboard/wiki/Custom-Screen-Creation-Tutorial "CRG Custom Screen Wiki Page").  After placing custom overlay files on an instance of CRG, a video streaming team can consume them in the same way they do for [CRG's built-in overlays](https://github.com/rollerderby/scoreboard/wiki/Scoreboard-Video-Overlays "CRG Overlay Wiki Page").
+This repository hosts custom overlays for the [CRG Scoreboard](https://github.com/rollerderby/scoreboard "CRG Scoreboard Git Repository"), created using the tutorial in the [CRG Wiki](https://github.com/rollerderby/scoreboard/wiki/Custom-Screen-Creation-Tutorial "CRG Custom Screen Wiki Page").
+
+After placing custom overlay files on an instance of CRG, a video streaming team can consume them in the same way they do for [CRG's built-in overlays](https://github.com/rollerderby/scoreboard/wiki/Scoreboard-Video-Overlays "CRG Overlay Wiki Page").
 
 ## Overlays
 
