@@ -9,7 +9,7 @@
 
 ## Preview
 
-![Penalties Overlay Image](./images/penalties-preview.png" "Penalties Overlay Image")
+![Penalties Overlay Image](./images/penalties-preview.png "Penalties Overlay Image")
 
 ## Overview
 
