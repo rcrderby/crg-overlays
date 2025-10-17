@@ -85,7 +85,7 @@ $(function() {
     logoContainers: $('.team-logo-container'),
     tournamentName: $('#tournament-name'),
     gameClock: $('#game-clock'),
-    periodInfo: $('#period-info'),
+    periodInfo: $('#clock-label'),
     customLogoSpace: $('#custom-logo-space'),
     teamScoreBlocks: $('.team-score-block'),
     vsClockContainer: $('#vs-clock-container'),
