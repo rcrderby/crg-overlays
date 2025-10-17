@@ -9,10 +9,7 @@
 
 ## Preview
 
-<img src="./images/penalties-preview.png"
-     alt="Penalties Overlay"
-     style="box-shadow: 0 4px 8px rgb(0 0 0 0.2);"
->
+![Penalties Overlay Image](./images/penalties-preview.png" "Penalties Overlay Image")
 
 ## Overview
 
