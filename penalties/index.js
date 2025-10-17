@@ -24,6 +24,14 @@ $(function() {
   const EXPELLED_DISPLAY = 'EXP';
   const FOULOUT_DISPLAY = 'FO';
   const PRE_FIRST_PERIOD_LABEL = 'Period 1';
+  const DEFAULT_INTERMISSION_LABELS = {
+    preGame: 'Time to Derby',
+    intermission: 'Intermission',
+    unofficial: 'Unofficial Score',
+    official: 'Final Score',
+    overtime: 'Overtime',
+    comingUp: 'Coming Up'
+  };
   
   // Game rules
   const FOULOUT_PENALTY_COUNT = 7;
@@ -109,6 +117,12 @@ $(function() {
       return '';
     }
     return String(value).trim();
+  }
+
+  // Helper function to get intermission label with fallback to default
+  function getIntermissionLabel(stateKey, defaultValue) {
+    var value = trimValue(WS.state[stateKey]);
+    return value || defaultValue;
   }
 
   // Helper function to get expulsion penalty IDs (cached)
@@ -528,7 +542,7 @@ $(function() {
       if (!skater.number || !skater.name) continue;
       
       // Check if skater is a captain
-      var isCaptain = skater.flags && skater.flags.indexOf(CAPTAIN_FLAG) !== -1;
+      var isCaptain = skater.flags && skater.flags.split(',').includes(CAPTAIN_FLAG) !== -1;
       
       rosterParts.push(
         '<div class="roster-line">',
@@ -655,6 +669,7 @@ $(function() {
     try {
       var state = WS.state;
       var officialScore = isTrue(state['ScoreBoard.CurrentGame.OfficialScore']);
+      var inOvertime = isTrue(state['ScoreBoard.CurrentGame.InOvertime']);
       var currentPeriod = parseInt(state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
       var intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']) || 0;
       var periodTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Period).Time']) || 0;
@@ -664,7 +679,8 @@ $(function() {
       var gameOver = currentPeriod > numPeriods || 
                     (currentPeriod >= numPeriods && (intermissionRunning || intermissionTime > 0));
       
-      if (officialScore || gameOver) {
+      // Hide clock for unofficial score, overtime, or official
+      if (officialScore || gameOver || inOvertime) {
         $elements.gameClock.html('&nbsp;');
         return;
       }
@@ -712,11 +728,12 @@ $(function() {
       var numPeriods = parseInt(state['ScoreBoard.CurrentGame.Rule(Period.Number)']) || 2;
       var intermissionRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']);
       
+      // Get intermission labels from settings with fallback to defaults
       var labels = {
-        preGame: trimValue(state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)']) || 'Time to Derby',
-        intermission: trimValue(state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)']) || 'Intermission',
-        unofficial: trimValue(state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)']) || 'Unofficial Score',
-        official: trimValue(state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)']) || 'Final Score'
+        preGame: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)', DEFAULT_INTERMISSION_LABELS.preGame),
+        intermission: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)', DEFAULT_INTERMISSION_LABELS.intermission),
+        unofficial: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)', DEFAULT_INTERMISSION_LABELS.unofficial),
+        official: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)', DEFAULT_INTERMISSION_LABELS.official)
       };
       
       var gameOver = currentPeriod > numPeriods || 
@@ -729,7 +746,7 @@ $(function() {
       } else if (gameOver) {
         text = labels.unofficial;
       } else if (inOvertime) {
-        text = 'Overtime';
+        text = DEFAULT_INTERMISSION_LABELS.overtime;
       } else if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionTime > 0) {
         text = labels.intermission;
       } else if (currentPeriod > 0 && currentPeriod <= numPeriods) {
@@ -740,7 +757,7 @@ $(function() {
       } else if (currentPeriod === 0 && intermissionTime > 0) {
         text = labels.preGame;
       } else {
-        text = 'Coming Up';
+        text = DEFAULT_INTERMISSION_LABELS.comingUp;
       }
       
       $elements.periodInfo.text(text);
