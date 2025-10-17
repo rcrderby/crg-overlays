@@ -412,7 +412,7 @@ body {
   align-items: center;
   flex-shrink: 0;
   justify-content: flex-start;
-  width: 200px;
+  width: 280px;
   gap: 0;
 }
 
@@ -434,6 +434,8 @@ body {
   font-size: 28px;
   color: #ff69b4;
   margin-top: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .score {
