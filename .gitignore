@@ -1,8 +1,8 @@
 # macOS Spotlight Index
 .DS_Store
 
-# Images
-*.png
+# Logos
+logos/
 
 # Environment variables
 .env
