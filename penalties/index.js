@@ -542,7 +542,7 @@ $(function() {
       if (!skater.number || !skater.name) continue;
       
       // Check if skater is a captain
-      var isCaptain = skater.flags && skater.flags.split(',').includes(CAPTAIN_FLAG) !== -1;
+      var isCaptain = skater.flags === CAPTAIN_FLAG || skater.flags.split(',').indexOf(CAPTAIN_FLAG) !== -1;
       
       rosterParts.push(
         '<div class="roster-line">',
