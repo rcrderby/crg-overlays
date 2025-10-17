@@ -9,7 +9,7 @@
 
 ## Preview
 
-Coming soon.
+![Penalties Overlay Image](./images/penalties-preview.png "Penalties Overlay Image")
 
 ## Overview
 
@@ -38,10 +38,10 @@ The overlay extracts game information from the CRG "IGRF" and "Teams" tabs, so y
 - Customizable roster display colors.
   - Uses each team's "whiteboard" background and text colors if set.
   - Defaults to a black background with white text.
-- Highlights player penalty counts at specific thresholds.
-  - 5 penalties in <code style="color : gold">yellow</code>.
-  - 6 penalties in <code style="color : darkorange">orange</code>.
-  - 7+ penalties, foul outs, and expulsions in <code style="color : red">red</code>.
+- Highlights player penalty counts with different color backgrounds at specific thresholds.
+  - 5 penalties in yellow :yellow_square:
+  - 6 penalties in orange :orange_square:
+  - 7+ penalties, foul outs, and expulsions in red :red_square:
 - Changes player numeric penalty counts to "FO" or "EXP" for foul outs and expulsions, respectively.
   - Displays "EXP" for players who are expelled after fouling out.
 - Displays the total penalty count for each team.

@@ -17,6 +17,7 @@ $(function() {
   // General
   const BANNER_LOGO_PATH = 'logos/banner-logo.png';
   const FILTERED_PENALTY_CODES = ['FO'];
+  const TEAM_NAME_OVERFLOW_BUFFER_PIXELS = 1
   
   // Display text
   const CAPTAIN_FLAG = 'C';
@@ -84,7 +85,7 @@ $(function() {
     logoContainers: $('.team-logo-container'),
     tournamentName: $('#tournament-name'),
     gameClock: $('#game-clock'),
-    periodInfo: $('#period-info'),
+    periodInfo: $('#clock-label'),
     customLogoSpace: $('#custom-logo-space'),
     teamScoreBlocks: $('.team-score-block'),
     vsClockContainer: $('#vs-clock-container'),
@@ -496,7 +497,9 @@ $(function() {
       // Force a reflow to get natural widths if needed
       var team1Width = $elements.team1.name.parent().get(0).scrollWidth;
       var team2Width = $elements.team2.name.parent().get(0).scrollWidth;
-      var maxWidth = Math.max(team1Width, team2Width);
+
+      // Add 1px buffer to the maximum width to prevent overflow
+      var maxWidth = Math.max(team1Width, team2Width) + TEAM_NAME_OVERFLOW_BUFFER_PIXELS;
       
       // Single write
       $elements.teamScoreBlocks.css('width', maxWidth + 'px');

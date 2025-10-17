@@ -38,7 +38,7 @@
 .team-name,
 .vs-text,
 #game-clock,
-#period-info {
+#clock-label {
   text-shadow: 1px 1px 2px rgb(0 0 0 / 40%);
 }
 
@@ -84,7 +84,7 @@
 .team-name,
 #penalties-title h1,
 #game-clock,
-#period-info,
+#clock-label,
 #team1-total,
 #team2-total,
 .score {
@@ -98,7 +98,7 @@
 .vs-text,
 #clock-container,
 #game-clock,
-#period-info {
+#clock-label {
   width: 100%;
 }
 
@@ -106,7 +106,7 @@
 #penalties-title,
 #tournament-name,
 #game-clock,
-#period-info,
+#clock-label,
 .vs-text,
 .team-score-block {
   text-align: center;
@@ -412,7 +412,7 @@ body {
   align-items: center;
   flex-shrink: 0;
   justify-content: flex-start;
-  width: 200px;
+  width: 280px;
   gap: 0;
 }
 
@@ -430,10 +430,12 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-#period-info {
+#clock-label {
   font-size: 28px;
   color: #ff69b4;
   margin-top: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .score {
