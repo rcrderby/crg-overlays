@@ -492,13 +492,13 @@ $(function() {
 
   // Equalize team score block widths and set wrapper width
   function equalizeTeamBoxWidths() {
-    $elements.teamScoreBlocks.css('width', 'auto');
-    
     requestAnimationFrame(function() {
-      var team1Width = $elements.team1.name.parent().outerWidth();
-      var team2Width = $elements.team2.name.parent().outerWidth();
+      // Force a reflow to get natural widths if needed
+      var team1Width = $elements.team1.name.parent().get(0).scrollWidth;
+      var team2Width = $elements.team2.name.parent().get(0).scrollWidth;
       var maxWidth = Math.max(team1Width, team2Width);
       
+      // Single write
       $elements.teamScoreBlocks.css('width', maxWidth + 'px');
       
       var vsClockWidth = $elements.vsClockContainer.outerWidth();
@@ -508,7 +508,7 @@ $(function() {
       var totalWidth = (maxWidth * 2) + vsClockWidth + padding;
       $elements.gameInfoWrapper.css('width', totalWidth + 'px');
     });
-  }
+}
 
   // Sort skaters alphabetically by number (as text)
   function sortSkaters(skaters) {
