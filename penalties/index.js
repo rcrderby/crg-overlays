@@ -4,15 +4,39 @@ $(function() {
   'use strict';
 
   // Constants
-  const BANNER_LOGO_PATH = 'logos/banner-logo.png';
-  const PRE_FIRST_PERIOD_LABEL = 'Period 1';
-  const FILTERED_PENALTY_CODES = ['FO'];
+  // Timers
   const CACHE_EXPIRY_MS = 30000;
   const DEBOUNCE_CLOCK_MS = 50;
   const DEBOUNCE_PENALTY_INIT_MS = 300;
   const DEBOUNCE_PENALTY_NORMAL_MS = 50;
   const INIT_COMPLETE_MS = 800;
   const DEFAULT_NAME_DELAY_MS = 500;
+  const WS_WAIT_MS = 100;
+  const INIT_DELAY_MS = 200;
+  
+  // General
+  const BANNER_LOGO_PATH = 'logos/banner-logo.png';
+  const FILTERED_PENALTY_CODES = ['FO'];
+  
+  // Display text
+  const CAPTAIN_FLAG = 'C';
+  const DEFAULT_TEAM_NAME_PREFIX = 'Team ';
+  const EXPELLED_DISPLAY = 'EXP';
+  const FOULOUT_DISPLAY = 'FO';
+  const PRE_FIRST_PERIOD_LABEL = 'Period 1';
+  
+  // Game rules
+  const FOULOUT_PENALTY_COUNT = 7;
+  const NUM_TEAMS = 2;
+  const WARNING_PENALTY_COUNT_5 = 5;
+  const WARNING_PENALTY_COUNT_6 = 6;
+
+  // CSS classes
+  const CLASS_PENALTY_5 = 'penalty-count-5';
+  const CLASS_PENALTY_6 = 'penalty-count-6';
+  const CLASS_PENALTY_FOULOUT = 'penalty-count-foulout';
+  const CLASS_PENALTY_EXPELLED = 'penalty-count-expelled';
+  const CLASS_HAS_LOGO = 'has-logo';
   
   // Cached regex patterns
   const REGEX_PATTERNS = {
@@ -204,7 +228,7 @@ $(function() {
   // Helper function to determine penalty count CSS class
   function getPenaltyCountClass(teamNum, skaterId, displayCount) {
     if (isSkaterExpelled(teamNum, skaterId)) {
-      return 'penalty-count-expelled';
+      return CLASS_PENALTY_EXPELLED;
     }
     
     var skater = teams[teamNum].skaters[skaterId];
@@ -213,20 +237,20 @@ $(function() {
     var totalPenalties = skater.penalties.length;
     
     // Check for fouled out (FO code or 7+ total penalties)
-    if (totalPenalties >= 7) {
-      return 'penalty-count-foulout';
+    if (totalPenalties >= FOULOUT_PENALTY_COUNT) {
+      return CLASS_PENALTY_FOULOUT;
     }
     
     // Check for FO code
     for (var i = 0; i < skater.penalties.length; i++) {
-      if (String(skater.penalties[i] || '').trim().toUpperCase() === 'FO') {
-        return 'penalty-count-foulout';
+      if (String(skater.penalties[i] || '').trim().toUpperCase() === FOULOUT_DISPLAY) {
+        return CLASS_PENALTY_FOULOUT;
       }
     }
     
     // Color code based on display count (excluding FO)
-    if (displayCount === 6) return 'penalty-count-6';
-    if (displayCount === 5) return 'penalty-count-5';
+    if (displayCount === WARNING_PENALTY_COUNT_6) return CLASS_PENALTY_6;
+    if (displayCount === WARNING_PENALTY_COUNT_5) return CLASS_PENALTY_5;
     
     return '';
   }
@@ -234,7 +258,7 @@ $(function() {
   // Wait for WS to be loaded
   function waitForWS() {
     if (typeof WS === 'undefined') {
-      setTimeout(waitForWS, 100);
+      setTimeout(waitForWS, WS_WAIT_MS);
       return;
     }
     init();
@@ -274,7 +298,7 @@ $(function() {
       WS.Register(['ScoreBoard.CurrentGame.EventInfo(StartTime)'], updateGameState);
       
       loadCustomLogo();
-      setTimeout(initializeDisplay, 200);
+      setTimeout(initializeDisplay, INIT_DELAY_MS);
       
     } catch(error) {
       console.error('Failed to initialize overlay:', error);
@@ -310,7 +334,7 @@ $(function() {
       
       // Only update if we have a name, or if current display is empty/default
       var currentText = team.name.text();
-      if (name || !currentText || currentText === 'Team ' + teamNum) {
+      if (name || !currentText || currentText === DEFAULT_TEAM_NAME_PREFIX + teamNum) {
         team.name.text(name || '');
         updateQueue.schedule(equalizeTeamBoxWidths);
       }
@@ -384,7 +408,7 @@ $(function() {
         // Try to determine team by checking if penalty ID belongs to team 1 or 2
         var foundTeam = null;
         
-        for (var teamNum = 1; teamNum <= 2 && !foundTeam; teamNum++) {
+        for (var teamNum = 1; teamNum <= NUM_TEAMS && !foundTeam; teamNum++) {
           var skaters = teams[teamNum].skaters;
           for (var skaterId in skaters) {
             if (Object.prototype.hasOwnProperty.call(skaters, skaterId)) {
@@ -464,7 +488,7 @@ $(function() {
       $elements.teamScoreBlocks.css('width', maxWidth + 'px');
       
       var vsClockWidth = $elements.vsClockContainer.outerWidth();
-      var hasLogo = $elements.gameInfoWrapper.hasClass('has-logo');
+      var hasLogo = $elements.gameInfoWrapper.hasClass(CLASS_HAS_LOGO);
       var padding = hasLogo ? 280 : 40;
       
       var totalWidth = (maxWidth * 2) + vsClockWidth + padding;
@@ -504,7 +528,7 @@ $(function() {
       if (!skater.number || !skater.name) continue;
       
       // Check if skater is a captain
-      var isCaptain = skater.flags && skater.flags.indexOf('C') !== -1;
+      var isCaptain = skater.flags && skater.flags.indexOf(CAPTAIN_FLAG) !== -1;
       
       rosterParts.push(
         '<div class="roster-line">',
@@ -538,21 +562,21 @@ $(function() {
       var displayValue;
       
       if (isExpelled) {
-        displayValue = 'EXP';
+        displayValue = EXPELLED_DISPLAY;
       } else {
         // Check for fouled out
         var totalPenalties = skater.penalties.length;
-        if (totalPenalties >= 7) {
+        if (totalPenalties >= FOULOUT_PENALTY_COUNT) {
           isFouledOut = true;
         } else {
           for (var k = 0; k < skater.penalties.length; k++) {
-            if (String(skater.penalties[k] || '').trim().toUpperCase() === 'FO') {
+            if (String(skater.penalties[k] || '').trim().toUpperCase() === FOULOUT_DISPLAY) {
               isFouledOut = true;
               break;
             }
           }
         }
-        displayValue = isFouledOut ? 'FO' : displayCount;
+        displayValue = isFouledOut ? FOULOUT_DISPLAY : displayCount;
       }
       
       var countClass = getPenaltyCountClass(teamNum, skater.id, displayCount);
@@ -750,11 +774,11 @@ $(function() {
     
     logoImg.onload = function() {
       $elements.customLogoSpace.html('<img src="' + BANNER_LOGO_PATH + '" class="custom-logo" />');
-      $wrapper.addClass('has-logo');
+      $wrapper.addClass(CLASS_HAS_LOGO);
     };
     logoImg.onerror = function() {
       $elements.customLogoSpace.empty();
-      $wrapper.removeClass('has-logo');
+      $wrapper.removeClass(CLASS_HAS_LOGO);
     };
     logoImg.src = BANNER_LOGO_PATH;
   }
@@ -764,7 +788,7 @@ $(function() {
     try {
       var state = WS.state;
       
-      for (var teamNum = 1; teamNum <= 2; teamNum++) {
+      for (var teamNum = 1; teamNum <= NUM_TEAMS; teamNum++) {
         var altName = trimValue(state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)']);
         var name = trimValue(state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name']);
         var total = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').TotalPenalties'];
@@ -786,13 +810,13 @@ $(function() {
       }, INIT_COMPLETE_MS);
       
       setTimeout(function() {
-        for (var teamNum = 1; teamNum <= 2; teamNum++) {
+        for (var teamNum = 1; teamNum <= NUM_TEAMS; teamNum++) {
           var currentText = $elements['team' + teamNum].name.text();
           var altName = trimValue(WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)']);
           var name = trimValue(WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name']);
           
           if ((!currentText || currentText.trim() === '') && !altName && !name) {
-            $elements['team' + teamNum].name.text('Team ' + teamNum);
+            $elements['team' + teamNum].name.text(DEFAULT_TEAM_NAME_PREFIX + teamNum);
             updateQueue.schedule(equalizeTeamBoxWidths);
           }
         }
