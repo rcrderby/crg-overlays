@@ -4,14 +4,47 @@ $(function() {
   'use strict';
 
   // Constants
-  const BANNER_LOGO_PATH = 'logos/banner-logo.png';
-  const FILTERED_PENALTY_CODES = ['FO'];
+  // Timers
   const CACHE_EXPIRY_MS = 30000;
   const DEBOUNCE_CLOCK_MS = 50;
   const DEBOUNCE_PENALTY_INIT_MS = 300;
   const DEBOUNCE_PENALTY_NORMAL_MS = 50;
   const INIT_COMPLETE_MS = 800;
   const DEFAULT_NAME_DELAY_MS = 500;
+  const WS_WAIT_MS = 100;
+  const INIT_DELAY_MS = 200;
+  
+  // General
+  const BANNER_LOGO_PATH = 'logos/banner-logo.png';
+  const FILTERED_PENALTY_CODES = ['FO'];
+  
+  // Display text
+  const CAPTAIN_FLAG = 'C';
+  const DEFAULT_TEAM_NAME_PREFIX = 'Team ';
+  const EXPELLED_DISPLAY = 'EXP';
+  const FOULOUT_DISPLAY = 'FO';
+  const PRE_FIRST_PERIOD_LABEL = 'Period 1';
+  const DEFAULT_INTERMISSION_LABELS = {
+    preGame: 'Time to Derby',
+    intermission: 'Intermission',
+    unofficial: 'Unofficial Score',
+    official: 'Final Score',
+    overtime: 'Overtime',
+    comingUp: 'Coming Up'
+  };
+  
+  // Game rules
+  const FOULOUT_PENALTY_COUNT = 7;
+  const NUM_TEAMS = 2;
+  const WARNING_PENALTY_COUNT_5 = 5;
+  const WARNING_PENALTY_COUNT_6 = 6;
+
+  // CSS classes
+  const CLASS_PENALTY_5 = 'penalty-count-5';
+  const CLASS_PENALTY_6 = 'penalty-count-6';
+  const CLASS_PENALTY_FOULOUT = 'penalty-count-foulout';
+  const CLASS_PENALTY_EXPELLED = 'penalty-count-expelled';
+  const CLASS_HAS_LOGO = 'has-logo';
   
   // Cached regex patterns
   const REGEX_PATTERNS = {
@@ -24,6 +57,7 @@ $(function() {
     skaterNumber: /\.RosterNumber/,
     skaterName: /\.Name/,
     skaterNameExclude: /Pronoun/,
+    skaterFlags: /\.Flags$/,
     skaterPattern: /Team\((\d+)\)\.Skater\(([^)]+)\)/,
     penaltyPattern: /ScoreBoard\.CurrentGame\.Team\((\d+)\)\.Skater\(([^)]+)\)\.Penalty\(([^)]+)\)\.(Code|Id)/,
     expulsionId: /ScoreBoard\.CurrentGame\.Expulsion\(([^)]+)\)\.Id/
@@ -72,9 +106,23 @@ $(function() {
   var expulsionIdsCache = [];
   var expulsionIdsCacheValid = false;
 
-  // Helper function to check boolean values from WebSocket
+  // Helper function to check boolean values from the WebSocket
   function isTrue(value) {
     return value === true || value === 'true';
+  }
+
+  // Helper function to trim blank space values from the WebSocket
+  function trimValue(value) {
+    if (value === null || value === undefined) {
+      return '';
+    }
+    return String(value).trim();
+  }
+
+  // Helper function to get intermission label with fallback to default
+  function getIntermissionLabel(stateKey, defaultValue) {
+    var value = trimValue(WS.state[stateKey]);
+    return value || defaultValue;
   }
 
   // Helper function to get expulsion penalty IDs (cached)
@@ -130,8 +178,8 @@ $(function() {
     return false;
   }
 
-  // Helper function to check if game start time is in the past (with caching)
-  function isStartTimeInPast() {
+  // Helper function to check if game start time is missing or in the past (with caching)
+  function isStartTimeMissingOrPast() {
     var now = Date.now();
     
     if (startTimePastCache !== null && now < startTimeCacheExpiry) {
@@ -142,10 +190,11 @@ $(function() {
     var startDate = state['ScoreBoard.CurrentGame.EventInfo(Date)'];
     var startTime = state['ScoreBoard.CurrentGame.EventInfo(StartTime)'];
     
+    // If no date or time is set, treat as if start time is missing/past
     if (!startDate || !startTime) {
-      startTimePastCache = false;
+      startTimePastCache = true;
       startTimeCacheExpiry = now + CACHE_EXPIRY_MS;
-      return false;
+      return true;
     }
     
     try {
@@ -154,9 +203,10 @@ $(function() {
       startTimeCacheExpiry = now + CACHE_EXPIRY_MS;
       return startTimePastCache;
     } catch {
-      startTimePastCache = false;
+      // If date parsing fails, treat as missing
+      startTimePastCache = true;
       startTimeCacheExpiry = now + CACHE_EXPIRY_MS;
-      return false;
+      return true;
     }
   }
 
@@ -192,7 +242,7 @@ $(function() {
   // Helper function to determine penalty count CSS class
   function getPenaltyCountClass(teamNum, skaterId, displayCount) {
     if (isSkaterExpelled(teamNum, skaterId)) {
-      return 'penalty-count-expelled';
+      return CLASS_PENALTY_EXPELLED;
     }
     
     var skater = teams[teamNum].skaters[skaterId];
@@ -201,20 +251,20 @@ $(function() {
     var totalPenalties = skater.penalties.length;
     
     // Check for fouled out (FO code or 7+ total penalties)
-    if (totalPenalties >= 7) {
-      return 'penalty-count-foulout';
+    if (totalPenalties >= FOULOUT_PENALTY_COUNT) {
+      return CLASS_PENALTY_FOULOUT;
     }
     
     // Check for FO code
     for (var i = 0; i < skater.penalties.length; i++) {
-      if (String(skater.penalties[i] || '').trim().toUpperCase() === 'FO') {
-        return 'penalty-count-foulout';
+      if (String(skater.penalties[i] || '').trim().toUpperCase() === FOULOUT_DISPLAY) {
+        return CLASS_PENALTY_FOULOUT;
       }
     }
     
     // Color code based on display count (excluding FO)
-    if (displayCount === 6) return 'penalty-count-6';
-    if (displayCount === 5) return 'penalty-count-5';
+    if (displayCount === WARNING_PENALTY_COUNT_6) return CLASS_PENALTY_6;
+    if (displayCount === WARNING_PENALTY_COUNT_5) return CLASS_PENALTY_5;
     
     return '';
   }
@@ -222,7 +272,7 @@ $(function() {
   // Wait for WS to be loaded
   function waitForWS() {
     if (typeof WS === 'undefined') {
-      setTimeout(waitForWS, 100);
+      setTimeout(waitForWS, WS_WAIT_MS);
       return;
     }
     init();
@@ -255,13 +305,14 @@ $(function() {
 
       // Tournament info
       WS.Register(['ScoreBoard.CurrentGame.EventInfo(Tournament)'], updateTournamentName);
+      WS.Register(['ScoreBoard.CurrentGame.EventInfo(GameNo)'], updateTournamentName);
       
       // Event info for start time checking
       WS.Register(['ScoreBoard.CurrentGame.EventInfo(Date)'], updateGameState);
       WS.Register(['ScoreBoard.CurrentGame.EventInfo(StartTime)'], updateGameState);
       
       loadCustomLogo();
-      setTimeout(initializeDisplay, 200);
+      setTimeout(initializeDisplay, INIT_DELAY_MS);
       
     } catch(error) {
       console.error('Failed to initialize overlay:', error);
@@ -292,12 +343,12 @@ $(function() {
     var team = $elements['team' + teamNum];
     
     if (key.includes('.AlternateName(whiteboard)') || (REGEX_PATTERNS.teamName.test(key) && !key.includes('AlternateName') && !key.includes('.Skater('))) {
-      var altName = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)'];
-      var name = altName || value;
+      var altName = trimValue(WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)']);
+      var name = altName || trimValue(value);
       
       // Only update if we have a name, or if current display is empty/default
       var currentText = team.name.text();
-      if (name || !currentText || currentText === 'Team ' + teamNum) {
+      if (name || !currentText || currentText === DEFAULT_TEAM_NAME_PREFIX + teamNum) {
         team.name.text(name || '');
         updateQueue.schedule(equalizeTeamBoxWidths);
       }
@@ -329,15 +380,19 @@ $(function() {
         name: '', 
         penalties: [],
         penaltyIds: [],
-        penaltyDetails: []
+        penaltyDetails: [],
+        flags: ''
       };
     }
     
     if (REGEX_PATTERNS.skaterNumber.test(key)) {
-      skaters[skaterId].number = value || '';
+      skaters[skaterId].number = trimValue(value);
       updateRosterAndPenalties(teamNum);
     } else if (REGEX_PATTERNS.skaterName.test(key) && !REGEX_PATTERNS.skaterNameExclude.test(key)) {
-      skaters[skaterId].name = value || '';
+      skaters[skaterId].name = trimValue(value);
+      updateRosterAndPenalties(teamNum);
+    } else if (REGEX_PATTERNS.skaterFlags.test(key)) {
+      skaters[skaterId].flags = trimValue(value);
       updateRosterAndPenalties(teamNum);
     }
   }
@@ -367,7 +422,7 @@ $(function() {
         // Try to determine team by checking if penalty ID belongs to team 1 or 2
         var foundTeam = null;
         
-        for (var teamNum = 1; teamNum <= 2 && !foundTeam; teamNum++) {
+        for (var teamNum = 1; teamNum <= NUM_TEAMS && !foundTeam; teamNum++) {
           var skaters = teams[teamNum].skaters;
           for (var skaterId in skaters) {
             if (Object.prototype.hasOwnProperty.call(skaters, skaterId)) {
@@ -437,23 +492,23 @@ $(function() {
 
   // Equalize team score block widths and set wrapper width
   function equalizeTeamBoxWidths() {
-    $elements.teamScoreBlocks.css('width', 'auto');
-    
     requestAnimationFrame(function() {
-      var team1Width = $elements.team1.name.parent().outerWidth();
-      var team2Width = $elements.team2.name.parent().outerWidth();
+      // Force a reflow to get natural widths if needed
+      var team1Width = $elements.team1.name.parent().get(0).scrollWidth;
+      var team2Width = $elements.team2.name.parent().get(0).scrollWidth;
       var maxWidth = Math.max(team1Width, team2Width);
       
+      // Single write
       $elements.teamScoreBlocks.css('width', maxWidth + 'px');
       
       var vsClockWidth = $elements.vsClockContainer.outerWidth();
-      var hasLogo = $elements.gameInfoWrapper.hasClass('has-logo');
+      var hasLogo = $elements.gameInfoWrapper.hasClass(CLASS_HAS_LOGO);
       var padding = hasLogo ? 280 : 40;
       
       var totalWidth = (maxWidth * 2) + vsClockWidth + padding;
       $elements.gameInfoWrapper.css('width', totalWidth + 'px');
     });
-  }
+}
 
   // Sort skaters alphabetically by number (as text)
   function sortSkaters(skaters) {
@@ -486,12 +541,15 @@ $(function() {
       
       if (!skater.number || !skater.name) continue;
       
-      rosterParts.push(
-        '<div class="roster-line">',
-        '<div class="roster-number">', skater.number, '</div>',
-        '<div class="roster-name">', skater.name, '</div>',
-        '</div>'
-      );
+      // Check if skater is a captain
+      var isCaptain = skater.flags === CAPTAIN_FLAG || skater.flags.split(',').indexOf(CAPTAIN_FLAG) !== -1;
+      
+      rosterParts.push(`
+        <div class="roster-line">
+          <div class="roster-number">${skater.number}</div>
+          <div class="roster-name">${skater.name}${isCaptain ? ' <span class="captain-indicator">C</span>' : ''}</div>
+        </div>
+      `);
       
       var displayCodes = [];
       var penaltyDetails = skater.penaltyDetails;
@@ -515,21 +573,21 @@ $(function() {
       var displayValue;
       
       if (isExpelled) {
-        displayValue = 'EXP';
+        displayValue = EXPELLED_DISPLAY;
       } else {
         // Check for fouled out
         var totalPenalties = skater.penalties.length;
-        if (totalPenalties >= 7) {
+        if (totalPenalties >= FOULOUT_PENALTY_COUNT) {
           isFouledOut = true;
         } else {
           for (var k = 0; k < skater.penalties.length; k++) {
-            if (String(skater.penalties[k] || '').trim().toUpperCase() === 'FO') {
+            if (String(skater.penalties[k] || '').trim().toUpperCase() === FOULOUT_DISPLAY) {
               isFouledOut = true;
               break;
             }
           }
         }
-        displayValue = isFouledOut ? 'FO' : displayCount;
+        displayValue = isFouledOut ? FOULOUT_DISPLAY : displayCount;
       }
       
       var countClass = getPenaltyCountClass(teamNum, skater.id, displayCount);
@@ -608,6 +666,7 @@ $(function() {
     try {
       var state = WS.state;
       var officialScore = isTrue(state['ScoreBoard.CurrentGame.OfficialScore']);
+      var inOvertime = isTrue(state['ScoreBoard.CurrentGame.InOvertime']);
       var currentPeriod = parseInt(state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
       var intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']) || 0;
       var periodTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Period).Time']) || 0;
@@ -617,13 +676,17 @@ $(function() {
       var gameOver = currentPeriod > numPeriods || 
                     (currentPeriod >= numPeriods && (intermissionRunning || intermissionTime > 0));
       
-      if (officialScore || gameOver) {
+      // Hide clock for unofficial score, overtime, or official
+      if (officialScore || gameOver || inOvertime) {
         $elements.gameClock.html('&nbsp;');
         return;
       }
       
       if (currentPeriod === 0) {
-        if (intermissionTime <= 0 || isStartTimeInPast()) {
+        // If start time is missing or in past, show period clock for the upcoming period
+        if (isStartTimeMissingOrPast()) {
+          $elements.gameClock.text(formatTime(periodTime));
+        } else if (intermissionTime <= 0) {
           $elements.gameClock.html('&nbsp;');
         } else {
           $elements.gameClock.text(formatTime(intermissionTime));
@@ -662,11 +725,12 @@ $(function() {
       var numPeriods = parseInt(state['ScoreBoard.CurrentGame.Rule(Period.Number)']) || 2;
       var intermissionRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']);
       
+      // Get intermission labels from settings with fallback to defaults
       var labels = {
-        preGame: state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)'] || 'Time to Derby',
-        intermission: state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)'] || 'Intermission',
-        unofficial: state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)'] || 'Unofficial Score',
-        official: state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)'] || 'Final Score'
+        preGame: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)', DEFAULT_INTERMISSION_LABELS.preGame),
+        intermission: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)', DEFAULT_INTERMISSION_LABELS.intermission),
+        unofficial: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)', DEFAULT_INTERMISSION_LABELS.unofficial),
+        official: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)', DEFAULT_INTERMISSION_LABELS.official)
       };
       
       var gameOver = currentPeriod > numPeriods || 
@@ -679,17 +743,18 @@ $(function() {
       } else if (gameOver) {
         text = labels.unofficial;
       } else if (inOvertime) {
-        text = 'Overtime';
+        text = DEFAULT_INTERMISSION_LABELS.overtime;
       } else if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionTime > 0) {
         text = labels.intermission;
       } else if (currentPeriod > 0 && currentPeriod <= numPeriods) {
         text = 'Period ' + currentPeriod;
-      } else if (currentPeriod === 0 && intermissionTime > 0 && !isStartTimeInPast()) {
+      } else if (currentPeriod === 0 && isStartTimeMissingOrPast()) {
+        // If start time is missing or in past, show PRE_FIRST_PERIOD_LABEL for upcoming period
+        text = PRE_FIRST_PERIOD_LABEL;
+      } else if (currentPeriod === 0 && intermissionTime > 0) {
         text = labels.preGame;
-      } else if (currentPeriod === 0) {
-        text = 'Coming Up';
       } else {
-        text = labels.intermission;
+        text = DEFAULT_INTERMISSION_LABELS.comingUp;
       }
       
       $elements.periodInfo.text(text);
@@ -700,28 +765,34 @@ $(function() {
     }
   }
 
-  // Update tournament name
+  // Update tournament name and game number if available
   function updateTournamentName() {
-    var name = WS.state['ScoreBoard.CurrentGame.EventInfo(Tournament)'];
-    if (name) {
-      $elements.tournamentName.text(name).show();
+    var tournament = trimValue(WS.state['ScoreBoard.CurrentGame.EventInfo(Tournament)']);
+    var gameNo = trimValue(WS.state['ScoreBoard.CurrentGame.EventInfo(GameNo)']);
+    
+    if (tournament) {
+      var displayText = tournament;
+      if (gameNo) {
+        displayText = tournament + ' - Game ' + gameNo;
+      }
+      $elements.tournamentName.text(displayText).show();
     } else {
       $elements.tournamentName.hide();
     }
   }
 
-  // Load custom logo
+  // Load custom logo if available
   function loadCustomLogo() {
     var logoImg = new Image();
     var $wrapper = $('.game-info-wrapper');
     
     logoImg.onload = function() {
       $elements.customLogoSpace.html('<img src="' + BANNER_LOGO_PATH + '" class="custom-logo" />');
-      $wrapper.addClass('has-logo');
+      $wrapper.addClass(CLASS_HAS_LOGO);
     };
     logoImg.onerror = function() {
       $elements.customLogoSpace.empty();
-      $wrapper.removeClass('has-logo');
+      $wrapper.removeClass(CLASS_HAS_LOGO);
     };
     logoImg.src = BANNER_LOGO_PATH;
   }
@@ -731,9 +802,9 @@ $(function() {
     try {
       var state = WS.state;
       
-      for (var teamNum = 1; teamNum <= 2; teamNum++) {
-        var altName = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)'];
-        var name = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name'];
+      for (var teamNum = 1; teamNum <= NUM_TEAMS; teamNum++) {
+        var altName = trimValue(state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)']);
+        var name = trimValue(state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name']);
         var total = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').TotalPenalties'];
         
         $elements['team' + teamNum].name.text(altName || name || '');
@@ -753,13 +824,13 @@ $(function() {
       }, INIT_COMPLETE_MS);
       
       setTimeout(function() {
-        for (var teamNum = 1; teamNum <= 2; teamNum++) {
+        for (var teamNum = 1; teamNum <= NUM_TEAMS; teamNum++) {
           var currentText = $elements['team' + teamNum].name.text();
-          var altName = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)'];
-          var name = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name'];
+          var altName = trimValue(WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)']);
+          var name = trimValue(WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name']);
           
           if ((!currentText || currentText.trim() === '') && !altName && !name) {
-            $elements['team' + teamNum].name.text('Team ' + teamNum);
+            $elements['team' + teamNum].name.text(DEFAULT_TEAM_NAME_PREFIX + teamNum);
             updateQueue.schedule(equalizeTeamBoxWidths);
           }
         }
