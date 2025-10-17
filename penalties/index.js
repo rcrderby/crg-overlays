@@ -544,15 +544,12 @@ $(function() {
       // Check if skater is a captain
       var isCaptain = skater.flags === CAPTAIN_FLAG || skater.flags.split(',').indexOf(CAPTAIN_FLAG) !== -1;
       
-      rosterParts.push(
-        '<div class="roster-line">',
-        '<div class="roster-number">', skater.number, '</div>',
-        '<div class="roster-name">', 
-          skater.name,
-          isCaptain ? ' <span class="captain-indicator">C</span>' : '',
-        '</div>',
-        '</div>'
-      );
+      rosterParts.push(`
+        <div class="roster-line">
+          <div class="roster-number">${skater.number}</div>
+          <div class="roster-name">${skater.name}${isCaptain ? ' <span class="captain-indicator">C</span>' : ''}</div>
+        </div>
+      `);
       
       var displayCodes = [];
       var penaltyDetails = skater.penaltyDetails;
