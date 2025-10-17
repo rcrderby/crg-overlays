@@ -1,6 +1,6 @@
 # Custom Overlays for CRG
 
-![Super Linter](https://github.com/rcrderby/crg-overlays/actions/workflows/super-linter.yml/badge.svg)
+[![Super Linter](https://github.com/rcrderby/crg-overlays/actions/workflows/super-linter.yml/badge.svg)](https://github.com/rcrderby/crg-overlays/actions/workflows/super-linter.yml)
 [![GitHub Issues](https://img.shields.io/github/issues/rcrderby/crg-overlays?label=Issues)](https://github.com/rcrderby/crg-overlays/issues)
 [![GitHub Release (latest by date)](https://img.shields.io/github/v/release/rcrderby/crg-overlays?label=Latest%20Release)](https://github.com/rcrderby/crg-overlays/releases/latest)
 
