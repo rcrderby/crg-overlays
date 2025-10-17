@@ -14,7 +14,7 @@ Click a link in the table below to access specific overlay details and usage ins
 
 | Name       | Description   |
 | ---------- | ------------- |
-|[ Penalties](./penalties "Penalties Overlay") | A viewer-friendly and customizable display of team rosters, penalties, and game information. |
+| [Penalties](./penalties "Penalties Overlay") | A viewer-friendly and customizable display of team rosters, penalties, and game information. |
 
 ## Disclaimer
 
