@@ -24,11 +24,28 @@
             ],
             // Visual Studio Code environment configuration
             "settings": {
+                // ESLint configuration
+                "eslint.options": {
+                    "overrideConfigFile": "/workspaces/crg-overlays/.github/linters/eslint.config.mjs"
+                },
+                // HTMLHint configuration
+                "htmlhint.options": {
+                    "config": "/workspaces/crg-overlays/.github/linters/.htmlhintrc"
+                },
+                // Markdownlint configuration
                 "markdownlint.config": {
                     "extends": "/workspaces/crg-overlays/.github/linters/.markdown-lint.yml"
                 },
+                // Stylelint configuration
+                "stylelint.configFile": "/workspaces/crg-overlays/.github/linters/.stylelintrc.json",
+                
+                // YAML validation
+                "yaml.customTags": [],
+                "yaml.validate": true,
+                
                 // Set the default terminal application to bash
                 "#terminal.integrated.defaultProfile.linux#": "/bin/bash",
+                
                 // Customize YAML formatting
                 "[yaml]": {
                     "editor.autoIndent": "keep",
