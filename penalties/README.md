@@ -18,14 +18,14 @@ Video streaming teams often display an overlay with penalty data during timeouts
 - The score, period, and game clock.
 - Which team is on which side of the screen.
 - Which players have penalties, and how many they have.
-- Which players have high penalty counts, have fouled out, or been expelled.
+- Which players have high penalty counts, have fouled out, or have been expelled.
 - How many penalties each team has.
 - Tournament information, if applicable.
 - Optionally, the host league, tournament, or sanctioning body logo.
 
 ## Features
 
-The overlay gets the information and settings it needs from CRG, so you can just set up your game(s) and expect the overlay to work.  The overlay displays information from CRG in two separate areas; one for rosters and penalties, and one for game information:
+The overlay gets the information and settings it needs from CRG, so you can just set up your game(s) and expect the overlay to work.  The overlay displays information from CRG in two separate areas: one for rosters and penalties, and one for game information.
 
 ### Rosters & Penalties Area
 
@@ -51,7 +51,7 @@ The overlay gets the information and settings it needs from CRG, so you can just
 - Displays team names if set.
   - Uses the "whiteboard" alternate name text for each team if set.
   - Uses the "Team" fields in the "Teams" tab for a game if the "whiteboard" name is not set.
-  - Defaults to "Team 1" and "Team 2" if neither the "whiteboard" or "Team" names are set.
+  - Defaults to "Team 1" and "Team 2" if neither the "whiteboard" nor "Team" names are set.
 - Displays each team's score.
 - Displays the game clock.
 - Displays a game status label:
@@ -82,7 +82,7 @@ To make this overlay available to your video streaming team, you need to downloa
 **Download the overlay files:**
 
 1. Navigate to the [Releases page](https://github.com/rcrderby/crg-overlays/releases "Releases Page") of this repository.
-2. Click on one **Source code** links in the **Assets** section of the latest release to download a compressed/zipped copy of the overlay files.
+2. Click on one of the **Source code** links in the **Assets** section of the latest release to download a compressed/zipped copy of the overlay files.
 3. Extract the `.zip` or `tar.gz` file you downloaded.
 4. From the extracted files, locate the `penalties`folder; you will copy this folder to your instance of CRG.
 
@@ -128,4 +128,4 @@ The logo will display in the game information area of the overlay once you refre
 
 [^1]: Replace `<crg-ip-address>` with the IP address of your CRG instance.
 [^2]: The overlay will constrain your logo to a 100 x 100px container and apply a drop shadow.  
-Logos with a 1:1 aspect ratio and a transparent background will produce will look best.
+Logos with a 1:1 aspect ratio and a transparent background will produce the best appearance.
