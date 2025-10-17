@@ -36,6 +36,7 @@ jobs:
           # VALIDATE_CSS_PRETTIER: true
           VALIDATE_GITHUB_ACTIONS: true
           VALIDATE_GITLEAKS: true
+          VALIDATE_HADOLINT: true
           VALIDATE_HTML: true
           # VALIDATE_HTML_PRETTIER: true
           VALIDATE_JAVASCRIPT_ES: true

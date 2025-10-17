@@ -1,0 +1,63 @@
+// Visual Studio Code Development Container configuration file
+// https://code.visualstudio.com/docs/remote/devcontainerjson-reference
+{
+    // Docker build instructions
+    "build": {
+        "dockerfile": "../Dockerfile.dev",
+        "context": ".."
+    },
+    "name": "crg-overlays",
+    "customizations": {
+        "vscode": {
+            // Visual Studio Code extensions
+            "extensions": [
+                "brandonfowler.github-releases",
+                "davidanson.vscode-markdownlint",
+                "dbaeumer.vscode-eslint",
+                "github.vscode-github-actions",
+                "github.vscode-pull-request-github",
+                "HTMLHint.vscode-htmlhint",
+                "ms-azuretools.vscode-docker",
+                "redhat.vscode-yaml",
+                "streetsidesoftware.code-spell-checker",
+                "stylelint.vscode-stylelint"
+            ],
+            // Visual Studio Code environment configuration
+            "settings": {
+                // ESLint configuration
+                "eslint.options": {
+                    "overrideConfigFile": "/workspaces/crg-overlays/.github/linters/eslint.config.mjs"
+                },
+                // HTMLHint configuration
+                "htmlhint.options": {
+                    "config": "/workspaces/crg-overlays/.github/linters/.htmlhintrc"
+                },
+                // Markdownlint configuration
+                "markdownlint.config": {
+                    "extends": "/workspaces/crg-overlays/.github/linters/.markdown-lint.yml"
+                },
+                // Stylelint configuration
+                "stylelint.configFile": "/workspaces/crg-overlays/.github/linters/.stylelintrc.json",
+                
+                // YAML validation
+                "yaml.customTags": [],
+                "yaml.validate": true,
+                
+                // Set the default terminal application to bash
+                "#terminal.integrated.defaultProfile.linux#": "/bin/bash",
+                
+                // Customize YAML formatting
+                "[yaml]": {
+                    "editor.autoIndent": "keep",
+                    "editor.insertSpaces": true,
+                    "editor.quickSuggestions": {
+                        "other": true,
+                        "comments": false,
+                        "strings": true
+                    },
+                    "editor.tabSize": 2
+                }
+            }
+        }
+    }
+}

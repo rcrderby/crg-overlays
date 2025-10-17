@@ -1,0 +1,8 @@
+# Docker Ignore File
+## Excludes files from import during the image build process
+
+# Environment variables
+.env
+
+# Temporary content
+_gitignore/
