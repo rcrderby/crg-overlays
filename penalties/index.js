@@ -749,7 +749,7 @@ $(function() {
       } else if (currentPeriod > 0 && currentPeriod <= numPeriods) {
         text = 'Period ' + currentPeriod;
       } else if (currentPeriod === 0 && isStartTimeMissingOrPast()) {
-        // If start time is missing or in past, show "Period 1" for upcoming period
+        // If start time is missing or in past, show PRE_FIRST_PERIOD_LABEL for upcoming period
         text = PRE_FIRST_PERIOD_LABEL;
       } else if (currentPeriod === 0 && intermissionTime > 0) {
         text = labels.preGame;
