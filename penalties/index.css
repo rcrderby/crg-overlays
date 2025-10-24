@@ -42,6 +42,19 @@
   --gap-penalty-sections: 5px;
   --margin-bottom-row: 4px;
 
+  /* Fonts */
+  --font-family: Arial, sans-serif;
+  --font-penalties-title-size: 48px;
+  --font-score-size: 48px;
+  --font-clock-size: 42px;
+  --font-tournament-size: 32px;
+  --font-team-name-size: 28px;
+  --font-vs-text-size: 28px;
+  --font-clock-label-size: 28px;
+  --font-roster-size: 24px;
+  --font-penalties-size: 24px;
+  --font-captain-size: 20px;
+  
   --row-height: 40px;
 }
 
@@ -55,7 +68,7 @@
 }
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: var(--font-family);
   background: transparent;
   background-color: rgb(0 0 0 / 0%);
   overflow: hidden;
@@ -119,7 +132,7 @@ body {
 #team2-penalties,
 #team1-total,
 #team2-total {
-  font-size: 24px;
+  font-size: var(--font-penalties-size);
   line-height: 1.5;
   padding: 10px;
 }
@@ -238,7 +251,8 @@ body {
 
 #penalties-title h1 {
   color: var(--penalties-fg);
-  font-size: 48px;
+  font-size: var(--font-penalties-title-size);
+  font-weight: bold;
   margin: 0;
   text-shadow: 3px 3px 5px rgb(0 0 0 / 40%);
 }
@@ -301,7 +315,7 @@ body {
 
 .captain-indicator {
   font-style: italic;
-  font-size: 20px;
+  font-size: var(--font-captain-size);
   opacity: 0.85;
   margin-left: 4px;
 }
@@ -388,7 +402,7 @@ body {
   background-color: var(--tournament-bg);
   color: var(--tournament-fg);
   padding: 15px;
-  font-size: 32px;
+  font-size: var(--font-tournament-size);
   margin-bottom: 10px;
   align-items: center;
   justify-content: center;
@@ -435,7 +449,7 @@ body {
 }
 
 .team-name {
-  font-size: 28px;
+  font-size: var(--font-team-name-size);
   margin-bottom: 5px;
   white-space: nowrap;
   overflow: hidden;
@@ -453,7 +467,7 @@ body {
 }
 
 .vs-text {
-  font-size: 28px;
+  font-size: var(--font-vs-text-size);
   margin-bottom: 5px;
 }
 
@@ -462,12 +476,12 @@ body {
 }
 
 #game-clock {
-  font-size: 42px;
+  font-size: var(--font-clock-size);
   font-variant-numeric: tabular-nums;
 }
 
 #clock-label {
-  font-size: 28px;
+  font-size: var(--font-clock-label-size);
   color: var(--clock-label-fg);
   margin-top: 5px;
   overflow: hidden;
@@ -475,5 +489,5 @@ body {
 }
 
 .score {
-  font-size: 48px;
+  font-size: var(--font-score-size);
 }
