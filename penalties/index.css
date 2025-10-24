@@ -13,6 +13,23 @@
   --team2-bg: black;
   --team2-border: white;
 
+  /* Team penalties default colors */
+  --penalties-bg: black;
+  --penalties-fg: white;
+  --penalties-border: white;
+
+  /* Penalty highlight colors */
+  --penalty-warning-5: #b8860b;
+  --penalty-warning-6: #cc6600;
+  --penalty-warning-fo-exp: #8b0000;
+
+  /* Game information area colors */
+  --tournament-bg: #333333;
+  --tournament-fg: white;
+  --game-details-bg: #666666;
+  --game-details-fg: white;
+  --clock-label-fg: #ff69b4;
+
   --row-height: 40px;
 }
 
