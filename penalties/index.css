@@ -55,7 +55,15 @@
   --font-penalties-size: 24px;
   --font-captain-size: 20px;
   
-  --row-height: 40px;
+  /* Row dimensions */
+  --height-roster-row: 40px;
+  --height-logo-container: 180px;
+  --height-game-details-min: 140px;
+  --width-roster-number: 60px;
+  --width-penalty-count: 60px;
+  --width-vs-clock-container: 280px;
+  --width-team-score-min: 150px;
+
 }
 
 /* Overlay properties */
@@ -195,7 +203,7 @@ body {
   margin-bottom: var(--margin-bottom-row);
   border-bottom: 1px solid;
   padding-bottom: 2px;
-  height: var(--row-height);
+  height: var(--height-roster-row);
   align-items: center;
 }
 
@@ -239,7 +247,7 @@ body {
 }
 
 .team-logo-container {
-  height: 180px;
+  height: var(--height-logo-container);
   margin-bottom: 10px;
 }
 
@@ -304,7 +312,7 @@ body {
 
 .roster-number {
   text-align: right;
-  min-width: 60px;
+  min-width: var(--width-roster-number);
   margin-right: 10px;
 }
 
@@ -351,7 +359,7 @@ body {
 
 .penalty-count {
   text-align: right;
-  min-width: 60px;
+  min-width: var(--width-penalty-count);
   flex-shrink: 0;
   padding: 2px 6px;
   border-radius: 3px;
@@ -417,7 +425,7 @@ body {
   align-items: center;
   justify-content: center;
   position: relative;
-  min-height: 140px;
+  min-height: var(--height-game-details-min);
 }
 
 /* Add equal padding on both sides when logo is present */
@@ -445,7 +453,7 @@ body {
 .team-score-block {
   flex: 0 0 auto;
   width: auto;
-  min-width: 150px;
+  min-width: var(--width-team-score-min);
 }
 
 .team-name {
@@ -462,7 +470,7 @@ body {
   align-items: center;
   flex-shrink: 0;
   justify-content: flex-start;
-  width: 280px;
+  width: var(--width-vs-clock-container);
   gap: 0;
 }
 
