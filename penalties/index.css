@@ -2,7 +2,6 @@
 
 /* Variables */
 :root {
-
   /* Overlay values */
   --overlay-width: 1920px;
   --overlay-height: 1080px;
@@ -43,7 +42,7 @@
   --margin-bottom-row: 4px;
 
   /* Fonts */
-  --font-family: Arial, sans-serif;
+  --font-family: arial, sans-serif;
   --font-penalties-title-size: 48px;
   --font-score-size: 48px;
   --font-clock-size: 42px;
