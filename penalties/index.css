@@ -25,9 +25,9 @@
   --penalties-border: white;
 
   /* Penalty highlight colors */
-  --penalty-warning-5: #b8860b;
-  --penalty-warning-6: #cc6600;
-  --penalty-warning-fo-exp: #8b0000;
+  --penalty-warning-5: #b8860b;        /* Dark yellow */
+  --penalty-warning-6: #cc6600;        /* Dark orange */
+  --penalty-warning-fo-exp: #8b0000;   /* Dark red */
 
   /* Game information area colors */
   --tournament-bg: #333333;
@@ -108,9 +108,9 @@ body {
 #team2-penalties,
 #team1-total,
 #team2-total {
-  background-color: black;
-  border: 1px solid white;
-  color: white;
+  background-color: var(--penalties-bg);
+  border: 1px solid var(--penalties-border);
+  color: var(--penalties-fg);
 }
 
 /* Shared padding, font size, and line height */
@@ -179,7 +179,7 @@ body {
 .roster-line,
 .penalty-line {
   display: flex;
-  margin-bottom: 4px;
+  margin-bottom: var(--margin-bottom-row);
   border-bottom: 1px solid;
   padding-bottom: 2px;
   height: var(--row-height);
@@ -213,7 +213,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 40px;
+  gap: var(--gap-between-teams);
   width: 80%;
   margin: 0 auto;
   margin-bottom: 10px;
@@ -237,7 +237,7 @@ body {
 }
 
 #penalties-title h1 {
-  color: white;
+  color: var(--penalties-fg);
   font-size: 48px;
   margin: 0;
   text-shadow: 3px 3px 5px rgb(0 0 0 / 40%);
@@ -247,7 +247,7 @@ body {
 
 #rosters-penalties-container {
   display: flex;
-  gap: 40px;
+  gap: var(--gap-between-teams);
   flex: 1;
   width: 80%;
   margin: 0 auto;
@@ -263,13 +263,13 @@ body {
 .roster-penalties-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--gap-roster-penalties);
   flex: 1;
 }
 
 .roster-penalty-row {
   display: flex;
-  gap: 10px;
+  gap: var(--gap-roster-penalties);
   flex: 1;
 }
 
@@ -312,7 +312,7 @@ body {
   flex: 0.85;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: var(--gap-penalty-sections);
   min-width: 0;
 }
 
@@ -347,16 +347,16 @@ body {
 
 /* Penalty count color warnings */
 .penalty-count-5 {
-  background-color: #b8860b; /* Dark yellow */
+  background-color: var(--penalty-warning-5)
 }
 
 .penalty-count-6 {
-  background-color: #cc6600; /* Dark orange */
+  background-color: var(--penalty-warning-6)
 }
 
 .penalty-count-foulout,
 .penalty-count-expelled {
-  background-color: #8b0000; /* Dark red */
+  background-color: var(--penalty-warning-fo-exp)
 }
 
 /* ===== PENALTY TOTALS ===== */
@@ -385,8 +385,8 @@ body {
 }
 
 #tournament-name {
-  background-color: #333333;
-  color: white;
+  background-color: var(--tournament-bg);
+  color: var(--tournament-fg);
   padding: 15px;
   font-size: 32px;
   margin-bottom: 10px;
@@ -396,8 +396,8 @@ body {
 }
 
 #game-details {
-  background-color: #666666;
-  color: white;
+  background-color: var(--game-details-bg);
+  color: var(--game-details-fg);
   padding: 20px;
   display: flex;
   align-items: center;
@@ -468,7 +468,7 @@ body {
 
 #clock-label {
   font-size: 28px;
-  color: #ff69b4;
+  color: var(--clock-label-fg);
   margin-top: 5px;
   overflow: hidden;
   text-overflow: ellipsis;
