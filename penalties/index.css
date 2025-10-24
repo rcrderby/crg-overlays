@@ -1,12 +1,18 @@
 /* CSS for custom penalties overlay - index.html */
 
+/* Variables */
 :root {
+
+  /* Team 1 (Home) Default Colors */
   --team1-fg: white;
   --team1-bg: black;
   --team1-border: white;
+
+  /* Team 2 (Away) Default Colors */
   --team2-fg: white;
   --team2-bg: black;
   --team2-border: white;
+
   --row-height: 40px;
 }
 
