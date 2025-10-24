@@ -36,6 +36,12 @@
   --game-details-fg: white;
   --clock-label-fg: #ff69b4;
 
+  /* Spacing */
+  --gap-between-teams: 40px;
+  --gap-roster-penalties: 10px;
+  --gap-penalty-sections: 5px;
+  --margin-bottom-row: 4px;
+
   --row-height: 40px;
 }
 
