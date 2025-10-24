@@ -64,6 +64,9 @@
   --width-vs-clock-container: 280px;
   --width-team-score-min: 150px;
 
+  /* Logo sizes */
+  --size-team-logo-max: 180px;
+  --size-custom-logo: 100px;
 }
 
 /* Overlay properties */
@@ -209,8 +212,8 @@ body {
 
 /* Team logo sizing */
 .team-logo {
-  max-height: 180px;
-  max-width: 180px;
+  max-height: var(--size-team-logo-max);
+  max-width: var(--size-team-logo-max);
   object-fit: contain;
 }
 
@@ -435,8 +438,8 @@ body {
 }
 
 #custom-logo-space {
-  width: 100px;
-  height: 100px;
+  width: var(--size-custom-logo);
+  height: var(--size-custom-logo);
   flex-shrink: 0;
   position: absolute;
   left: 20px;
