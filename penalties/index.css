@@ -1,11 +1,5 @@
 /* CSS for custom penalties overlay - index.html */
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 :root {
   --team1-fg: white;
   --team1-bg: black;
@@ -14,6 +8,12 @@
   --team2-bg: black;
   --team2-border: white;
   --row-height: 40px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 /* ===== SHARED STYLES ===== */
