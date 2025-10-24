@@ -3,6 +3,12 @@
 /* Variables */
 :root {
 
+  /* Overlay values */
+  --overlay-width: 1920px;
+  --overlay-height: 1080px;
+  --overlay-padding: 20px;
+  --content-width: 80%;
+
   /* Team 1 (home) roster default colors */
   --team1-fg: white;
   --team1-bg: black;
