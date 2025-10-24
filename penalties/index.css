@@ -39,10 +39,30 @@
   --row-height: 40px;
 }
 
+/* Overlay properties */
+
+/* Reset */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: transparent;
+  background-color: rgb(0 0 0 / 0%);
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+#overlay {
+  width: var(--overlay-width);
+  height: var(--overlay-height);
+  display: flex;
+  flex-direction: column;
+  padding: var(--overlay-padding);
 }
 
 /* ===== SHARED STYLES ===== */
@@ -179,25 +199,6 @@
 #team2-logo,
 #tournament-name {
   display: none;  /* overridden by the .show() method in index.js when needed */
-}
-
-/* ===== BASE STYLES ===== */
-
-body {
-  font-family: Arial, sans-serif;
-  background: transparent;
-  background-color: rgb(0 0 0 / 0%);
-  overflow: hidden;
-  margin: 0;
-  padding: 0;
-}
-
-#overlay {
-  width: 1920px;
-  height: 1080px;
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
 }
 
 /* ===== TEAMS CONTAINER ===== */
