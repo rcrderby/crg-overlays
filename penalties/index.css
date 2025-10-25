@@ -166,6 +166,11 @@ body {
   display: none;
 }
 
+#team1-logo,
+#team2-logo {
+  display: none;
+}
+
 /* Penalties title section */
 
 #penalties-title {
