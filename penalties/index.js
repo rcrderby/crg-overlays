@@ -83,7 +83,7 @@ $(function() {
       total: $('#team2-total .total-count')
     },
     logoContainers: $('.team-logo-container'),
-    tournamentName: $('#tournament-name'),
+    tournamentName: $('#tournament-info'),
     gameClock: $('#game-clock'),
     periodInfo: $('#clock-label'),
     customLogoSpace: $('#custom-logo-space'),
