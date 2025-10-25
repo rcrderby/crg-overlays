@@ -134,6 +134,16 @@ body {
 
 /* Teams and logos section */
 
+#teams-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--gap-between-teams);
+  width: var(--content-width);
+  margin: 0 auto;
+  margin-bottom: var(--margin-logo-container-bottom);
+}
+
 .team-container {
   flex: 1;
   display: flex;
@@ -439,16 +449,6 @@ body {
 }
 
 /* ===== TEAMS CONTAINER ===== */
-
-#teams-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: var(--gap-between-teams);
-  width: var(--content-width);
-  margin: 0 auto;
-  margin-bottom: var(--margin-logo-container-bottom);
-}
 
 /* ===== PENALTIES COLUMN ===== */
 
