@@ -405,17 +405,6 @@ body {
   box-shadow: var(--shadow-box);
 }
 
-#game-details {
-  background-color: var(--game-details-bg);
-  color: var(--game-details-fg);
-  padding: var(--padding-game-details);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  min-height: var(--height-game-details-min);
-}
-
 /* Custom logo */
 
 /* Add equal padding to both sides of container when custom logo is present */
