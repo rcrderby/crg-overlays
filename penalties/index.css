@@ -460,46 +460,52 @@ body {
   text-shadow: var(--shadow-text);
 }
 
-/* Shared text shadow */
-.vs-text,
-#game-clock,
-#clock-label {
+/* Clock and ".vs" text container */
+
+#vs-clock-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  justify-content: flex-start;
+  width: var(--width-vs-clock-container);
+  gap: 0;
+}
+
+.vs-text {
+  font-size: var(--font-vs-text-size);
+  margin-bottom: var(--margin-team-name-bottom);
+  width: 100%;
+  text-align: center;
   text-shadow: var(--shadow-text);
 }
 
-/* Shared bold font weight */
-#game-clock,
-#clock-label,
-#team1-total,
-#team2-total {
-  font-weight: bold;
-}
-
-/* Shared width: 100% */
-.vs-text,
-#clock-container,
-#game-clock,
-#clock-label {
+#clock-container {
+  margin-top: 0;
   width: 100%;
 }
 
-/* Shared text-align: center */
-#game-clock,
-#clock-label,
-.vs-text {
+#game-clock {
+  font-size: var(--font-clock-size);
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  width: 100%;
   text-align: center;
+  text-shadow: var(--shadow-text);
 }
 
-/* Custom logo sizing */
-.custom-logo {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
+#clock-label {
+  font-size: var(--font-clock-label-size);
+  font-weight: bold;
+  color: var(--clock-label-fg);
+  margin-top: var(--margin-clock-label-top);
+  width: 100%;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: var(--shadow-text);
 }
 
-/* ===== TEAMS CONTAINER ===== */
-
-/* ===== PENALTIES COLUMN ===== */
 
 .penalty-codes {
   text-align: left;
@@ -540,36 +546,4 @@ body {
   left: var(--padding-game-details);
   top: 50%;
   transform: translateY(-50%);
-}
-
-#vs-clock-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex-shrink: 0;
-  justify-content: flex-start;
-  width: var(--width-vs-clock-container);
-  gap: 0;
-}
-
-.vs-text {
-  font-size: var(--font-vs-text-size);
-  margin-bottom: var(--margin-team-name-bottom);
-}
-
-#clock-container {
-  margin-top: 0;
-}
-
-#game-clock {
-  font-size: var(--font-clock-size);
-  font-variant-numeric: tabular-nums;
-}
-
-#clock-label {
-  font-size: var(--font-clock-label-size);
-  color: var(--clock-label-fg);
-  margin-top: var(--margin-clock-label-top);
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
