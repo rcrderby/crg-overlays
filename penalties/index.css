@@ -234,7 +234,7 @@ body {
   border: var(--width-border-rosters-penalties) solid var(--team2-border);
 }
 
-.roster-line .penalty-line {
+.roster-line {
   display: flex;
   margin-bottom: var(--margin-bottom-row);
   border-bottom: var(--width-border-rosters-penalties) solid;
