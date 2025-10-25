@@ -400,6 +400,33 @@ body {
   box-shadow: var(--shadow-box);
 }
 
+/* Custom logo */
+
+/* Add equal padding to both sides of container when custom logo is present */
+.game-info-wrapper.has-logo #game-details {
+  padding-left: var(--padding-game-details-with-logo);
+  padding-right: var(--padding-game-details-with-logo);
+}
+
+#custom-logo-space {
+  width: var(--size-custom-logo);
+  height: var(--size-custom-logo);
+  flex-shrink: 0;
+  position: absolute;
+  left: var(--padding-game-details);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-logo {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: var(--shadow-drop-logo);
+}
 
 /* Shared text shadow */
 .score,
@@ -408,12 +435,6 @@ body {
 #game-clock,
 #clock-label {
   text-shadow: var(--shadow-text);
-}
-
-/* Shared logo drop shadow */
-.team-logo,
-.custom-logo {
-  filter: var(--shadow-drop-logo);
 }
 
 /* Shared bold font weight */
@@ -441,14 +462,6 @@ body {
 .vs-text,
 .team-score-block {
   text-align: center;
-}
-
-/* Shared flex centering */
-.team-logo-container,
-#custom-logo-space {
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* Custom logo sizing */
@@ -491,12 +504,6 @@ body {
   justify-content: center;
   position: relative;
   min-height: var(--height-game-details-min);
-}
-
-/* Add equal padding to  on both sides when logo is present */
-.game-info-wrapper.has-logo #game-details {
-  padding-left: var(--padding-game-details-with-logo);
-  padding-right: var(--padding-game-details-with-logo);
 }
 
 #custom-logo-space {
