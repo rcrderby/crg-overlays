@@ -132,7 +132,29 @@ body {
   padding: var(--overlay-padding);
 }
 
-/* ===== SHARED STYLES ===== */
+/* Teams and logos section */
+
+.team-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.team-logo-container {
+  height: var(--height-logo-container);
+  margin-bottom: var(--margin-logo-container-bottom);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.team-logo {
+  max-height: var(--size-team-logo-max);
+  max-width: var(--size-team-logo-max);
+  object-fit: contain;
+  filter: var(--shadow-drop-logo);
+  display: none;
+}
 
 /* Shared box shadow */
 .roster,
@@ -248,11 +270,7 @@ body {
 }
 
 /* Team logo sizing */
-.team-logo {
-  max-height: var(--size-team-logo-max);
-  max-width: var(--size-team-logo-max);
-  object-fit: contain;
-}
+
 
 /* Custom logo sizing */
 .custom-logo {
@@ -277,17 +295,6 @@ body {
   gap: var(--gap-between-teams);
   width: var(--content-width);
   margin: 0 auto;
-  margin-bottom: var(--margin-logo-container-bottom);
-}
-
-.team-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.team-logo-container {
-  height: var(--height-logo-container);
   margin-bottom: var(--margin-logo-container-bottom);
 }
 
