@@ -385,10 +385,21 @@ body {
   display: none;
 }
 
-/* Shared box shadow */
+/* Game details container */
+
 #game-details {
+  background-color: var(--game-details-bg);
+  color: var(--game-details-fg);
+  padding: var(--padding-game-details);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: var(--height-game-details-min);
+  width: 100%;
   box-shadow: var(--shadow-box);
 }
+
 
 /* Shared text shadow */
 .score,
@@ -416,7 +427,6 @@ body {
 }
 
 /* Shared width: 100% */
-#game-details,
 #teams-scores,
 .vs-text,
 #clock-container,
@@ -483,7 +493,7 @@ body {
   min-height: var(--height-game-details-min);
 }
 
-/* Add equal padding on both sides when logo is present */
+/* Add equal padding to  on both sides when logo is present */
 .game-info-wrapper.has-logo #game-details {
   padding-left: var(--padding-game-details-with-logo);
   padding-right: var(--padding-game-details-with-logo);
