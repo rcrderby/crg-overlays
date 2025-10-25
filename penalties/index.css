@@ -277,9 +277,9 @@ body {
 #team1-penalties,
 #team2-penalties {
   background-color: var(--penalties-bg);
-  border: var(--border-width) solid var(--penalties-border);
+  border: var(--width-border-rosters-penalties) solid var(--penalties-border);
   color: var(--penalties-fg);
-  font-size: var(--font-penalties);
+  font-size: var(--font-penalties-size);
   line-height: 1.5;
   padding: var(--padding-penalties);
   overflow-y: auto;
