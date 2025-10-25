@@ -156,6 +156,104 @@ body {
   display: none;
 }
 
+/* Penalties title section */
+
+#penalties-title {
+  flex: 0 0 auto;
+  text-align: center;
+}
+
+#penalties-title h1 {
+  color: var(--penalties-fg);
+  font-size: var(--font-penalties-title-size);
+  font-weight: bold;
+  margin: 0;
+  text-shadow: var(--shadow-text-title);
+}
+
+/* Rosters and penalties section */
+
+#rosters-penalties-container {
+  display: flex;
+  gap: var(--gap-between-teams);
+  flex: 1;
+  width: var(--content-width);
+  margin: 0 auto;
+}
+
+#team1-rosters-penalties,
+#team2-rosters-penalties {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.roster-penalties-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-roster-penalties);
+  flex: 1;
+}
+
+.roster-penalty-row {
+  display: flex;
+  gap: var(--gap-roster-penalties);
+  flex: 1;
+}
+
+/* Rosters section */
+
+.roster {
+  font-size: var(--font-penalties-size);
+  line-height: var(--height-roster-penalties-line);
+  padding: var(--padding-roster);
+  overflow-y: auto;
+  flex: 1;
+  box-shadow: var(--shadow-box);
+}
+
+#team1-roster {
+  background-color: var(--team1-bg);
+  color: var(--team1-fg);
+  border: var(--width-border-rosters-penalties) solid var(--team1-border);
+}
+
+#team2-roster {
+  background-color: var(--team2-bg);
+  color: var(--team2-fg);
+  border: var(--width-border-rosters-penalties) solid var(--team2-border);
+}
+
+.roster-line .penalty-line {
+  display: flex;
+  margin-bottom: var(--margin-bottom-row);
+  border-bottom: var(--width-border-rosters-penalties) solid;
+  padding-bottom: var(--padding-row-bottom);
+  height: var(--height-roster-row);
+  align-items: center;
+}
+
+.roster-number {
+  text-align: right;
+  min-width: var(--width-roster-number);
+  margin-right: var(--margin-roster-number-right);
+  font-weight: bold;
+  text-shadow: var(--shadow-text);
+}
+
+.roster-name {
+  text-align: left;
+  flex: 1;
+  text-shadow: var(--shadow-text);
+}
+
+.captain-indicator {
+  font-style: italic;
+  font-size: var(--font-captain-size);
+  opacity: var(--opacity-captain-indicator);
+  margin-left: var(--margin-captain-left);
+}
+
 /* Shared box shadow */
 .roster,
 #team1-penalties,
@@ -259,7 +357,6 @@ body {
 }
 
 /* Shared row properties */
-.roster-line,
 .penalty-line {
   display: flex;
   margin-bottom: var(--margin-bottom-row);
@@ -268,9 +365,6 @@ body {
   height: var(--height-roster-row);
   align-items: center;
 }
-
-/* Team logo sizing */
-
 
 /* Custom logo sizing */
 .custom-logo {
@@ -296,83 +390,6 @@ body {
   width: var(--content-width);
   margin: 0 auto;
   margin-bottom: var(--margin-logo-container-bottom);
-}
-
-/* ===== PENALTIES TITLE ===== */
-
-#penalties-title {
-  flex: 0 0 auto;
-}
-
-#penalties-title h1 {
-  color: var(--penalties-fg);
-  font-size: var(--font-penalties-title-size);
-  font-weight: bold;
-  margin: 0;
-  text-shadow: var(--shadow-text-title);
-}
-
-/* ===== ROSTERS AND PENALTIES CONTAINER ===== */
-
-#rosters-penalties-container {
-  display: flex;
-  gap: var(--gap-between-teams);
-  flex: 1;
-  width: var(--content-width);
-  margin: 0 auto;
-}
-
-#team1-rosters-penalties,
-#team2-rosters-penalties {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.roster-penalties-container {
-  display: flex;
-  flex-direction: column;
-  gap: var(--gap-roster-penalties);
-  flex: 1;
-}
-
-.roster-penalty-row {
-  display: flex;
-  gap: var(--gap-roster-penalties);
-  flex: 1;
-}
-
-/* ===== ROSTER STYLES ===== */
-
-/* Team-specific roster colors */
-#team1-roster {
-  background-color: var(--team1-bg);
-  color: var(--team1-fg);
-  border: var(--width-border-rosters-penalties) solid var(--team1-border);
-}
-
-#team2-roster {
-  background-color: var(--team2-bg);
-  color: var(--team2-fg);
-  border: var(--width-border-rosters-penalties) solid var(--team2-border);
-}
-
-.roster-number {
-  text-align: right;
-  min-width: var(--width-roster-number);
-  margin-right: var(--margin-roster-number-right);
-}
-
-.roster-name {
-  text-align: left;
-  flex: 1;
-}
-
-.captain-indicator {
-  font-style: italic;
-  font-size: var(--font-captain-size);
-  opacity: var(--opacity-captain-indicator);
-  margin-left: var(--margin-captain-left);
 }
 
 /* ===== PENALTIES COLUMN ===== */
