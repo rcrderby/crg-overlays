@@ -312,9 +312,38 @@ body {
   text-shadow: var(--shadow-text);
 }
 
-/* Shared box shadow */
+/* Penalty count warning colors */
+
+.penalty-count-5 {
+  background-color: var(--penalty-warning-5);
+}
+
+.penalty-count-6 {
+  background-color: var(--penalty-warning-6);
+}
+
+.penalty-count-foulout,
+.penalty-count-expelled {
+  background-color: var(--penalty-warning-fo-exp);
+}
+
+/* Team penalty totals */
+
 #team1-total,
-#team2-total,
+#team2-total {
+  background-color: var(--penalties-bg);
+  border: var(--width-border-rosters-penalties) solid var(--penalties-border);
+  color: var(--penalties-fg);
+  font-size: var(--font-penalties-size);
+  line-height: var(--height-roster-penalties-line);
+  padding: var(--padding-penalties);
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  box-shadow: var(--shadow-box);
+}
+
+/* Shared box shadow */
 #tournament-name,
 #game-details {
   box-shadow: var(--shadow-box);
@@ -333,29 +362,6 @@ body {
 .team-logo,
 .custom-logo {
   filter: var(--shadow-drop-logo);
-}
-
-/* Shared black background with white text and border */
-#team1-total,
-#team2-total {
-  background-color: var(--penalties-bg);
-  border: var(--width-border-rosters-penalties) solid var(--penalties-border);
-  color: var(--penalties-fg);
-}
-
-/* Shared padding, font size, and line height */
-#team2-penalties,
-#team1-total,
-#team2-total {
-  font-size: var(--font-penalties-size);
-  line-height: var(--height-roster-penalties-line);
-  padding: var(--padding-roster);
-}
-
-/* Shared overflow for scrollable areas */
-#team2-penalties {
-  overflow-y: auto;
-  flex: 1;
 }
 
 /* Shared bold font weight */
@@ -443,20 +449,6 @@ body {
   border-radius: var(--radius-border-penalty-count);
   transition: var(--transition-background);
   display: inline-block;
-}
-
-/* Penalty count color warnings */
-.penalty-count-5 {
-  background-color: var(--penalty-warning-5)
-}
-
-.penalty-count-6 {
-  background-color: var(--penalty-warning-6)
-}
-
-.penalty-count-foulout,
-.penalty-count-expelled {
-  background-color: var(--penalty-warning-fo-exp)
 }
 
 /* ===== PENALTY TOTALS ===== */
