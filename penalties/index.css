@@ -171,7 +171,7 @@ body {
   text-shadow: var(--shadow-text-title);
 }
 
-/* Rosters and penalties section */
+/* Rosters and penalties containers section */
 
 #rosters-penalties-container {
   display: flex;
@@ -254,10 +254,41 @@ body {
   margin-left: var(--margin-captain-left);
 }
 
-/* Shared box shadow */
-.roster,
+/* Penalties section */
+
+.penalties-column {
+  flex: var(--flex-penalties-column);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-penalty-sections);
+  min-width: 0;
+}
+
 #team1-penalties,
-#team2-penalties,
+#team2-penalties {
+  background-color: var(--penalties-bg);
+  border: var(--border-width) solid var(--penalties-border);
+  color: var(--penalties-fg);
+  font-size: var(--font-penalties);
+  line-height: 1.5;
+  padding: var(--padding-penalties);
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  box-shadow: var(--shadow-box);
+}
+
+.penalty-line {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--margin-bottom-row);
+  border-bottom: var(--width-border-rosters-penalties) solid;
+  padding-bottom: var(--padding-row-bottom);
+  height: var(--height-roster-row);
+  align-items: center;
+}
+
+/* Shared box shadow */
 #team1-total,
 #team2-total,
 #tournament-name,
@@ -268,8 +299,6 @@ body {
 /* Shared text shadow */
 .penalty-codes,
 .penalty-count,
-.roster-number,
-.roster-name,
 .score,
 .team-name,
 .vs-text,
@@ -285,8 +314,6 @@ body {
 }
 
 /* Shared black background with white text and border */
-#team1-penalties,
-#team2-penalties,
 #team1-total,
 #team2-total {
   background-color: var(--penalties-bg);
@@ -295,8 +322,6 @@ body {
 }
 
 /* Shared padding, font size, and line height */
-.roster,
-#team1-penalties,
 #team2-penalties,
 #team1-total,
 #team2-total {
@@ -306,19 +331,15 @@ body {
 }
 
 /* Shared overflow for scrollable areas */
-.roster,
-#team1-penalties,
 #team2-penalties {
   overflow-y: auto;
   flex: 1;
 }
 
 /* Shared bold font weight */
-.roster-number,
 .penalty-codes,
 .penalty-count,
 .team-name,
-#penalties-title h1,
 #game-clock,
 #clock-label,
 #team1-total,
@@ -339,7 +360,6 @@ body {
 }
 
 /* Shared text-align: center */
-#penalties-title,
 #tournament-name,
 #game-clock,
 #clock-label,
@@ -354,16 +374,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-/* Shared row properties */
-.penalty-line {
-  display: flex;
-  margin-bottom: var(--margin-bottom-row);
-  border-bottom: var(--width-border-rosters-penalties) solid;
-  padding-bottom: var(--padding-row-bottom);
-  height: var(--height-roster-row);
-  align-items: center;
 }
 
 /* Custom logo sizing */
@@ -394,22 +404,6 @@ body {
 
 /* ===== PENALTIES COLUMN ===== */
 
-.penalties-column {
-  flex: var(--flex-penalties-column);
-  display: flex;
-  flex-direction: column;
-  gap: var(--gap-penalty-sections);
-  min-width: 0;
-}
-
-#team1-penalties,
-#team2-penalties {
-  min-height: 0;
-}
-
-.penalty-line {
-  justify-content: space-between;
-}
 
 .penalty-codes {
   text-align: left;
