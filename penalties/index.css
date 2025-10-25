@@ -428,9 +428,39 @@ body {
   filter: var(--shadow-drop-logo);
 }
 
+/* Team information and scores */
+
+#teams-scores {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.team-score-block {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: var(--width-team-score-min);
+  text-align: center;
+}
+
+.team-name {
+  font-size: var(--font-team-name-size);
+  font-weight: bold;
+  margin-bottom: var(--margin-team-name-bottom);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: var(--shadow-text);
+}
+
+.score {
+  font-size: var(--font-score-size);
+  font-weight: bold;
+  text-shadow: var(--shadow-text);
+}
+
 /* Shared text shadow */
-.score,
-.team-name,
 .vs-text,
 #game-clock,
 #clock-label {
@@ -438,17 +468,14 @@ body {
 }
 
 /* Shared bold font weight */
-.team-name,
 #game-clock,
 #clock-label,
 #team1-total,
-#team2-total,
-.score {
+#team2-total {
   font-weight: bold;
 }
 
 /* Shared width: 100% */
-#teams-scores,
 .vs-text,
 #clock-container,
 #game-clock,
@@ -459,8 +486,7 @@ body {
 /* Shared text-align: center */
 #game-clock,
 #clock-label,
-.vs-text,
-.team-score-block {
+.vs-text {
   text-align: center;
 }
 
@@ -516,26 +542,6 @@ body {
   transform: translateY(-50%);
 }
 
-#teams-scores {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-}
-
-.team-score-block {
-  flex: 0 0 auto;
-  width: auto;
-  min-width: var(--width-team-score-min);
-}
-
-.team-name {
-  font-size: var(--font-team-name-size);
-  margin-bottom: var(--margin-team-name-bottom);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 #vs-clock-container {
   display: flex;
   flex-direction: column;
@@ -566,8 +572,4 @@ body {
   margin-top: var(--margin-clock-label-top);
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.score {
-  font-size: var(--font-score-size);
 }
