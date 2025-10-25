@@ -56,6 +56,7 @@
   
   /* Row dimensions */
   --height-roster-row: 40px;
+  --height-roster-penalties-line: 1.5;
   --height-logo-container: 180px;
   --height-game-details-min: 140px;
   --width-roster-number: 60px;
@@ -163,7 +164,7 @@ body {
 #team1-total,
 #team2-total {
   font-size: var(--font-penalties-size);
-  line-height: 1.5;
+  line-height: var(--height-roster-penalties-line);
   padding: var(--padding-roster);
 }
 
