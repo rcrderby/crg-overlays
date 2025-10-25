@@ -288,6 +288,30 @@ body {
   align-items: center;
 }
 
+.penalty-codes {
+  text-align: left;
+  flex: 1;
+  margin-right: var(--margin-penalty-codes-right);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-spacing: 0.3em;
+  font-weight: bold;
+  text-shadow: var(--shadow-text);
+}
+
+.penalty-count {
+  text-align: right;
+  min-width: var(--width-penalty-count);
+  flex-shrink: 0;
+  padding: var(--padding-penalty-count-vertical) var(--padding-penalty-count-horizontal);
+  border-radius: var(--radius-border-penalty-count);
+  transition: background-color var(--transition-background);
+  display: inline-block;
+  font-weight: bold;
+  text-shadow: var(--shadow-text);
+}
+
 /* Shared box shadow */
 #team1-total,
 #team2-total,
@@ -297,8 +321,6 @@ body {
 }
 
 /* Shared text shadow */
-.penalty-codes,
-.penalty-count,
 .score,
 .team-name,
 .vs-text,
@@ -337,8 +359,6 @@ body {
 }
 
 /* Shared bold font weight */
-.penalty-codes,
-.penalty-count,
 .team-name,
 #game-clock,
 #clock-label,
