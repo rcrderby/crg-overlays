@@ -27,8 +27,8 @@
   --team2-border: var(--team-penalties-default-border-color);
 
   /* Team penalties default colors */
-  --penalties-bg: var(--team-penalties-default-fg-color);
-  --penalties-fg: var(--team-penalties-default-bg-color);
+  --penalties-fg: var(--team-penalties-default-fg-color);
+  --penalties-bg: var(--team-penalties-default-bg-color);
   --penalties-border: var(--team-penalties-default-border-color);
 
   /* Penalty highlight colors */
