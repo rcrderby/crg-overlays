@@ -1,6 +1,9 @@
 /* CSS for custom penalties overlay - index.html */
 
-/* Variables */
+/*************
+* Variables **
+*************/
+
 :root {
   /* Overlay values */
   --overlay-width: 1920px;
@@ -106,7 +109,9 @@
   --transition-width: 0.3s ease;
 }
 
-/* Overlay properties */
+/**********************
+* Overlay properties **
+**********************/
 
 /* Reset */
 * {
@@ -132,7 +137,9 @@ body {
   padding: var(--overlay-padding);
 }
 
-/* Teams and logos section */
+/***************************
+* Teams and logos section **
+***************************/
 
 #teams-container {
   display: flex;
@@ -171,7 +178,9 @@ body {
   display: none;
 }
 
-/* Penalties title section */
+/***************************
+* Penalties title section **
+***************************/
 
 #penalties-title {
   flex: 0 0 auto;
@@ -186,7 +195,9 @@ body {
   text-shadow: var(--shadow-text-title);
 }
 
-/* Rosters and penalties containers section */
+/********************************************
+* Rosters and penalties containers section **
+********************************************/
 
 #rosters-penalties-container {
   display: flex;
@@ -216,7 +227,10 @@ body {
   flex: 1;
 }
 
-/* Rosters section */
+
+/*******************
+* Rosters section **
+*******************/
 
 .roster {
   font-size: var(--font-penalties-size);
@@ -269,7 +283,9 @@ body {
   margin-left: var(--margin-captain-left);
 }
 
-/* Penalties section */
+/*********************
+* Penalties section **
+*********************/
 
 .penalties-column {
   flex: var(--flex-penalties-column);
@@ -327,7 +343,9 @@ body {
   text-shadow: var(--shadow-text);
 }
 
-/* Penalty count warning colors */
+/********************************
+* Penalty count warning colors **
+********************************/
 
 .penalty-count-5 {
   background-color: var(--penalty-warning-5);
@@ -342,7 +360,9 @@ body {
   background-color: var(--penalty-warning-fo-exp);
 }
 
-/* Team penalty totals */
+/***********************
+* Team penalty totals **
+***********************/
 
 #team1-total,
 #team2-total {
@@ -358,7 +378,9 @@ body {
   box-shadow: var(--shadow-box);
 }
 
-/* Game information section */
+/****************************
+* Game information section **
+****************************/
 
 #game-info {
   margin-top: var(--margin-game-info-top);
@@ -390,7 +412,9 @@ body {
   display: none;
 }
 
-/* Game details container */
+/* *************************
+** Game details container **
+***************************/
 
 #game-details {
   background-color: var(--game-details-bg);
@@ -405,7 +429,9 @@ body {
   box-shadow: var(--shadow-box);
 }
 
-/* Custom logo */
+/* **************
+** Custom logo **
+****************/
 
 /* Add equal padding to both sides of container when custom logo is present */
 .game-info-wrapper.has-logo #game-details {
@@ -433,7 +459,9 @@ body {
   filter: var(--shadow-drop-logo);
 }
 
-/* Team information and scores */
+/********************************
+** Team information and scores **
+********************************/
 
 #teams-scores {
   display: flex;
@@ -465,7 +493,9 @@ body {
   text-shadow: var(--shadow-text);
 }
 
-/* Clock and ".vs" text container */
+/***********************************
+** Clock and ".vs" text container **
+***********************************/
 
 #vs-clock-container {
   display: flex;
