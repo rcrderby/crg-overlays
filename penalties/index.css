@@ -11,20 +11,25 @@
   --overlay-padding: 20px;
   --content-width: 80%;
 
+  /* Team and penalty default colors */
+  --team-penalties-default-fg-color: white;
+  --team-penalties-default-bg-color: black;
+  --team-penalties-default-border-color: white;
+
   /* Team 1 (home) roster default colors */
-  --team1-fg: white;
-  --team1-bg: black;
-  --team1-border: white;
+  --team1-fg: var(--team-penalties-default-fg-color);
+  --team1-bg: var(--team-penalties-default-bg-color);
+  --team1-border: var(--team-penalties-default-border-color);
 
   /* Team 2 (away) roster default colors */
-  --team2-fg: white;
-  --team2-bg: black;
-  --team2-border: white;
+  --team2-fg: var(--team-penalties-default-fg-color);
+  --team2-bg: var(--team-penalties-default-bg-color);
+  --team2-border: var(--team-penalties-default-border-color);
 
   /* Team penalties default colors */
-  --penalties-bg: black;
-  --penalties-fg: white;
-  --penalties-border: white;
+  --penalties-bg: var(--team-penalties-default-fg-color);
+  --penalties-fg: var(--team-penalties-default-bg-color);
+  --penalties-border: var(--team-penalties-default-border-color);
 
   /* Penalty highlight colors */
   --penalty-warning-5: #b8860b;        /* Dark yellow */
