@@ -98,7 +98,7 @@
   
   /* Shadows */
   --shadow-box: 0 4px 12px rgb(0 0 0 / 60%);
-  --shadow-text: 1px 1px 2px rgb(0 0 0 / 40%);
+  --shadow-text: 1px 1px 2px rgb(0 0 0 / 80%);
   --shadow-text-title: 3px 3px 5px rgb(0 0 0 / 40%);
   --shadow-drop-logo: drop-shadow(0 0 8px rgb(0 0 0 / 40%));
 
