@@ -71,6 +71,27 @@ $(function() {
     expulsionId: /ScoreBoard\.CurrentGame\.Expulsion\(([^)]+)\)\.Id/
   };
 
+  // Application state for roster and penalty data
+  const appState = {
+    teams: {
+      1: { skaters: {}, logo: '', colors: { fg: null, bg: null } },
+      2: { skaters: {}, logo: '', colors: { fg: null, bg: null } }
+    },
+    cache: {
+      expulsionIds: [],
+      expulsionIdsValid: false,
+      startTimePast: null,
+      startTimeCacheExpiry: 0
+    },
+    flags: {
+      bothTeamsHaveLogos: false,
+      initialLoadComplete: false
+    },
+    dom: {
+      root: document.documentElement
+    }
+  };
+
   // Cache DOM selectors
   var $elements = {
     team1: {
@@ -99,21 +120,6 @@ $(function() {
     gameInfoWrapper: $('.game-info-wrapper')
   };
 
-  // Store skater data for each team
-  var teams = {
-    1: { skaters: {}, logo: '', colors: { fg: null, bg: null } },
-    2: { skaters: {}, logo: '', colors: { fg: null, bg: null } }
-  };
-  var bothTeamsHaveLogos = false;
-  var root = document.documentElement;
-  var startTimePastCache = null;
-  var startTimeCacheExpiry = 0;
-  var initialLoadComplete = false;
-  
-  // Cache for expulsion penalty IDs
-  var expulsionIdsCache = [];
-  var expulsionIdsCacheValid = false;
-
   // Helper function to check boolean values from the WebSocket
   function isTrue(value) {
     return value === true || value === 'true';
@@ -135,8 +141,8 @@ $(function() {
 
   // Helper function to get expulsion penalty IDs (cached)
   function getExpulsionPenaltyIds() {
-    if (expulsionIdsCacheValid) {
-      return expulsionIdsCache;
+    if (appState.cache.expulsionIdsCacheValid) {
+      return appState.cache.expulsionIds;
     }
     
     var state = WS.state;
@@ -154,14 +160,14 @@ $(function() {
       }
     }
     
-    expulsionIdsCache = ids;
-    expulsionIdsCacheValid = true;
+    appState.cache.expulsionIds = ids;
+    appState.cache.expulsionIdsValid = true;
     return ids;
   }
   
   // Invalidate expulsion cache
   function invalidateExpulsionCache() {
-    expulsionIdsCacheValid = false;
+    appState.cache.expulsionIdsValid = false;
   }
 
   // Helper function to check if a skater is expelled
@@ -190,8 +196,8 @@ $(function() {
   function isStartTimeMissingOrPast() {
     var now = Date.now();
     
-    if (startTimePastCache !== null && now < startTimeCacheExpiry) {
-      return startTimePastCache;
+    if (appState.cache.startTimePast !== null && now < appState.cache.startTimeCacheExpiry) {
+      return appState.cache.startTimePast;
     }
     
     var state = WS.state;
@@ -200,20 +206,20 @@ $(function() {
     
     // If no date or time is set, treat as if start time is missing/past
     if (!startDate || !startTime) {
-      startTimePastCache = true;
-      startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
+      appState.cache.startTimePast = true;
+      appState.cache.startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
       return true;
     }
     
     try {
       var startDateTime = new Date(startDate + 'T' + startTime);
-      startTimePastCache = startDateTime < new Date();
-      startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
-      return startTimePastCache;
+      appState.cache.startTimePast = startDateTime < new Date();
+      appState.cache.startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
+      return appState.cache.startTimePast;
     } catch {
       // If date parsing fails, treat as missing
-      startTimePastCache = true;
-      startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
+      appState.cache.startTimePast = true;
+      appState.cache.startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
       return true;
     }
   }
@@ -334,7 +340,7 @@ $(function() {
   var debouncedPenaltyUpdate = {
     timers: {},
     update: function(teamNum) {
-      var delay = initialLoadComplete ? TIMING.debouncePenaltyNormalMs : TIMING.debouncePenaltyInitMs;
+      var delay = appState.flags.initialLoadComplete ? TIMING.debouncePenaltyNormalMs : TIMING.debouncePenaltyInitMs;
       clearTimeout(this.timers[teamNum]);
       this.timers[teamNum] = setTimeout(function() {
         updatePenalties(teamNum);
@@ -483,8 +489,8 @@ $(function() {
   function checkAndDisplayLogos() {
     var shouldShow = teams[1].logo && teams[2].logo;
     
-    if (shouldShow !== bothTeamsHaveLogos) {
-      bothTeamsHaveLogos = shouldShow;
+    if (shouldShow !== appState.flags.bothTeamsHaveLogos) {
+      appState.flags.bothTeamsHaveLogos = shouldShow;
       
       if (shouldShow) {
         $elements.team1.logo.attr('src', teams[1].logo).show();
@@ -830,7 +836,7 @@ $(function() {
       equalizeTeamBoxWidths();
       
       setTimeout(function() {
-        initialLoadComplete = true;
+        appState.flags.initialLoadComplete = true;
       }, TIMING.initCompleteMs);
       
       setTimeout(function() {
