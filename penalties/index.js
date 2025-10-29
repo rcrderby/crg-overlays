@@ -3,8 +3,21 @@
 $(function() {
   'use strict';
 
-  // Constants
+  /********************************
+  ** Verify that config.js loads **
+  ********************************/
 
+  // Halt if config.js does not load correctly
+  if (typeof PenaltiesOverlayConfig === 'undefined') {
+    console.error('ERROR: config.js did not load.');
+    console.error('Make sure config.js is in the same directory as index.js');
+    console.error('and that index.html includes: <script src="config.js"></script>');
+    console.error('before <script> tags that import index.js and core.js.');
+    alert('Configuration Error: config.js is missing or did not load properly. Check browser console for details.');
+    return;
+  }
+
+  // Constants
   // CSS classes
   const CLASS_PENALTY_5 = 'penalty-count-5';
   const CLASS_PENALTY_6 = 'penalty-count-6';
