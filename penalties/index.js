@@ -71,6 +71,10 @@ $(function() {
     expulsionId: /ScoreBoard\.CurrentGame\.Expulsion\(([^)]+)\)\.Id/
   };
 
+  /**************************************
+  ** Application data state management **
+  **************************************/
+
   // Application state for roster and penalty data
   const appState = {
     teams: {
@@ -93,7 +97,7 @@ $(function() {
   };
 
   // Cache DOM selectors
-  var $elements = {
+  const $elements = {
     team1: {
       logo: $('#team1-logo'),
       name: $('#team1-name'),
