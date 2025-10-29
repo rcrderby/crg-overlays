@@ -34,9 +34,11 @@ $(function() {
     return;
   }
 
-  // Constants
+  /**************
+  ** Constants **
+  **************/
 
-  // Variables from config.js
+  // Data from config.js
   const CONFIG = PenaltiesOverlayConfig.display;
   const TIMING = PenaltiesOverlayConfig.timing;
   const DISPLAY_TEXT = PenaltiesOverlayConfig.labels;
