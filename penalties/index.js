@@ -141,12 +141,12 @@ $(function() {
     return String(value).trim();
   }
 
-  // Format time from milliseconds
+  // Format time from milliseconds to (M)M:SS
   function formatTime(ms) {
-    var totalSeconds = Math.floor(ms / 1000);
-    var minutes = Math.floor(totalSeconds / 60);
-    var seconds = totalSeconds % 60;
-    return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   }
 
   // Get intermission label with fallback to default
