@@ -143,7 +143,7 @@ $(function() {
 
   // Get intermission label with fallback to default
   function getIntermissionLabel(stateKey, defaultValue) {
-    var value = trimValue(WS.state[stateKey]);
+    const value = trimValue(WS.state[stateKey]);
     return value || defaultValue;
   }
 
