@@ -35,6 +35,14 @@ $(function() {
   }
 
   // Constants
+
+  // Variables from config.js
+  const CONFIG = PenaltiesOverlayConfig.display;
+  const TIMING = PenaltiesOverlayConfig.timing;
+  const DISPLAY_TEXT = PenaltiesOverlayConfig.labels;
+  const RULES = PenaltiesOverlayConfig.rules;
+  const PENALTY_CONFIG = PenaltiesOverlayConfig.penalties;
+
   // CSS classes
   const CLASS_PENALTY_5 = 'penalty-count-5';
   const CLASS_PENALTY_6 = 'penalty-count-6';
