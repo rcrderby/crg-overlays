@@ -107,6 +107,9 @@ var PenaltiesOverlayConfig = {
   ** Penalties Settings **
   ***********************/
 
-  // TODO
+  penalties: {
+    // Penalty codes to filter from each players' list of penalties
+    filteredCodes: ['FO']
+  }
 
 };
