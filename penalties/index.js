@@ -250,7 +250,7 @@ $(function() {
   // Helper function to determine penalty count CSS class
   function getPenaltyCountClass(teamNum, skaterId, displayCount) {
     if (isSkaterExpelled(teamNum, skaterId)) {
-      return CLASS_PENALTY_EXPELLED;
+      return CSS_CLASSES.PENALTY_EXPELLED;
     }
     
     var skater = teams[teamNum].skaters[skaterId];
@@ -260,19 +260,19 @@ $(function() {
     
     // Check for fouled out (FO code or 7+ total penalties)
     if (totalPenalties >= RULES.fouloutPenaltyCount) {
-      return CLASS_PENALTY_FOULOUT;
+      return CSS_CLASSES.PENALTY_FOULOUT;
     }
     
     // Check for FO code
     for (var i = 0; i < skater.penalties.length; i++) {
       if (String(skater.penalties[i] || '').trim().toUpperCase() === FOULOUT_DISPLAY) {
-        return CLASS_PENALTY_FOULOUT;
+        return CSS_CLASSES.PENALTY_FOULOUT;
       }
     }
     
     // Color code based on display count (excluding FO)
-    if (displayCount === RULES.warningPenaltyCount6) return CLASS_PENALTY_6;
-    if (displayCount === RULES.warningPenaltyCount5) return CLASS_PENALTY_5;
+    if (displayCount === RULES.warningPenaltyCount6) return CSS_CLASSES.PENALTY_6;
+    if (displayCount === RULES.warningPenaltyCount5) return CSS_CLASSES.PENALTY_5;
     
     return '';
   }
@@ -512,7 +512,7 @@ $(function() {
       $elements.teamScoreBlocks.css('width', maxWidth + 'px');
       
       var vsClockWidth = $elements.vsClockContainer.outerWidth();
-      var hasLogo = $elements.gameInfoWrapper.hasClass(CLASS_HAS_LOGO);
+      var hasLogo = $elements.gameInfoWrapper.hasClass(CSS_CLASSES.HAS_LOGO);
       var padding = hasLogo ? 280 : 40;
       
       var totalWidth = (maxWidth * 2) + vsClockWidth + padding;
@@ -798,11 +798,11 @@ $(function() {
     
     logoImg.onload = function() {
       $elements.customLogoSpace.html('<img src="' + DISPLAY_TEXT.bannerLogoPath + '" class="custom-logo" />');
-      $wrapper.addClass(CLASS_HAS_LOGO);
+      $wrapper.addClass(CSS_CLASSES.HAS_LOGO);
     };
     logoImg.onerror = function() {
       $elements.customLogoSpace.empty();
-      $wrapper.removeClass(CLASS_HAS_LOGO);
+      $wrapper.removeClass(CSS_CLASSES.HAS_LOGO);
     };
     logoImg.src = DISPLAY_TEXT.bannerLogoPath;
   }
