@@ -4,21 +4,6 @@ $(function() {
   'use strict';
 
   // Constants
-    
-  // Display text
-  const CAPTAIN_FLAG = 'C';
-  const DEFAULT_TEAM_NAME_PREFIX = 'Team ';
-  const EXPELLED_DISPLAY = 'EXP';
-  const FOULOUT_DISPLAY = 'FO';
-  const PRE_FIRST_PERIOD_LABEL = 'Period 1';
-  const DEFAULT_INTERMISSION_LABELS = {
-    preGame: 'Time to Derby',
-    intermission: 'Intermission',
-    unofficial: 'Unofficial Score',
-    official: 'Final Score',
-    overtime: 'Overtime',
-    comingUp: 'Coming Up'
-  };
   
   // Game rules
   const FOULOUT_PENALTY_COUNT = 7;

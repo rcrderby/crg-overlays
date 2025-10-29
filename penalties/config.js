@@ -60,7 +60,32 @@ var PenaltiesOverlayConfig = {
   ** Labels Settings **
   ********************/
 
-  // TODO
+  labels: {
+    // Character displayed next to team captain names
+    captainFlag: 'C',
+    
+    // Prefix used for default team names
+    defaultTeamNamePrefix: 'Team ',
+    
+    // Text displayed for expelled skaters
+    expelledDisplay: 'EXP',
+    
+    // Text displayed for fouled out skaters
+    fouloutDisplay: 'FO',
+    
+    // Label shown before P1 when IGRF start time is missing or in the past
+    preFirstPeriodLabel: 'Period 1',
+    
+    // Default/fallback intermission labels
+    intermission: {
+      preGame: 'Time to Derby',
+      intermission: 'Intermission',
+      unofficial: 'Unofficial Score',
+      official: 'Final Score',
+      overtime: 'Overtime',
+      comingUp: 'Coming Up'
+    }
+  }
 
   /*******************
   ** Rules Settings **
