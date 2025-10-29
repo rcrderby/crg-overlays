@@ -201,19 +201,19 @@ $(function() {
     // If no date or time is set, treat as if start time is missing/past
     if (!startDate || !startTime) {
       startTimePastCache = true;
-      startTimeCacheExpiry = now + CACHE_EXPIRY_MS;
+      startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
       return true;
     }
     
     try {
       var startDateTime = new Date(startDate + 'T' + startTime);
       startTimePastCache = startDateTime < new Date();
-      startTimeCacheExpiry = now + CACHE_EXPIRY_MS;
+      startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
       return startTimePastCache;
     } catch {
       // If date parsing fails, treat as missing
       startTimePastCache = true;
-      startTimeCacheExpiry = now + CACHE_EXPIRY_MS;
+      startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
       return true;
     }
   }
@@ -259,7 +259,7 @@ $(function() {
     var totalPenalties = skater.penalties.length;
     
     // Check for fouled out (FO code or 7+ total penalties)
-    if (totalPenalties >= FOULOUT_PENALTY_COUNT) {
+    if (totalPenalties >= RULES.fouloutPenaltyCount) {
       return CLASS_PENALTY_FOULOUT;
     }
     
@@ -271,8 +271,8 @@ $(function() {
     }
     
     // Color code based on display count (excluding FO)
-    if (displayCount === WARNING_PENALTY_COUNT_6) return CLASS_PENALTY_6;
-    if (displayCount === WARNING_PENALTY_COUNT_5) return CLASS_PENALTY_5;
+    if (displayCount === RULES.warningPenaltyCount6) return CLASS_PENALTY_6;
+    if (displayCount === RULES.warningPenaltyCount5) return CLASS_PENALTY_5;
     
     return '';
   }
@@ -280,7 +280,7 @@ $(function() {
   // Wait for WS to be loaded
   function waitForWS() {
     if (typeof WS === 'undefined') {
-      setTimeout(waitForWS, WS_WAIT_MS);
+      setTimeout(waitForWS, TIMING.wsWaitMs);
       return;
     }
     init();
@@ -320,7 +320,7 @@ $(function() {
       WS.Register(['ScoreBoard.CurrentGame.EventInfo(StartTime)'], updateGameState);
       
       loadCustomLogo();
-      setTimeout(initializeDisplay, INIT_DELAY_MS);
+      setTimeout(initializeDisplay, TIMING.initDelayMs);
       
     } catch(error) {
       console.error('Failed to initialize overlay:', error);
@@ -328,13 +328,13 @@ $(function() {
   }
 
   // Debounced clock update
-  var debouncedClockUpdate = debounce(updateClock, DEBOUNCE_CLOCK_MS);
+  var debouncedClockUpdate = debounce(updateClock, TIMING.debounceClockMs);
   
   // Debounced penalty update - longer delay during initial load
   var debouncedPenaltyUpdate = {
     timers: {},
     update: function(teamNum) {
-      var delay = initialLoadComplete ? DEBOUNCE_PENALTY_NORMAL_MS : DEBOUNCE_PENALTY_INIT_MS;
+      var delay = initialLoadComplete ? TIMING.debouncePenaltyNormalMs : TIMING.debouncePenaltyInitMs;
       clearTimeout(this.timers[teamNum]);
       this.timers[teamNum] = setTimeout(function() {
         updatePenalties(teamNum);
@@ -356,7 +356,7 @@ $(function() {
       
       // Only update if we have a name, or if current display is empty/default
       var currentText = team.name.text();
-      if (name || !currentText || currentText === DEFAULT_TEAM_NAME_PREFIX + teamNum) {
+      if (name || !currentText || currentText === DISPLAY_TEXT.defaultTeamNamePrefix + teamNum) {
         team.name.text(name || '');
         updateQueue.schedule(equalizeTeamBoxWidths);
       }
@@ -506,7 +506,7 @@ $(function() {
       var team2Width = $elements.team2.name.parent().get(0).scrollWidth;
 
       // Add 1px buffer to the maximum width to prevent overflow
-      var maxWidth = Math.max(team1Width, team2Width) + TEAM_NAME_OVERFLOW_BUFFER_PIXELS;
+      var maxWidth = Math.max(team1Width, team2Width) + DISPLAY_TEXT.teamNameOverflowBufferPixels;
       
       // Single write
       $elements.teamScoreBlocks.css('width', maxWidth + 'px');
@@ -552,7 +552,7 @@ $(function() {
       if (!skater.number || !skater.name) continue;
       
       // Check if skater is a captain
-      var isCaptain = skater.flags === CAPTAIN_FLAG || skater.flags.split(',').indexOf(CAPTAIN_FLAG) !== -1;
+      var isCaptain = skater.flags === DISPLAY_TEXT.captainFlag || skater.flags.split(',').indexOf(CAPTAIN_FLAG) !== -1;
       
       rosterParts.push(`
         <div class="roster-line">
@@ -569,7 +569,7 @@ $(function() {
         var penalty = penaltyDetails[j];
         var codeUpper = String(penalty.code || '').trim().toUpperCase();
         
-        if (FILTERED_PENALTY_CODES.indexOf(codeUpper) !== -1) continue;
+        if (PENALTY_CONFIG.filteredCodes.indexOf(codeUpper) !== -1) continue;
         if (hasExpulsions && expulsionIds.indexOf(penalty.id) !== -1) continue;
         
         displayCodes.push(penalty.code);
@@ -583,21 +583,21 @@ $(function() {
       var displayValue;
       
       if (isExpelled) {
-        displayValue = EXPELLED_DISPLAY;
+        displayValue = DISPLAY_TEXT.expelledDisplay;
       } else {
         // Check for fouled out
         var totalPenalties = skater.penalties.length;
-        if (totalPenalties >= FOULOUT_PENALTY_COUNT) {
+        if (totalPenalties >= RULES.fouloutPenaltyCount) {
           isFouledOut = true;
         } else {
           for (var k = 0; k < skater.penalties.length; k++) {
-            if (String(skater.penalties[k] || '').trim().toUpperCase() === FOULOUT_DISPLAY) {
+            if (String(skater.penalties[k] || '').trim().toUpperCase() === DISPLAY_TEXT.fouloutDisplay) {
               isFouledOut = true;
               break;
             }
           }
         }
-        displayValue = isFouledOut ? FOULOUT_DISPLAY : displayCount;
+        displayValue = isFouledOut ? DISPLAY_TEXT.fouloutDisplay : displayCount;
       }
       
       var countClass = getPenaltyCountClass(teamNum, skater.id, displayCount);
@@ -737,10 +737,10 @@ $(function() {
       
       // Get intermission labels from settings with fallback to defaults
       var labels = {
-        preGame: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)', DEFAULT_INTERMISSION_LABELS.preGame),
-        intermission: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)', DEFAULT_INTERMISSION_LABELS.intermission),
-        unofficial: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)', DEFAULT_INTERMISSION_LABELS.unofficial),
-        official: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)', DEFAULT_INTERMISSION_LABELS.official)
+        preGame: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)', DISPLAY_TEXT.intermission.preGame),
+        intermission: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)', DISPLAY_TEXT.intermission.intermission),
+        unofficial: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)', DISPLAY_TEXT.intermission.unofficial),
+        official: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)', DISPLAY_TEXT.intermission.official)
       };
       
       var gameOver = currentPeriod > numPeriods || 
@@ -753,18 +753,18 @@ $(function() {
       } else if (gameOver) {
         text = labels.unofficial;
       } else if (inOvertime) {
-        text = DEFAULT_INTERMISSION_LABELS.overtime;
+        text = DISPLAY_TEXT.intermission.overtime;
       } else if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionTime > 0) {
         text = labels.intermission;
       } else if (currentPeriod > 0 && currentPeriod <= numPeriods) {
         text = 'Period ' + currentPeriod;
       } else if (currentPeriod === 0 && isStartTimeMissingOrPast()) {
-        // If start time is missing or in past, show PRE_FIRST_PERIOD_LABEL for upcoming period
-        text = PRE_FIRST_PERIOD_LABEL;
+        // If start time is missing or in past, show DISPLAY_TEXT.preFirstPeriodLabel for upcoming period
+        text = DISPLAY_TEXT.preFirstPeriodLabel;
       } else if (currentPeriod === 0 && intermissionTime > 0) {
         text = labels.preGame;
       } else {
-        text = DEFAULT_INTERMISSION_LABELS.comingUp;
+        text = DISPLAY_TEXT.intermission.comingUp;
       }
       
       $elements.periodInfo.text(text);
@@ -797,14 +797,14 @@ $(function() {
     var $wrapper = $('.game-info-wrapper');
     
     logoImg.onload = function() {
-      $elements.customLogoSpace.html('<img src="' + BANNER_LOGO_PATH + '" class="custom-logo" />');
+      $elements.customLogoSpace.html('<img src="' + DISPLAY_TEXT.bannerLogoPath + '" class="custom-logo" />');
       $wrapper.addClass(CLASS_HAS_LOGO);
     };
     logoImg.onerror = function() {
       $elements.customLogoSpace.empty();
       $wrapper.removeClass(CLASS_HAS_LOGO);
     };
-    logoImg.src = BANNER_LOGO_PATH;
+    logoImg.src = DISPLAY_TEXT.bannerLogoPath;
   }
 
   // Initialize display
@@ -812,7 +812,7 @@ $(function() {
     try {
       var state = WS.state;
       
-      for (var teamNum = 1; teamNum <= NUM_TEAMS; teamNum++) {
+      for (var teamNum = 1; teamNum <= RULES.numTeams; teamNum++) {
         var altName = trimValue(state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)']);
         var name = trimValue(state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name']);
         var total = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').TotalPenalties'];
@@ -831,20 +831,20 @@ $(function() {
       
       setTimeout(function() {
         initialLoadComplete = true;
-      }, INIT_COMPLETE_MS);
+      }, TIMING.initCompleteMs);
       
       setTimeout(function() {
-        for (var teamNum = 1; teamNum <= NUM_TEAMS; teamNum++) {
+        for (var teamNum = 1; teamNum <= RULES.numTeams; teamNum++) {
           var currentText = $elements['team' + teamNum].name.text();
           var altName = trimValue(WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)']);
           var name = trimValue(WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name']);
           
           if ((!currentText || currentText.trim() === '') && !altName && !name) {
-            $elements['team' + teamNum].name.text(DEFAULT_TEAM_NAME_PREFIX + teamNum);
+            $elements['team' + teamNum].name.text(DISPLAY_TEXT.defaultTeamNamePrefix + teamNum);
             updateQueue.schedule(equalizeTeamBoxWidths);
           }
         }
-      }, DEFAULT_NAME_DELAY_MS);
+      }, TIMING.defaultNameDelayMs);
       
     } catch(error) {
       console.error('Error during initialization:', error);
