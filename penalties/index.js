@@ -147,6 +147,17 @@ $(function() {
     return value || defaultValue;
   }
 
+  // Debouncing function
+  function debounce(func, wait) {
+    let timeout;
+    return function() {
+      const context = this;
+      const args = arguments;
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(context, args), wait);
+    };
+  }
+
   // Helper function to get expulsion penalty IDs (cached)
   function getExpulsionPenaltyIds() {
     if (appState.cache.expulsionIdsCacheValid) {
@@ -230,16 +241,6 @@ $(function() {
       appState.cache.startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
       return true;
     }
-  }
-
-  // Debounce helper
-  function debounce(func, wait) {
-    var timeout;
-    return function() {
-      var context = this, args = arguments;
-      clearTimeout(timeout);
-      timeout = setTimeout(function() { func.apply(context, args); }, wait);
-    };
   }
 
   // Batch update helper for reducing reflows
