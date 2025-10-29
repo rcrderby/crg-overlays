@@ -44,11 +44,13 @@ $(function() {
   const PENALTY_CONFIG = PenaltiesOverlayConfig.penalties;
 
   // CSS classes
-  const CLASS_PENALTY_5 = 'penalty-count-5';
-  const CLASS_PENALTY_6 = 'penalty-count-6';
-  const CLASS_PENALTY_FOULOUT = 'penalty-count-foulout';
-  const CLASS_PENALTY_EXPELLED = 'penalty-count-expelled';
-  const CLASS_HAS_LOGO = 'has-logo';
+  const CSS_CLASSES = {
+    PENALTY_5: 'penalty-count-5',
+    PENALTY_6: 'penalty-count-6',
+    PENALTY_FOULOUT: 'penalty-count-foulout',
+    PENALTY_EXPELLED: 'penalty-count-expelled',
+    HAS_LOGO: 'has-logo'
+  };
   
   // Cached regex patterns
   const REGEX_PATTERNS = {
