@@ -17,6 +17,23 @@ $(function() {
     return;
   }
 
+  /********************************************
+  ** Verify imported configuration variables **
+  ********************************************/
+
+  // Half if PenaltiesOverlayConfig appears invalid
+  if (
+      !PenaltiesOverlayConfig.timing ||
+      !PenaltiesOverlayConfig.display ||
+      !PenaltiesOverlayConfig.labels ||
+      !PenaltiesOverlayConfig.rules
+  ) {
+    console.error('ERROR: data imported from config.js is invalid.');
+    console.error('Required structures: timing, display, labels, rules, and penalties');
+    alert('Configuration Error: config.js is invalid. Check browser console for details.');
+    return;
+  }
+
   // Constants
   // CSS classes
   const CLASS_PENALTY_5 = 'penalty-count-5';
