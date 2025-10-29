@@ -50,10 +50,7 @@ var PenaltiesOverlayConfig = {
     bannerLogoPath: 'logos/banner-logo.png',
     
     // Buffer pixels to prevent team name overflow
-    teamNameOverflowBufferPixels: 1,
-    
-    // Number of teams
-    numTeams: 2
+    teamNameOverflowBufferPixels: 1
   },
 
   /********************
@@ -85,13 +82,26 @@ var PenaltiesOverlayConfig = {
       overtime: 'Overtime',
       comingUp: 'Coming Up'
     }
-  }
+  },
 
   /*******************
   ** Rules Settings **
   *******************/
 
-  // TODO
+  rules: {
+    // Override any custom rules settings
+    // Number of teams
+    numTeams: 2,
+
+    // Number of penalties that result in a foulout
+    fouloutPenaltyCount: 7,
+    
+    // Penalty count that triggers the first warning color
+    warningPenaltyCount5: 5,
+    
+    // Penalty count that triggers second warning color
+    warningPenaltyCount6: 6
+  },
 
   /***********************
   ** Penalties Settings **

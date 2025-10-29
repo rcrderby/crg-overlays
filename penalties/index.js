@@ -4,12 +4,6 @@ $(function() {
   'use strict';
 
   // Constants
-  
-  // Game rules
-  const FOULOUT_PENALTY_COUNT = 7;
-  const NUM_TEAMS = 2;
-  const WARNING_PENALTY_COUNT_5 = 5;
-  const WARNING_PENALTY_COUNT_6 = 6;
 
   // CSS classes
   const CLASS_PENALTY_5 = 'penalty-count-5';
