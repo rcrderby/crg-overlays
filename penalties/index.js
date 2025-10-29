@@ -124,12 +124,16 @@ $(function() {
     gameInfoWrapper: $('.game-info-wrapper')
   };
 
-  // Helper function to check boolean values from the WebSocket
+  /*********************
+  ** Helper functions **
+  *********************/
+
+  // Check boolean values from the WebSocket
   function isTrue(value) {
     return value === true || value === 'true';
   }
 
-  // Helper function to trim blank space values from the WebSocket
+  // Trim blank space values from the WebSocket
   function trimValue(value) {
     if (value === null || value === undefined) {
       return '';
@@ -137,7 +141,7 @@ $(function() {
     return String(value).trim();
   }
 
-  // Helper function to get intermission label with fallback to default
+  // Get intermission label with fallback to default
   function getIntermissionLabel(stateKey, defaultValue) {
     var value = trimValue(WS.state[stateKey]);
     return value || defaultValue;
