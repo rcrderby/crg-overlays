@@ -141,6 +141,14 @@ $(function() {
     return String(value).trim();
   }
 
+  // Format time from milliseconds
+  function formatTime(ms) {
+    var totalSeconds = Math.floor(ms / 1000);
+    var minutes = Math.floor(totalSeconds / 60);
+    var seconds = totalSeconds % 60;
+    return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+  }
+
   // Get intermission label with fallback to default
   function getIntermissionLabel(stateKey, defaultValue) {
     const value = trimValue(WS.state[stateKey]);
@@ -729,14 +737,6 @@ $(function() {
     } catch(error) {
       console.error('Error updating clock:', error);
     }
-  }
-
-  // Format time from milliseconds
-  function formatTime(ms) {
-    var totalSeconds = Math.floor(ms / 1000);
-    var minutes = Math.floor(totalSeconds / 60);
-    var seconds = totalSeconds % 60;
-    return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
   }
 
   // Update game state (period info)
