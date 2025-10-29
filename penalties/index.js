@@ -4,15 +4,6 @@ $(function() {
   'use strict';
 
   // Constants
-  // Timers
-  const CACHE_EXPIRY_MS = 30000;
-  const DEBOUNCE_CLOCK_MS = 50;
-  const DEBOUNCE_PENALTY_INIT_MS = 300;
-  const DEBOUNCE_PENALTY_NORMAL_MS = 50;
-  const INIT_COMPLETE_MS = 800;
-  const DEFAULT_NAME_DELAY_MS = 500;
-  const WS_WAIT_MS = 100;
-  const INIT_DELAY_MS = 200;
   
   // General
   const BANNER_LOGO_PATH = 'logos/banner-logo.png';

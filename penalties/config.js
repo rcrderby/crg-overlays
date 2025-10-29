@@ -14,7 +14,31 @@ var PenaltiesOverlayConfig = {
   ** Timing Settings **
   ********************/
 
-  // TODO
+  timing: {
+    // Cache expiration time in milliseconds (30 seconds)
+    cacheExpiryMs: 30000,
+
+    // Debounce delay for clock updates in milliseconds
+    debounceClockMs: 50,
+
+    // Debounce delay for penalty updates during initialization
+    debouncePenaltyInitMs: 300,
+    
+    // Debounce delay for penalty updates during normal operation
+    debouncePenaltyNormalMs: 50,
+    
+    // Time to wait before marking initialization as complete
+    initCompleteMs: 800,
+    
+    // Delay before setting default team names if no names provided
+    defaultNameDelayMs: 500,
+    
+    // Polling interval to wait for WebSocket connection
+    wsWaitMs: 100,
+    
+    // Delay before initializing display after WebSocket connects
+    initDelayMs: 200
+  }
 
   /*********************
   ** Display Settings **
