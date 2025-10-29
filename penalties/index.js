@@ -4,12 +4,7 @@ $(function() {
   'use strict';
 
   // Constants
-  
-  // General
-  const BANNER_LOGO_PATH = 'logos/banner-logo.png';
-  const FILTERED_PENALTY_CODES = ['FO'];
-  const TEAM_NAME_OVERFLOW_BUFFER_PIXELS = 1
-  
+    
   // Display text
   const CAPTAIN_FLAG = 'C';
   const DEFAULT_TEAM_NAME_PREFIX = 'Team ';

@@ -38,13 +38,23 @@ var PenaltiesOverlayConfig = {
     
     // Delay before initializing display after WebSocket connects
     initDelayMs: 200
-  }
+  },
 
   /*********************
   ** Display Settings **
   *********************/
 
-  // TODO
+  display: {
+    // Path to an optional custom logo in the game information section
+    // Set to null or empty string to disable
+    bannerLogoPath: 'logos/banner-logo.png',
+    
+    // Buffer pixels to prevent team name overflow
+    teamNameOverflowBufferPixels: 1,
+    
+    // Number of teams
+    numTeams: 2
+  },
 
   /********************
   ** Labels Settings **
