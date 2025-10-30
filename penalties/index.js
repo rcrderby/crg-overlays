@@ -1031,6 +1031,9 @@ $(function() {
         $elements[`team${teamNum}`].total.text(total);
         
         updateTeamColors(teamNum);
+        
+        // Bypass the debounced handler for penalties during initial page load to optimize performance
+        updatePenalties(teamNum);
       }
 
       // Initialize game information
