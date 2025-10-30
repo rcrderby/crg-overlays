@@ -297,6 +297,20 @@ $(function() {
     );
   }
 
+  // Sort skaters alphabetically by number (as text)
+  function sortSkaters(skaters) {
+    return Object.values(skaters).sort((a, b) => {
+      const numA = String(a.number || '');
+      const numB = String(b.number || '');
+      
+      if (numA === '' && numB === '') return 0;
+      if (numA === '') return 1;
+      if (numB === '') return -1;
+      
+      return numA.localeCompare(numB);
+    });
+  }
+
   // Helper function to determine penalty count CSS class
   function getPenaltyCountClass(teamNum, skaterId, displayCount) {
     if (isSkaterExpelled(teamNum, skaterId)) {
@@ -569,20 +583,6 @@ $(function() {
       $elements.gameInfoWrapper.css('width', totalWidth + 'px');
     });
 }
-
-  // Sort skaters alphabetically by number (as text)
-  function sortSkaters(skaters) {
-    return Object.values(skaters).sort(function(a, b) {
-      var numA = String(a.number || '');
-      var numB = String(b.number || '');
-      
-      if (numA === '' && numB === '') return 0;
-      if (numA === '') return 1;
-      if (numB === '') return -1;
-      
-      return numA.localeCompare(numB);
-    });
-  }
 
   // Combined roster and penalties update
   function updateRosterAndPenalties(teamNum) {
