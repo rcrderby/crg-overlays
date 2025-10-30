@@ -311,6 +311,25 @@ $(function() {
     });
   }
 
+  // Get or create skater object
+  function getOrCreateSkater(teamNum, skaterId) {
+    const skaters = appState.teams[teamNum].skaters;
+    
+    if (!skaters[skaterId]) {
+      skaters[skaterId] = { 
+        id: skaterId, 
+        number: '', 
+        name: '', 
+        penalties: [],
+        penaltyIds: [],
+        penaltyDetails: [],
+        flags: ''
+      };
+    }
+    
+    return skaters[skaterId];
+  }
+
   // Helper function to determine penalty count CSS class
   function getPenaltyCountClass(teamNum, skaterId, displayCount) {
     if (isSkaterExpelled(teamNum, skaterId)) {
