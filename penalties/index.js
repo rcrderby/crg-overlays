@@ -360,6 +360,27 @@ $(function() {
     return '';
   }
 
+  // Filter penalties for display (exclude FO codes and expulsions)
+  function getDisplayPenalties(penaltyDetails, expulsionIds) {
+    const hasExpulsions = expulsionIds.length > 0;
+    
+    return penaltyDetails.filter(penalty => {
+      const codeUpper = String(penalty.code || '').trim().toUpperCase();
+      
+      // Filter out FO codes
+      if (PENALTY_CONFIG.filteredCodes.includes(codeUpper)) {
+        return false;
+      }
+      
+      // Filter out expulsion codes
+      if (hasExpulsions && expulsionIds.includes(penalty.id)) {
+        return false;
+      }
+      
+      return true;
+    });
+  }
+
   // Wait for WS to be loaded
   function waitForWS() {
     if (typeof WS === 'undefined') {
@@ -632,17 +653,6 @@ $(function() {
       
       var displayCodes = [];
       var penaltyDetails = skater.penaltyDetails;
-      
-      // Filter penalties
-      for (var j = 0; j < penaltyDetails.length; j++) {
-        var penalty = penaltyDetails[j];
-        var codeUpper = String(penalty.code || '').trim().toUpperCase();
-        
-        if (PENALTY_CONFIG.filteredCodes.indexOf(codeUpper) !== -1) continue;
-        if (hasExpulsions && expulsionIds.indexOf(penalty.id) !== -1) continue;
-        
-        displayCodes.push(penalty.code);
-      }
       
       var codes = displayCodes.join(' ');
       var displayCount = displayCodes.length;
