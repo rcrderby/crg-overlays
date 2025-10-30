@@ -819,6 +819,14 @@ $(function() {
     }
   }
 
+  // Handle penalty updates
+  function handlePenaltyUpdate(key, _value) {
+    const match = key.match(REGEX_PATTERNS.teamNumber);
+    if (match) {
+      debouncedPenaltyUpdate.update(parseInt(match[1]));
+    }
+  }
+
   // Initialize WebSocket listeners
   function init() {
     try {
@@ -862,14 +870,6 @@ $(function() {
 
   // Debounced clock update
   var debouncedClockUpdate = debounce(updateClock, TIMING.debounceClockMs);
-
-  // Handle penalty updates
-  function handlePenaltyUpdate(key, _value) {
-    var match = key.match(REGEX_PATTERNS.teamNumber);
-    if (match) {
-      debouncedPenaltyUpdate.update(parseInt(match[1]));
-    }
-  }
 
   // Handle expulsion updates
   function handleExpulsionUpdate(key, _value) {
