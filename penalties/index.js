@@ -225,6 +225,13 @@ $(function() {
 
   // Get cached expulsion penalty IDs
   function getExpulsionPenaltyIds() {
+    const now = Date.now();
+    
+    // Invalidate cache if expired
+    if (now > appState.cache.expulsionIdsExpiry) {
+      appState.cache.expulsionIdsValid = false;
+    }
+    
     if (appState.cache.expulsionIdsValid) {
       return appState.cache.expulsionIds;
     }
@@ -250,6 +257,7 @@ $(function() {
     
     appState.cache.expulsionIds = ids;
     appState.cache.expulsionIdsValid = true;
+    appState.cache.expulsionIdsExpiry = now + TIMING.cacheExpiryMs;
     return ids;
   }
   
@@ -797,18 +805,39 @@ $(function() {
 
   // Debounced penalty update with variable delay (during initial load)
   const debouncedPenaltyUpdate = {
-    timers: {},
+    timers: {}, 
     update(teamNum) {
       const delay = appState.flags.initialLoadComplete 
         ? TIMING.debouncePenaltyNormalMs 
         : TIMING.debouncePenaltyInitMs;
 
-      clearTimeout(this.timers[teamNum]);
+      // Clear existing timer
+      if (this.timers[teamNum]) {
+        clearTimeout(this.timers[teamNum]);
+      }
+      
       this.timers[teamNum] = setTimeout(() => {
+        // Clean up timer reference after execution
+        delete this.timers[teamNum];
+        
         if (isWSReady()) {
           updatePenalties(teamNum);
         }
       }, delay);
+    },
+    
+    // Clear all timers
+    clearAll() {
+      Object.values(this.timers).forEach(timer => clearTimeout(timer));
+      this.timers = {};
+    },
+    
+    // Clear specific team timer
+    clear(teamNum) {
+      if (this.timers[teamNum]) {
+        clearTimeout(this.timers[teamNum]);
+        delete this.timers[teamNum];
+      }
     }
   };
 
