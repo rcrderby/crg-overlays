@@ -21,7 +21,7 @@ $(function() {
   ** Verify imported configuration variables **
   ********************************************/
 
-  // Half if PenaltiesOverlayConfig appears invalid
+  // Halt if PenaltiesOverlayConfig appears invalid
   if (
       !PenaltiesOverlayConfig.timing ||
       !PenaltiesOverlayConfig.display ||
