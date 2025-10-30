@@ -18,7 +18,15 @@
 </head>
 
 <body>
-  <div id="overlay">
+  <!-- Loading overlay - shown during initialization -->
+  <div id="loading-overlay">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Loading data...</div>
+    </div>
+  </div>
+
+  <div id="overlay" class="hidden">
     <div id="teams-container">
       <!-- Team 1 (Home) - left side) -->
       <div id="team1-container" class="team-container">
