@@ -381,6 +381,64 @@ $(function() {
     });
   }
 
+  // Update team penalties (collect all penalty data)
+  function updatePenalties(teamNum) {
+    const skaters = appState.teams[teamNum].skaters;
+    const state = WS.state;
+    
+    // Clear penalty lists
+    for (const skaterId in skaters) {
+      if (Object.prototype.hasOwnProperty.call(skaters, skaterId)) {
+        const skater = skaters[skaterId];
+        skater.penalties = [];
+        skater.penaltyIds = [];
+        skater.penaltyDetails = [];
+      }
+    }
+    
+    // Single-pass penalty collection
+    const penaltyData = {};
+    
+    for (const key in state) {
+      if (!Object.prototype.hasOwnProperty.call(state, key)) continue;
+      
+      const match = key.match(REGEX_PATTERNS.penaltyPattern);
+      if (match && match[1] == teamNum) {
+        const skaterIdMatch = match[2];
+        const penaltyNumMatch = match[3];
+        const field = match[4];
+        
+        if (!penaltyData[skaterIdMatch]) {
+          penaltyData[skaterIdMatch] = {};
+        }
+        if (!penaltyData[skaterIdMatch][penaltyNumMatch]) {
+          penaltyData[skaterIdMatch][penaltyNumMatch] = { code: null, id: null };
+        }
+        
+        penaltyData[skaterIdMatch][penaltyNumMatch][field === 'Code' ? 'code' : 'id'] = state[key];
+      }
+    }
+    
+    // Populate skater penalty arrays
+    for (const skaterKey in penaltyData) {
+      if (skaters[skaterKey]) {
+        const skaterObj = skaters[skaterKey];
+        const penalties = penaltyData[skaterKey];
+        
+        for (const penaltyKey in penalties) {
+          const penalty = penalties[penaltyKey];
+          if (penalty.code && penalty.id) {
+            skaterObj.penalties.push(penalty.code);
+            skaterObj.penaltyIds.push(penalty.id);
+            skaterObj.penaltyDetails.push({ code: penalty.code, id: penalty.id });
+          }
+        }
+      }
+    }
+    
+    updateRosterAndPenalties(teamNum);
+  }
+
   // Wait for WS to be loaded
   function waitForWS() {
     if (typeof WS === 'undefined') {
@@ -691,64 +749,6 @@ $(function() {
     
     team.roster.html(rosterParts.join(''));
     team.penalties.html(penaltyParts.join(''));
-  }
-
-  // Update penalties only
-  function updatePenalties(teamNum) {
-    const skaters = appState.teams[teamNum].skaters;
-    const state = WS.state;
-    
-    // Clear penalty lists
-    for (const skaterId in skaters) {
-      if (Object.prototype.hasOwnProperty.call(skaters, skaterId)) {
-        const skater = skaters[skaterId];
-        skater.penalties = [];
-        skater.penaltyIds = [];
-        skater.penaltyDetails = [];
-      }
-    }
-    
-    // Single-pass penalty collection
-    const penaltyData = {};
-    
-    for (const key in state) {
-      if (!Object.prototype.hasOwnProperty.call(state, key)) continue;
-      
-      const match = key.match(REGEX_PATTERNS.penaltyPattern);
-      if (match && match[1] == teamNum) {
-        const skaterIdMatch = match[2];
-        const penaltyNumMatch = match[3];
-        const field = match[4];
-        
-        if (!penaltyData[skaterIdMatch]) {
-          penaltyData[skaterIdMatch] = {};
-        }
-        if (!penaltyData[skaterIdMatch][penaltyNumMatch]) {
-          penaltyData[skaterIdMatch][penaltyNumMatch] = { code: null, id: null };
-        }
-        
-        penaltyData[skaterIdMatch][penaltyNumMatch][field === 'Code' ? 'code' : 'id'] = state[key];
-      }
-    }
-    
-    // Populate skater penalty arrays
-    for (const skaterKey in penaltyData) {
-      if (skaters[skaterKey]) {
-        const skaterObj = skaters[skaterKey];
-        const penalties = penaltyData[skaterKey];
-        
-        for (const penaltyKey in penalties) {
-          const penalty = penalties[penaltyKey];
-          if (penalty.code && penalty.id) {
-            skaterObj.penalties.push(penalty.code);
-            skaterObj.penaltyIds.push(penalty.id);
-            skaterObj.penaltyDetails.push({ code: penalty.code, id: penalty.id });
-          }
-        }
-      }
-    }
-    
-    updateRosterAndPenalties(teamNum);
   }
 
   // Update clock
