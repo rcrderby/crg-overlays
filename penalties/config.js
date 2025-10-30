@@ -27,8 +27,14 @@ var PenaltiesOverlayConfig = {
     // Debounce delay for penalty updates during normal operation
     debouncePenaltyNormalMs: 50,
     
-    // Time to wait before marking initialization as complete
-    initCompleteMs: 800,
+    // Maximum time to wait for initial data before displaying overlay (timeout)
+    maxLoadWaitMs: 10000,
+    
+    // Minimum time to show loading screen
+    minLoadDisplayMs: 1000,
+    
+    // Time to wait after all data received before showing overlay
+    dataCompleteDelayMs: 200,
     
     // Delay before setting default team names if no names provided
     defaultNameDelayMs: 500,
