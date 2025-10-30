@@ -260,26 +260,24 @@ $(function() {
     }
   }
 
-  // Helper function to check if a skater is expelled
+  /********************************
+  ** Player management functions **
+  ********************************/
+
+  // Check if a skater is expelled
   function isSkaterExpelled(teamNum, skaterId) {
-    var skater = teams[teamNum].skaters[skaterId];
+    const skater = appState.teams[teamNum].skaters[skaterId];
     if (!skater || !skater.penaltyIds || skater.penaltyIds.length === 0) {
       return false;
     }
     
-    var expulsionIds = getExpulsionPenaltyIds();
+    const expulsionIds = getExpulsionPenaltyIds();
     if (expulsionIds.length === 0) {
       return false;
     }
     
-    // Quick check - if skater has fewer penalties than expulsions exist, check each
-    for (var i = 0; i < skater.penaltyIds.length; i++) {
-      if (expulsionIds.indexOf(skater.penaltyIds[i]) !== -1) {
-        return true;
-      }
-    }
-    
-    return false;
+    // Check if any of the skater's penalties match expulsion IDs
+    return skater.penaltyIds.some(penaltyId => expulsionIds.includes(penaltyId));
   }
 
   // Helper function to determine penalty count CSS class
