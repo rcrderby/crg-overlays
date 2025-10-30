@@ -827,6 +827,40 @@ $(function() {
     }
   }
 
+  // Handle expulsion updates
+  function handleExpulsionUpdate(key, _value) {
+    invalidateExpulsionCache();
+    
+    // Try to determine which team this affects by parsing expulsion info
+    const state = WS.state;
+    const expulsionIdMatch = key.match(REGEX_PATTERNS.expulsionId);
+    
+    if (expulsionIdMatch && expulsionIdMatch[1]) {
+      const id = expulsionIdMatch[1];
+      
+      
+      // Info format: "Team Name #Number Period X Jam Y for Code."
+      // Find which team has this penalty ID      
+      for (let teamNum = 1; teamNum <= RULES.numTeams; teamNum++) {
+        const skaters = appState.teams[teamNum].skaters;
+
+        for (const skaterId in skaters) {
+          if (Object.prototype.hasOwnProperty.call(skaters, skaterId)) {
+            const skater = skaters[skaterId];
+            if (skater.penaltyIds && skater.penaltyIds.includes(id)) {
+              updateRosterAndPenalties(teamNum);
+              return;
+            }
+          }
+        }
+      }
+    }
+    
+    // Fallback: update both teams if we can't determine which team has this penalty
+    updateRosterAndPenalties(1);
+    updateRosterAndPenalties(2);
+  }
+
   // Initialize WebSocket listeners
   function init() {
     try {
@@ -870,48 +904,6 @@ $(function() {
 
   // Debounced clock update
   var debouncedClockUpdate = debounce(updateClock, TIMING.debounceClockMs);
-
-  // Handle expulsion updates
-  function handleExpulsionUpdate(key, _value) {
-    invalidateExpulsionCache();
-    
-    // Try to determine which team this affects by parsing the expulsion info
-    var state = WS.state;
-    var expulsionId = key.match(REGEX_PATTERNS.expulsionId);
-    
-    if (expulsionId && expulsionId[1]) {
-      var id = expulsionId[1];
-      var info = state['ScoreBoard.CurrentGame.Expulsion(' + id + ').Info'];
-      
-      if (info) {
-        // Info format: "Team Name #Number Period X Jam Y for Code."
-        // Try to determine team by checking if penalty ID belongs to team 1 or 2
-        var foundTeam = null;
-        
-        for (var teamNum = 1; teamNum <= NUM_TEAMS && !foundTeam; teamNum++) {
-          var skaters = teams[teamNum].skaters;
-          for (var skaterId in skaters) {
-            if (Object.prototype.hasOwnProperty.call(skaters, skaterId)) {
-              var skater = skaters[skaterId];
-              if (skater.penaltyIds && skater.penaltyIds.indexOf(id) !== -1) {
-                foundTeam = teamNum;
-                break;
-              }
-            }
-          }
-        }
-        
-        if (foundTeam) {
-          updateRosterAndPenalties(foundTeam);
-          return;
-        }
-      }
-    }
-    
-    // Fallback: update both teams if we can't determine which one
-    updateRosterAndPenalties(1);
-    updateRosterAndPenalties(2);
-  }
 
   // Initialize display
   function initializeDisplay() {
