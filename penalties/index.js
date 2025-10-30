@@ -713,6 +713,11 @@ $(function() {
 
   // Load custom logo if available
   function loadCustomLogo() {
+    // Check if the logo path is configured
+    if (!CONFIG.bannerLogoPath) {
+      return;
+    }
+
     const logoImg = new Image();
 
     // Attempt to load custom logo and add symmetrical padding
