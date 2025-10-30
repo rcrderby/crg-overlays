@@ -191,23 +191,27 @@ $(function() {
     }
   };
 
-  // Helper function to get expulsion penalty IDs (cached)
+  /*******************************
+  ** Cache management functions **
+  *******************************/
+
+  // Get cached expulsion penalty IDs
   function getExpulsionPenaltyIds() {
-    if (appState.cache.expulsionIdsCacheValid) {
+    if (appState.cache.expulsionIdsValid) {
       return appState.cache.expulsionIds;
     }
     
-    var state = WS.state;
-    var ids = [];
+    const ids = [];
+    const state = WS.state;
     
-    for (var key in state) {
-      if (Object.prototype.hasOwnProperty.call(state, key)) {
-        var match = key.match(REGEX_PATTERNS.expulsionId);
-        if (match) {
-          var expulsionId = state[key];
-          if (expulsionId) {
-            ids.push(expulsionId);
-          }
+    for (const key in state) {
+      if (!Object.prototype.hasOwnProperty.call(state, key)) continue;
+      
+      const match = key.match(REGEX_PATTERNS.expulsionId);
+      if (match) {
+        const expulsionId = state[key];
+        if (expulsionId) {
+          ids.push(expulsionId);
         }
       }
     }
