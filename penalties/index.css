@@ -44,7 +44,7 @@
   --clock-label-fg: #ff69b4;
   
   /* Loading overlay colors */
-  --loading-bg: rgba(0, 0, 0, 0.95);
+  --loading-bg: rgb(0 0 0 / 95%);
   --loading-fg: white;
   --loading-spinner-color: #ff69b4;
   
@@ -172,7 +172,7 @@ body {
 .loading-spinner {
   width: 60px;
   height: 60px;
-  border: 6px solid rgba(255, 255, 255, 0.3);
+  border: 6px solid rgb(255 255 255 / 30%);
   border-top-color: var(--loading-spinner-color);
   border-radius: 50%;
   margin: 0 auto 20px;
