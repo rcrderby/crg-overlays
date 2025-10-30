@@ -632,6 +632,71 @@ $(function() {
     }
   }
 
+  // Update game state (period info)
+  function updateGameState() {
+    try {
+      const state = WS.state;
+      const currentPeriod = parseInt(state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
+      const inOvertime = isTrue(state['ScoreBoard.CurrentGame.InOvertime']);
+      const officialScore = isTrue(state['ScoreBoard.CurrentGame.OfficialScore']);
+      const intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']) || 0;
+      const numPeriods = parseInt(state['ScoreBoard.CurrentGame.Rule(Period.Number)']) || 2;
+      const intermissionRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']);
+      
+      // Get intermission labels from settings with fallback to defaults
+      const labels = {
+        preGame: getIntermissionLabel(
+          'ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)', 
+          DISPLAY_TEXT.intermission.preGame
+        ),
+        intermission: getIntermissionLabel(
+          'ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)', 
+          DISPLAY_TEXT.intermission.intermission
+        ),
+        unofficial: getIntermissionLabel(
+          'ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)', 
+          DISPLAY_TEXT.intermission.unofficial
+        ),
+        official: getIntermissionLabel(
+          'ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)', 
+          DISPLAY_TEXT.intermission.official
+        )
+      };
+
+      // Determine if the game is over
+      const gameOver = currentPeriod > numPeriods || 
+                      (currentPeriod >= numPeriods && (intermissionRunning || intermissionTime > 0));
+      
+      let text;
+
+      // Determine the correct clock label
+      if (officialScore) {
+        text = labels.official;
+      } else if (gameOver) {
+        text = labels.unofficial;
+      } else if (inOvertime) {
+        text = DISPLAY_TEXT.intermission.overtime;
+      } else if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionTime > 0) {
+        text = labels.intermission;
+      } else if (currentPeriod > 0 && currentPeriod <= numPeriods) {
+        text = `Period ${currentPeriod}`;
+      } else if (currentPeriod === 0 && isStartTimeMissingOrPast()) {
+        // If start time is missing or in past, show DISPLAY_TEXT.preFirstPeriodLabel for the upcoming period
+        text = DISPLAY_TEXT.preFirstPeriodLabel;
+      } else if (currentPeriod === 0 && intermissionTime > 0) {
+        text = labels.preGame;
+      } else {
+        text = DISPLAY_TEXT.intermission.comingUp;
+      }
+      
+      $elements.periodInfo.text(text);
+      updateClock();
+      
+    } catch(error) {
+      console.error('Error updating game state:', error);
+    }
+  }
+
   // Wait for WS to be loaded
   function waitForWS() {
     if (typeof WS === 'undefined') {
@@ -808,57 +873,6 @@ $(function() {
     // Fallback: update both teams if we can't determine which one
     updateRosterAndPenalties(1);
     updateRosterAndPenalties(2);
-  }
-
-  // Update game state (period info)
-  function updateGameState() {
-    try {
-      var state = WS.state;
-      var currentPeriod = parseInt(state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
-      var inOvertime = isTrue(state['ScoreBoard.CurrentGame.InOvertime']);
-      var officialScore = isTrue(state['ScoreBoard.CurrentGame.OfficialScore']);
-      var intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']) || 0;
-      var numPeriods = parseInt(state['ScoreBoard.CurrentGame.Rule(Period.Number)']) || 2;
-      var intermissionRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']);
-      
-      // Get intermission labels from settings with fallback to defaults
-      var labels = {
-        preGame: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)', DISPLAY_TEXT.intermission.preGame),
-        intermission: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)', DISPLAY_TEXT.intermission.intermission),
-        unofficial: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)', DISPLAY_TEXT.intermission.unofficial),
-        official: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)', DISPLAY_TEXT.intermission.official)
-      };
-      
-      var gameOver = currentPeriod > numPeriods || 
-                    (currentPeriod >= numPeriods && (intermissionRunning || intermissionTime > 0));
-      
-      var text;
-      
-      if (officialScore) {
-        text = labels.official;
-      } else if (gameOver) {
-        text = labels.unofficial;
-      } else if (inOvertime) {
-        text = DISPLAY_TEXT.intermission.overtime;
-      } else if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionTime > 0) {
-        text = labels.intermission;
-      } else if (currentPeriod > 0 && currentPeriod <= numPeriods) {
-        text = 'Period ' + currentPeriod;
-      } else if (currentPeriod === 0 && isStartTimeMissingOrPast()) {
-        // If start time is missing or in past, show DISPLAY_TEXT.preFirstPeriodLabel for upcoming period
-        text = DISPLAY_TEXT.preFirstPeriodLabel;
-      } else if (currentPeriod === 0 && intermissionTime > 0) {
-        text = labels.preGame;
-      } else {
-        text = DISPLAY_TEXT.intermission.comingUp;
-      }
-      
-      $elements.periodInfo.text(text);
-      updateClock();
-      
-    } catch(error) {
-      console.error('Error updating game state:', error);
-    }
   }
 
   // Update tournament name and game number if available
