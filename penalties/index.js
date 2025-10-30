@@ -439,6 +439,75 @@ $(function() {
     updateRosterAndPenalties(teamNum);
   }
 
+  /*****************************************
+  ** Roster and penalty display functions **
+  *****************************************/
+
+  // Build roster HTML for a player
+  function buildRosterHTML(skater) {
+    const isCaptain = skater.flags === DISPLAY_TEXT.captainFlag || 
+                      skater.flags.split(',').includes(DISPLAY_TEXT.captainFlag);
+    
+    const captainIndicator = isCaptain ? ' <span class="captain-indicator">C</span>' : '';
+    
+    return `
+      <div class="roster-line">
+        <div class="roster-number">${skater.number}</div>
+        <div class="roster-name">${skater.name}${captainIndicator}</div>
+      </div>
+    `;
+  }
+
+
+  // Build penalty HTML for a player
+  function buildPenaltyHTML(teamNum, skater, expulsionIds) {
+    const displayPenalties = getDisplayPenalties(skater.penaltyDetails, expulsionIds);
+    const codes = displayPenalties.map(p => p.code).join(' ');
+    const displayCount = displayPenalties.length;
+    
+    // Determine the display value for the player's total penalties (EXP, FO, or count)
+    let displayValue;
+    if (isSkaterExpelled(teamNum, skater.id)) {
+      displayValue = DISPLAY_TEXT.expelledDisplay;
+    } else if (isSkaterFouledOut(skater)) {
+      displayValue = DISPLAY_TEXT.fouloutDisplay;
+    } else {
+      displayValue = displayCount;
+    }
+
+    // Set the CSS class (bg color) for the total count
+    const countClass = getPenaltyCountClass(teamNum, skater.id, displayCount);
+    
+    return [
+      '<div class="penalty-line">',
+      `<div class="penalty-codes">${codes}</div>`,
+      `<div class="penalty-count ${countClass}">${displayValue}</div>`,
+      '</div>'
+    ].join('');
+  }
+
+  // Update rosters and penalties
+  function updateRosterAndPenalties(teamNum) {
+    const skaters = appState.teams[teamNum].skaters;
+    const sortedSkaters = sortSkaters(skaters);
+    const team = $elements[`team${teamNum}`];
+    const expulsionIds = getExpulsionPenaltyIds();
+    
+    const rosterParts = [];
+    const penaltyParts = [];
+    
+    for (const skater of sortedSkaters) {
+      // Skip skaters without number or name
+      if (!skater.number || !skater.name) continue;
+      
+      rosterParts.push(buildRosterHTML(skater));
+      penaltyParts.push(buildPenaltyHTML(teamNum, skater, expulsionIds));
+    }
+    
+    team.roster.html(rosterParts.join(''));
+    team.penalties.html(penaltyParts.join(''));
+  }
+
   // Wait for WS to be loaded
   function waitForWS() {
     if (typeof WS === 'undefined') {
@@ -680,75 +749,6 @@ $(function() {
       var totalWidth = (maxWidth * 2) + vsClockWidth + padding;
       $elements.gameInfoWrapper.css('width', totalWidth + 'px');
     });
-}
-
-  // Combined roster and penalties update
-  function updateRosterAndPenalties(teamNum) {
-    var skaters = teams[teamNum].skaters;
-    var sortedSkaters = sortSkaters(skaters);
-    var team = $elements['team' + teamNum];
-    
-    var expulsionIds = getExpulsionPenaltyIds();
-    var hasExpulsions = expulsionIds.length > 0;
-    
-    var rosterParts = [];
-    var penaltyParts = [];
-    
-    for (var i = 0; i < sortedSkaters.length; i++) {
-      var skater = sortedSkaters[i];
-      
-      if (!skater.number || !skater.name) continue;
-      
-      // Check if skater is a captain
-      var isCaptain = skater.flags === DISPLAY_TEXT.captainFlag || skater.flags.split(',').indexOf(CAPTAIN_FLAG) !== -1;
-      
-      rosterParts.push(`
-        <div class="roster-line">
-          <div class="roster-number">${skater.number}</div>
-          <div class="roster-name">${skater.name}${isCaptain ? ' <span class="captain-indicator">C</span>' : ''}</div>
-        </div>
-      `);
-      
-      var displayCodes = [];
-      var penaltyDetails = skater.penaltyDetails;
-      
-      var codes = displayCodes.join(' ');
-      var displayCount = displayCodes.length;
-      
-      var isExpelled = isSkaterExpelled(teamNum, skater.id);
-      var isFouledOut = false;
-      var displayValue;
-      
-      if (isExpelled) {
-        displayValue = DISPLAY_TEXT.expelledDisplay;
-      } else {
-        // Check for fouled out
-        var totalPenalties = skater.penalties.length;
-        if (totalPenalties >= RULES.fouloutPenaltyCount) {
-          isFouledOut = true;
-        } else {
-          for (var k = 0; k < skater.penalties.length; k++) {
-            if (String(skater.penalties[k] || '').trim().toUpperCase() === DISPLAY_TEXT.fouloutDisplay) {
-              isFouledOut = true;
-              break;
-            }
-          }
-        }
-        displayValue = isFouledOut ? DISPLAY_TEXT.fouloutDisplay : displayCount;
-      }
-      
-      var countClass = getPenaltyCountClass(teamNum, skater.id, displayCount);
-      
-      penaltyParts.push(
-        '<div class="penalty-line">',
-        '<div class="penalty-codes">', codes, '</div>',
-        '<div class="penalty-count ', countClass, '">', displayValue, '</div>',
-        '</div>'
-      );
-    }
-    
-    team.roster.html(rosterParts.join(''));
-    team.penalties.html(penaltyParts.join(''));
   }
 
   // Update clock
