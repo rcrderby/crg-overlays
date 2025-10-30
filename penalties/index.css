@@ -1,8 +1,8 @@
 /* CSS for custom penalties overlay - index.html */
 
-/*************
-* Variables **
-*************/
+/**************
+** Variables **
+**************/
 
 :root {
   /* Overlay values */
@@ -43,6 +43,11 @@
   --game-details-fg: white;
   --clock-label-fg: #ff69b4;
   
+  /* Loading overlay colors */
+  --loading-bg: rgb(0 0 0 / 95%);
+  --loading-fg: white;
+  --loading-spinner-color: #ff69b4;
+  
   /* Fonts */
   --font-family: arial, sans-serif;
   --font-penalties-title-size: 48px;
@@ -55,6 +60,7 @@
   --font-roster-size: 24px;
   --font-penalties-size: 24px;
   --font-captain-size: 20px;
+  --font-loading-size: 32px;
   
   /* Logo sizes */
   --size-team-logo-max: 180px;
@@ -112,11 +118,12 @@
   /* Transitions */
   --transition-background: 0.3s ease;
   --transition-width: 0.3s ease;
+  --transition-fade: 0.5s ease;
 }
 
-/**********************
-* Overlay properties **
-**********************/
+/***********************
+** Overlay properties **
+***********************/
 
 /* Reset */
 * {
@@ -134,17 +141,76 @@ body {
   padding: 0;
 }
 
+/********************
+** Loading Overlay **
+********************/
+
+#loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--loading-bg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  transition: opacity var(--transition-fade);
+}
+
+#loading-overlay.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-content {
+  text-align: center;
+  color: var(--loading-fg);
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid rgb(255 255 255 / 30%);
+  border-top-color: var(--loading-spinner-color);
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  font-size: var(--font-loading-size);
+  font-weight: bold;
+  text-shadow: var(--shadow-text);
+}
+
+/*******************
+** Main Content **
+*******************/
+
 #overlay {
   width: var(--overlay-width);
   height: var(--overlay-height);
   display: flex;
   flex-direction: column;
   padding: var(--overlay-padding);
+  transition: opacity var(--transition-fade);
 }
 
-/***************************
-* Teams and logos section **
-***************************/
+#overlay.hidden {
+  opacity: 0;
+}
+
+/****************************
+** Teams and logos section **
+****************************/
 
 #teams-container {
   display: flex;
@@ -183,9 +249,9 @@ body {
   display: none;
 }
 
-/***************************
-* Penalties title section **
-***************************/
+/****************************
+** Penalties title section **
+****************************/
 
 #penalties-title {
   flex: 0 0 auto;
@@ -200,9 +266,9 @@ body {
   text-shadow: var(--shadow-text-title);
 }
 
-/********************************************
-* Rosters and penalties containers section **
-********************************************/
+/*********************************************
+** Rosters and penalties containers section **
+*********************************************/
 
 #rosters-penalties-container {
   display: flex;
@@ -233,9 +299,9 @@ body {
 }
 
 
-/*******************
-* Rosters section **
-*******************/
+/********************
+** Rosters section **
+********************/
 
 .roster {
   font-size: var(--font-penalties-size);
@@ -288,9 +354,9 @@ body {
   margin-left: var(--margin-captain-left);
 }
 
-/*********************
-* Penalties section **
-*********************/
+/**********************
+** Penalties section **
+**********************/
 
 .penalties-column {
   flex: var(--flex-penalties-column);
@@ -348,9 +414,9 @@ body {
   text-shadow: var(--shadow-text);
 }
 
-/********************************
-* Penalty count warning colors **
-********************************/
+/*********************************
+** Penalty count warning colors **
+*********************************/
 
 .penalty-count-5 {
   background-color: var(--penalty-warning-5);
@@ -365,9 +431,9 @@ body {
   background-color: var(--penalty-warning-fo-exp);
 }
 
-/***********************
-* Team penalty totals **
-***********************/
+/************************
+** Team penalty totals **
+************************/
 
 #team1-total,
 #team2-total {
@@ -383,9 +449,9 @@ body {
   box-shadow: var(--shadow-box);
 }
 
-/****************************
-* Game information section **
-****************************/
+/*****************************
+** Game information section **
+*****************************/
 
 #game-info {
   margin-top: var(--margin-game-info-top);

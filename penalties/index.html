@@ -8,12 +8,25 @@
   <!-- Required CRG Javascript files -->
   <script type="text/javascript" src="/external/jquery/jquery.js"></script>
   <script type="text/javascript" src="/external/jquery-ui/jquery-ui.js"></script>
+  
+  <!-- Configuration file - load before index.js -->
+  <script type="text/javascript" src="config.js"></script>
+
+  <!-- Loads index.js and index.css -->
   <script type="text/javascript" src="/json/core.js"></script>
   
 </head>
 
 <body>
-  <div id="overlay">
+  <!-- Loading overlay - shown during initialization -->
+  <div id="loading-overlay">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Loading game data...</div>
+    </div>
+  </div>
+
+  <div id="overlay" class="hidden">
     <div id="teams-container">
       <!-- Team 1 (Home) - left side) -->
       <div id="team1-container" class="team-container">

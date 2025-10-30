@@ -3,49 +3,61 @@
 $(function() {
   'use strict';
 
-  // Constants
-  // Timers
-  const CACHE_EXPIRY_MS = 30000;
-  const DEBOUNCE_CLOCK_MS = 50;
-  const DEBOUNCE_PENALTY_INIT_MS = 300;
-  const DEBOUNCE_PENALTY_NORMAL_MS = 50;
-  const INIT_COMPLETE_MS = 800;
-  const DEFAULT_NAME_DELAY_MS = 500;
-  const WS_WAIT_MS = 100;
-  const INIT_DELAY_MS = 200;
-  
-  // General
-  const BANNER_LOGO_PATH = 'logos/banner-logo.png';
-  const FILTERED_PENALTY_CODES = ['FO'];
-  const TEAM_NAME_OVERFLOW_BUFFER_PIXELS = 1
-  
-  // Display text
-  const CAPTAIN_FLAG = 'C';
-  const DEFAULT_TEAM_NAME_PREFIX = 'Team ';
-  const EXPELLED_DISPLAY = 'EXP';
-  const FOULOUT_DISPLAY = 'FO';
-  const PRE_FIRST_PERIOD_LABEL = 'Period 1';
-  const DEFAULT_INTERMISSION_LABELS = {
-    preGame: 'Time to Derby',
-    intermission: 'Intermission',
-    unofficial: 'Unofficial Score',
-    official: 'Final Score',
-    overtime: 'Overtime',
-    comingUp: 'Coming Up'
-  };
-  
-  // Game rules
-  const FOULOUT_PENALTY_COUNT = 7;
-  const NUM_TEAMS = 2;
-  const WARNING_PENALTY_COUNT_5 = 5;
-  const WARNING_PENALTY_COUNT_6 = 6;
+  // Import configuration data from global namespace
+  const PenaltiesOverlayConfig = window.AppConfig.PenaltiesOverlayConfig;
+  console.log('Loaded config.js:');
+
+  /********************************
+  ** Verify that config.js loads **
+  ********************************/
+
+  // Halt if config.js does not load correctly
+  if (typeof PenaltiesOverlayConfig === 'undefined') {
+    console.error('ERROR: config.js did not load.');
+    console.error('Make sure config.js is in the same directory as index.js');
+    console.error('and that index.html includes: <script src="config.js"></script>');
+    console.error('before <script> tags that import index.js and core.js.');
+    alert('Configuration Error: config.js is missing or did not load properly. Check browser console for details.');
+    return;
+  }
+
+  /********************************************
+  ** Verify imported configuration variables **
+  ********************************************/
+
+  // Halt if PenaltiesOverlayConfig appears invalid
+  if (
+      !PenaltiesOverlayConfig.timing || 
+      !PenaltiesOverlayConfig.display || 
+      !PenaltiesOverlayConfig.labels || 
+      !PenaltiesOverlayConfig.rules || 
+      !PenaltiesOverlayConfig.penalties
+  ) {
+    console.error('ERROR: data imported from config.js is invalid.');
+    console.error('Required structures: timing, display, labels, rules, and penalties');
+    alert('Configuration Error: config.js is invalid. Check browser console for details.');
+    return;
+  }
+
+  /**************
+  ** Constants **
+  **************/
+
+  // Data from config.js
+  const CONFIG = PenaltiesOverlayConfig.display;
+  const TIMING = PenaltiesOverlayConfig.timing;
+  const DISPLAY_TEXT = PenaltiesOverlayConfig.labels;
+  const RULES = PenaltiesOverlayConfig.rules;
+  const PENALTY_CONFIG = PenaltiesOverlayConfig.penalties;
 
   // CSS classes
-  const CLASS_PENALTY_5 = 'penalty-count-5';
-  const CLASS_PENALTY_6 = 'penalty-count-6';
-  const CLASS_PENALTY_FOULOUT = 'penalty-count-foulout';
-  const CLASS_PENALTY_EXPELLED = 'penalty-count-expelled';
-  const CLASS_HAS_LOGO = 'has-logo';
+  const CSS_CLASSES = {
+    PENALTY_5: 'penalty-count-5',
+    PENALTY_6: 'penalty-count-6',
+    PENALTY_FOULOUT: 'penalty-count-foulout',
+    PENALTY_EXPELLED: 'penalty-count-expelled',
+    HAS_LOGO: 'has-logo'
+  };
   
   // Cached regex patterns
   const REGEX_PATTERNS = {
@@ -64,8 +76,144 @@ $(function() {
     expulsionId: /ScoreBoard\.CurrentGame\.Expulsion\(([^)]+)\)\.Id/
   };
 
+  /**************************************
+  ** Application data state management **
+  **************************************/
+
+  // Application state for roster and penalty data
+  const appState = {
+    teams: {
+      1: { skaters: {}, logo: '', colors: { fg: null, bg: null } },
+      2: { skaters: {}, logo: '', colors: { fg: null, bg: null } }
+    },
+    cache: {
+      expulsionIds: [],
+      expulsionIdsValid: false,
+      expulsionIdsExpiry: 0,
+      startTimePast: null,
+      startTimeCacheExpiry: 0
+    },
+    flags: {
+      bothTeamsHaveLogos: false,
+      initialLoadComplete: false
+    },
+    dom: {
+      root: document.documentElement
+    }
+  };
+
+  // Loading tracker - monitors which data has been received during initialization
+  const loadingTracker = {
+    initialized: false,
+    loadStartTime: null,
+    safetyTimeoutId: null,
+    dataReceived: {
+      teamsBasicData: 0,  // Counts to 2 (both teams' names, scores, totals, colors)
+      teamLogos: false,
+      teamRosters: 0,     // Counts to 2 (both teams)
+      teamPenalties: 0,   // Counts to 2 (both teams)
+      gameInfo: 0         // Counts to 4 (clock, clockLabel, tournament, expulsions)
+    },
+    
+    // Mark a data item as received
+    markReceived(dataKey) {
+      if (typeof this.dataReceived[dataKey] === 'number') {
+        this.dataReceived[dataKey]++;
+      } else if (Object.hasOwn(this.dataReceived, dataKey)) {
+        this.dataReceived[dataKey] = true;
+      }
+      this.checkIfReady();
+    },
+    
+    // Check if all data has been received
+    isAllDataReceived() {
+      return this.dataReceived.teamsBasicData >= 2 &&
+             this.dataReceived.teamLogos &&
+             this.dataReceived.teamRosters >= 2 &&
+             this.dataReceived.teamPenalties >= 2 &&
+             this.dataReceived.gameInfo >= 4;
+    },
+    
+    // Check if ready to display and show overlay
+    checkIfReady() {
+      if (this.initialized || !this.loadStartTime) {
+        return;
+      }
+      
+      if (this.isAllDataReceived()) {
+        console.log('All data received, preparing to display overlay...');
+        this.initialized = true;
+        
+        // Clear safety timeout after receiving all data
+        if (this.safetyTimeoutId) {
+          clearTimeout(this.safetyTimeoutId);
+          this.safetyTimeoutId = null;
+        }
+        
+        // Wait a moment to allow all renderings to complete
+        setTimeout(() => {
+          this.showOverlay();
+        }, TIMING.dataCompleteDelayMs);
+      }
+    },
+    
+    // Show the main overlay and hide loading screen
+    showOverlay() {
+      const loadTime = Date.now() - this.loadStartTime;
+      const minDisplayTime = TIMING.minLoadDisplayMs;
+      
+      // Ensure the loading screen shows for a minimum amount of time
+      const delay = Math.max(0, minDisplayTime - loadTime);
+      
+      setTimeout(() => {
+        console.log('Showing overlay (data load complete)');
+        const $loadingOverlay = $('#loading-overlay');
+        const $overlay = $('#overlay');
+        
+        // Fade out loading screen, fade in overlay content
+        $loadingOverlay.addClass('fade-out');
+        $overlay.removeClass('hidden');
+        
+        // Remove loading screen after fade completes
+        setTimeout(() => {
+          $loadingOverlay.remove();
+        }, 500);
+        
+        // Mark initialization as complete
+        appState.flags.initialLoadComplete = true;
+        
+        // Final adjustments
+        equalizeTeamBoxWidths();
+      }, delay);
+    },
+    
+    // Force display of overlay after timeout
+    forceShowOverlay() {
+      if (this.initialized) {
+        return;
+      }
+      
+      console.warn('Timeout reached - displaying overlay with available data');
+      console.warn('Missing data:', Object.keys(this.dataReceived).filter(k => !this.dataReceived[k]));
+      
+      this.initialized = true;
+      this.showOverlay();
+    },
+    
+    // Start loading data
+    startLoading() {
+      this.loadStartTime = Date.now();
+      console.log('Started loading data...');
+      
+      // Set timeout to force displaying the overlay after the maximum wait time
+      this.safetyTimeoutId = setTimeout(() => {
+        this.forceShowOverlay();
+      }, TIMING.maxLoadWaitMs);
+    }
+  };
+
   // Cache DOM selectors
-  var $elements = {
+  const $elements = {
     team1: {
       logo: $('#team1-logo'),
       name: $('#team1-name'),
@@ -92,27 +240,39 @@ $(function() {
     gameInfoWrapper: $('.game-info-wrapper')
   };
 
-  // Store skater data for each team
-  var teams = {
-    1: { skaters: {}, logo: '', colors: { fg: null, bg: null } },
-    2: { skaters: {}, logo: '', colors: { fg: null, bg: null } }
-  };
-  var bothTeamsHaveLogos = false;
-  var root = document.documentElement;
-  var startTimePastCache = null;
-  var startTimeCacheExpiry = 0;
-  var initialLoadComplete = false;
-  
-  // Cache for expulsion penalty IDs
-  var expulsionIdsCache = [];
-  var expulsionIdsCacheValid = false;
+  /*********************
+  ** Helper functions **
+  *********************/
 
-  // Helper function to check boolean values from the WebSocket
+  // Safely retrieve values from the WebSocket state, avoiding race conditions
+  function safeGetState(key, defaultValue = null) {
+    if (!WS || !WS.state || typeof WS.state[key] === 'undefined') {
+      return defaultValue;
+    }
+    return WS.state[key];
+  }
+
+  // Determine if the WebSocket is available for use
+  function isWSReady() {
+    return typeof WS !== 'undefined' && 
+           typeof WS.state !== 'undefined' && 
+           Object.keys(WS.state).length > 0;
+  }
+
+  // Sanitize user input to prevent XSS via HTML injection in roster or team data
+  function sanitizeHTML(str) {
+    if (str === null || str === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+  }
+
+  // Check boolean values from the WebSocket
   function isTrue(value) {
     return value === true || value === 'true';
   }
 
-  // Helper function to trim blank space values from the WebSocket
+  // Trim blank space values from the WebSocket
   function trimValue(value) {
     if (value === null || value === undefined) {
       return '';
@@ -120,259 +280,199 @@ $(function() {
     return String(value).trim();
   }
 
-  // Helper function to get intermission label with fallback to default
+  // Format time from milliseconds to (M)M:SS
+  function formatTime(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  }
+
+  // Get intermission label with fallback to default
   function getIntermissionLabel(stateKey, defaultValue) {
-    var value = trimValue(WS.state[stateKey]);
+    if (!isWSReady()) {
+      return defaultValue;
+    }
+    const value = trimValue(safeGetState(stateKey));
     return value || defaultValue;
   }
 
-  // Helper function to get expulsion penalty IDs (cached)
-  function getExpulsionPenaltyIds() {
-    if (expulsionIdsCacheValid) {
-      return expulsionIdsCache;
-    }
-    
-    var state = WS.state;
-    var ids = [];
-    
-    for (var key in state) {
-      if (Object.prototype.hasOwnProperty.call(state, key)) {
-        var match = key.match(REGEX_PATTERNS.expulsionId);
-        if (match) {
-          var expulsionId = state[key];
-          if (expulsionId) {
-            ids.push(expulsionId);
-          }
-        }
-      }
-    }
-    
-    expulsionIdsCache = ids;
-    expulsionIdsCacheValid = true;
-    return ids;
-  }
-  
-  // Invalidate expulsion cache
-  function invalidateExpulsionCache() {
-    expulsionIdsCacheValid = false;
-  }
-
-  // Helper function to check if a skater is expelled
-  function isSkaterExpelled(teamNum, skaterId) {
-    var skater = teams[teamNum].skaters[skaterId];
-    if (!skater || !skater.penaltyIds || skater.penaltyIds.length === 0) {
-      return false;
-    }
-    
-    var expulsionIds = getExpulsionPenaltyIds();
-    if (expulsionIds.length === 0) {
-      return false;
-    }
-    
-    // Quick check - if skater has fewer penalties than expulsions exist, check each
-    for (var i = 0; i < skater.penaltyIds.length; i++) {
-      if (expulsionIds.indexOf(skater.penaltyIds[i]) !== -1) {
-        return true;
-      }
-    }
-    
-    return false;
-  }
-
-  // Helper function to check if game start time is missing or in the past (with caching)
-  function isStartTimeMissingOrPast() {
-    var now = Date.now();
-    
-    if (startTimePastCache !== null && now < startTimeCacheExpiry) {
-      return startTimePastCache;
-    }
-    
-    var state = WS.state;
-    var startDate = state['ScoreBoard.CurrentGame.EventInfo(Date)'];
-    var startTime = state['ScoreBoard.CurrentGame.EventInfo(StartTime)'];
-    
-    // If no date or time is set, treat as if start time is missing/past
-    if (!startDate || !startTime) {
-      startTimePastCache = true;
-      startTimeCacheExpiry = now + CACHE_EXPIRY_MS;
-      return true;
-    }
-    
-    try {
-      var startDateTime = new Date(startDate + 'T' + startTime);
-      startTimePastCache = startDateTime < new Date();
-      startTimeCacheExpiry = now + CACHE_EXPIRY_MS;
-      return startTimePastCache;
-    } catch {
-      // If date parsing fails, treat as missing
-      startTimePastCache = true;
-      startTimeCacheExpiry = now + CACHE_EXPIRY_MS;
-      return true;
-    }
-  }
-
-  // Debounce helper
+  // Debouncing function
   function debounce(func, wait) {
-    var timeout;
+    let timeout;
     return function() {
-      var context = this, args = arguments;
+      const context = this;
+      const args = arguments;
       clearTimeout(timeout);
-      timeout = setTimeout(function() { func.apply(context, args); }, wait);
+      timeout = setTimeout(() => func.apply(context, args), wait);
     };
   }
 
+  /*********************************
+  ** Batch update queue functions **
+  *********************************/
+
   // Batch update helper for reducing reflows
-  var updateQueue = {
+  const updateQueue = {
     pending: false,
     callbacks: [],
-    schedule: function(callback) {
+    
+    schedule(callback) {
       this.callbacks.push(callback);
       if (!this.pending) {
         this.pending = true;
         requestAnimationFrame(this.flush.bind(this));
       }
     },
-    flush: function() {
-      var callbacks = this.callbacks;
+    
+    flush() {
+      const callbacks = this.callbacks;
       this.callbacks = [];
       this.pending = false;
-      callbacks.forEach(function(cb) { cb(); });
+      callbacks.forEach(cb => cb());
     }
   };
 
-  // Helper function to determine penalty count CSS class
-  function getPenaltyCountClass(teamNum, skaterId, displayCount) {
-    if (isSkaterExpelled(teamNum, skaterId)) {
-      return CLASS_PENALTY_EXPELLED;
+  /*******************************
+  ** Cache management functions **
+  *******************************/
+
+  // Get cached expulsion penalty IDs
+  function getExpulsionPenaltyIds() {
+    const now = Date.now();
+    
+    // Invalidate cache if expired
+    if (now > appState.cache.expulsionIdsExpiry) {
+      appState.cache.expulsionIdsValid = false;
     }
     
-    var skater = teams[teamNum].skaters[skaterId];
-    if (!skater || !skater.penalties) return '';
-    
-    var totalPenalties = skater.penalties.length;
-    
-    // Check for fouled out (FO code or 7+ total penalties)
-    if (totalPenalties >= FOULOUT_PENALTY_COUNT) {
-      return CLASS_PENALTY_FOULOUT;
+    if (appState.cache.expulsionIdsValid) {
+      return appState.cache.expulsionIds;
     }
+
+    if (!isWSReady()) {
+      return [];
+    }
+
+    const ids = [];
+    const state = WS.state;
     
-    // Check for FO code
-    for (var i = 0; i < skater.penalties.length; i++) {
-      if (String(skater.penalties[i] || '').trim().toUpperCase() === FOULOUT_DISPLAY) {
-        return CLASS_PENALTY_FOULOUT;
+    for (const key in state) {
+      if (!Object.prototype.hasOwnProperty.call(state, key)) continue;
+      
+      const match = key.match(REGEX_PATTERNS.expulsionId);
+      if (match) {
+        const expulsionId = state[key];
+        if (expulsionId) {
+          ids.push(expulsionId);
+        }
       }
     }
     
-    // Color code based on display count (excluding FO)
-    if (displayCount === WARNING_PENALTY_COUNT_6) return CLASS_PENALTY_6;
-    if (displayCount === WARNING_PENALTY_COUNT_5) return CLASS_PENALTY_5;
-    
-    return '';
+    appState.cache.expulsionIds = ids;
+    appState.cache.expulsionIdsValid = true;
+    appState.cache.expulsionIdsExpiry = now + TIMING.cacheExpiryMs;
+    return ids;
   }
-
-  // Wait for WS to be loaded
-  function waitForWS() {
-    if (typeof WS === 'undefined') {
-      setTimeout(waitForWS, WS_WAIT_MS);
-      return;
-    }
-    init();
-  }
-
-  // Initialize WebSocket listeners
-  function init() {
-    try {
-      WS.Connect();
-      WS.AutoRegister();
-
-      // Register all team data with wildcards
-      WS.Register(['ScoreBoard.CurrentGame.Team(*)'], handleTeamUpdate);
-      WS.Register(['ScoreBoard.CurrentGame.Team(*).Skater(*)'], handleSkaterUpdate);
-      WS.Register(['ScoreBoard.CurrentGame.Team(*).Skater(*).Penalty(*)'], handlePenaltyUpdate);
-      
-      // Register for expulsion updates
-      WS.Register(['ScoreBoard.CurrentGame.Expulsion(*)'], handleExpulsionUpdate);
-      
-      // Clock and game state
-      WS.Register(['ScoreBoard.CurrentGame.Clock(*)'], debouncedClockUpdate);
-      WS.Register(['ScoreBoard.CurrentGame'], updateGameState);
-      WS.Register(['ScoreBoard.CurrentGame.OfficialScore'], updateGameState);
-      
-      // Intermission label settings
-      WS.Register(['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)'], updateGameState);
-      WS.Register(['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)'], updateGameState);
-      WS.Register(['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)'], updateGameState);
-      WS.Register(['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)'], updateGameState);
-
-      // Tournament info
-      WS.Register(['ScoreBoard.CurrentGame.EventInfo(Tournament)'], updateTournamentName);
-      WS.Register(['ScoreBoard.CurrentGame.EventInfo(GameNo)'], updateTournamentName);
-      
-      // Event info for start time checking
-      WS.Register(['ScoreBoard.CurrentGame.EventInfo(Date)'], updateGameState);
-      WS.Register(['ScoreBoard.CurrentGame.EventInfo(StartTime)'], updateGameState);
-      
-      loadCustomLogo();
-      setTimeout(initializeDisplay, INIT_DELAY_MS);
-      
-    } catch(error) {
-      console.error('Failed to initialize overlay:', error);
-    }
-  }
-
-  // Debounced clock update
-  var debouncedClockUpdate = debounce(updateClock, DEBOUNCE_CLOCK_MS);
   
-  // Debounced penalty update - longer delay during initial load
-  var debouncedPenaltyUpdate = {
-    timers: {},
-    update: function(teamNum) {
-      var delay = initialLoadComplete ? DEBOUNCE_PENALTY_NORMAL_MS : DEBOUNCE_PENALTY_INIT_MS;
-      clearTimeout(this.timers[teamNum]);
-      this.timers[teamNum] = setTimeout(function() {
-        updatePenalties(teamNum);
-      }, delay);
-    }
-  };
+  // Invalidate expulsion cache
+  function invalidateExpulsionCache() {
+    appState.cache.expulsionIdsValid = false;
+  }
 
-  // Unified team update handler
-  function handleTeamUpdate(key, value) {
-    var match = key.match(REGEX_PATTERNS.teamNumber);
-    if (!match) return;
+  // Check if game start time is missing or in the past (with caching)
+  function isStartTimeMissingOrPast() {
+    const now = Date.now();
     
-    var teamNum = parseInt(match[1]);
-    var team = $elements['team' + teamNum];
+    // Return cached value if still valid
+    if (appState.cache.startTimePast !== null && now < appState.cache.startTimeCacheExpiry) {
+      return appState.cache.startTimePast;
+    }
     
-    if (key.includes('.AlternateName(whiteboard)') || (REGEX_PATTERNS.teamName.test(key) && !key.includes('AlternateName') && !key.includes('.Skater('))) {
-      var altName = trimValue(WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)']);
-      var name = altName || trimValue(value);
-      
-      // Only update if we have a name, or if current display is empty/default
-      var currentText = team.name.text();
-      if (name || !currentText || currentText === DEFAULT_TEAM_NAME_PREFIX + teamNum) {
-        team.name.text(name || '');
-        updateQueue.schedule(equalizeTeamBoxWidths);
-      }
-    } else if (REGEX_PATTERNS.teamScore.test(key) && !key.includes('Skater')) {
-      team.score.text(value || '0');
-    } else if (REGEX_PATTERNS.teamLogo.test(key)) {
-      teams[teamNum].logo = value || '';
-      checkAndDisplayLogos();
-    } else if (REGEX_PATTERNS.teamColor.test(key)) {
-      updateQueue.schedule(function() { updateTeamColors(teamNum); });
-    } else if (REGEX_PATTERNS.teamPenalties.test(key)) {
-      team.total.text(value || '0');
+    if (!isWSReady()) {
+      appState.cache.startTimePast = true;
+      appState.cache.startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
+      return true;
+    }
+    
+    const startDate = safeGetState('ScoreBoard.CurrentGame.EventInfo(Date)');
+    const startTime = safeGetState('ScoreBoard.CurrentGame.EventInfo(StartTime)');
+    
+    // If no date or time is set, treat as if start time is missing/past
+    if (!startDate || !startTime) {
+      appState.cache.startTimePast = true;
+      appState.cache.startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
+      return true;
+    }
+    
+    try {
+      const startDateTime = new Date(`${startDate}T${startTime}`);
+      appState.cache.startTimePast = startDateTime < new Date();
+      appState.cache.startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
+      return appState.cache.startTimePast;
+    } catch (error) {
+      // If date parsing fails, treat as missing
+      console.warn('Failed to parse start date/time:', error);
+      appState.cache.startTimePast = true;
+      appState.cache.startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
+      return true;
     }
   }
 
-  // Unified skater update handler
-  function handleSkaterUpdate(key, value) {
-    var match = key.match(REGEX_PATTERNS.skaterPattern);
-    if (!match) return;
+  /********************************
+  ** Player management functions **
+  ********************************/
+
+  // Check if a skater is expelled
+  function isSkaterExpelled(teamNum, skaterId) {
+    const skater = appState.teams[teamNum].skaters[skaterId];
+    if (!skater || !skater.penaltyIds || skater.penaltyIds.length === 0) {
+      return false;
+    }
     
-    var teamNum = parseInt(match[1]);
-    var skaterId = match[2];
-    var skaters = teams[teamNum].skaters;
+    const expulsionIds = getExpulsionPenaltyIds();
+    if (expulsionIds.length === 0) {
+      return false;
+    }
+    
+    // Check if any of the skater's penalties match expulsion IDs
+    return skater.penaltyIds.some(penaltyId => expulsionIds.includes(penaltyId));
+  }
+
+  // Check if a skater is fouled out
+  function isSkaterFouledOut(skater) {
+    if (!skater || !skater.penalties) return false;
+    
+    const totalPenalties = skater.penalties.length;
+    
+    // Fouled out if 7+ penalties
+    if (totalPenalties >= RULES.fouloutPenaltyCount) {
+      return true;
+    }
+    
+    // Fouled out if FO code present
+    return skater.penalties.some(penalty => 
+      String(penalty || '').trim().toUpperCase() === DISPLAY_TEXT.fouloutDisplay
+    );
+  }
+
+  // Sort skaters alphabetically by number (as text)
+  function sortSkaters(skaters) {
+    return Object.values(skaters).sort((a, b) => {
+      const numA = String(a.number || '');
+      const numB = String(b.number || '');
+      
+      if (numA === '' && numB === '') return 0;
+      if (numA === '') return 1;
+      if (numB === '') return -1;
+      
+      return numA.localeCompare(numB);
+    });
+  }
+
+  // Get or create skater object
+  function getOrCreateSkater(teamNum, skaterId) {
+    const skaters = appState.teams[teamNum].skaters;
     
     if (!skaters[skaterId]) {
       skaters[skaterId] = { 
@@ -386,236 +486,73 @@ $(function() {
       };
     }
     
-    if (REGEX_PATTERNS.skaterNumber.test(key)) {
-      skaters[skaterId].number = trimValue(value);
-      updateRosterAndPenalties(teamNum);
-    } else if (REGEX_PATTERNS.skaterName.test(key) && !REGEX_PATTERNS.skaterNameExclude.test(key)) {
-      skaters[skaterId].name = trimValue(value);
-      updateRosterAndPenalties(teamNum);
-    } else if (REGEX_PATTERNS.skaterFlags.test(key)) {
-      skaters[skaterId].flags = trimValue(value);
-      updateRosterAndPenalties(teamNum);
-    }
+    return skaters[skaterId];
   }
 
-  // Handle penalty updates
-  function handlePenaltyUpdate(key, _value) {
-    var match = key.match(REGEX_PATTERNS.teamNumber);
-    if (match) {
-      debouncedPenaltyUpdate.update(parseInt(match[1]));
+  /**********************
+  ** Penalty functions **
+  **********************/
+
+  // Determine penalty count CSS class based on penalty count
+  function getPenaltyCountClass(teamNum, skaterId, displayCount) {
+    // First, check for expelled status
+    if (isSkaterExpelled(teamNum, skaterId)) {
+      return CSS_CLASSES.PENALTY_EXPELLED;
     }
+    
+    const skater = appState.teams[teamNum].skaters[skaterId];
+    if (!skater || !skater.penalties) return '';
+  
+    // Next, check for fouled out status
+    if (isSkaterFouledOut(skater)) {
+      return CSS_CLASSES.PENALTY_FOULOUT;
+    }
+
+    // Color code penalties based on display count (excluding FO)
+    if (displayCount === RULES.warningPenaltyCount6) {
+      return CSS_CLASSES.PENALTY_6;
+    }
+    if (displayCount === RULES.warningPenaltyCount5) {
+      return CSS_CLASSES.PENALTY_5;
+    }
+    
+    return '';
   }
 
-  // Handle expulsion updates
-  function handleExpulsionUpdate(key, _value) {
-    invalidateExpulsionCache();
+  // Filter penalties for display (exclude FO codes and expulsions)
+  function getDisplayPenalties(penaltyDetails, expulsionIds) {
+    const hasExpulsions = expulsionIds.length > 0;
     
-    // Try to determine which team this affects by parsing the expulsion info
-    var state = WS.state;
-    var expulsionId = key.match(REGEX_PATTERNS.expulsionId);
-    
-    if (expulsionId && expulsionId[1]) {
-      var id = expulsionId[1];
-      var info = state['ScoreBoard.CurrentGame.Expulsion(' + id + ').Info'];
+    return penaltyDetails.filter(penalty => {
+      const codeUpper = String(penalty.code || '').trim().toUpperCase();
       
-      if (info) {
-        // Info format: "Team Name #Number Period X Jam Y for Code."
-        // Try to determine team by checking if penalty ID belongs to team 1 or 2
-        var foundTeam = null;
-        
-        for (var teamNum = 1; teamNum <= NUM_TEAMS && !foundTeam; teamNum++) {
-          var skaters = teams[teamNum].skaters;
-          for (var skaterId in skaters) {
-            if (Object.prototype.hasOwnProperty.call(skaters, skaterId)) {
-              var skater = skaters[skaterId];
-              if (skater.penaltyIds && skater.penaltyIds.indexOf(id) !== -1) {
-                foundTeam = teamNum;
-                break;
-              }
-            }
-          }
-        }
-        
-        if (foundTeam) {
-          updateRosterAndPenalties(foundTeam);
-          return;
-        }
+      // Filter out FO codes
+      if (PENALTY_CONFIG.filteredCodes.includes(codeUpper)) {
+        return false;
       }
-    }
-    
-    // Fallback: update both teams if we can't determine which one
-    updateRosterAndPenalties(1);
-    updateRosterAndPenalties(2);
+      
+      // Filter out expulsion codes
+      if (hasExpulsions && expulsionIds.includes(penalty.id)) {
+        return false;
+      }
+      
+      return true;
+    });
   }
 
-  // Update team colors
-  function updateTeamColors(teamNum) {
-    var state = WS.state;
-    var fgColor = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Color(whiteboard.fg)'];
-    var bgColor = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Color(whiteboard.bg)'];
-    var colors = teams[teamNum].colors;
-    
-    // Skip if colors haven't changed
-    if (colors.fg === fgColor && colors.bg === bgColor) {
+  // Update team penalties (collect all penalty data)
+  function updatePenalties(teamNum) {
+    if (!isWSReady()) {
       return;
     }
-    
-    colors.fg = fgColor;
-    colors.bg = bgColor;
-    
-    // Use default colors if not set
-    var finalFg = fgColor || 'white';
-    var finalBg = bgColor || 'black';
-    
-    root.style.setProperty('--team' + teamNum + '-fg', finalFg);
-    root.style.setProperty('--team' + teamNum + '-bg', finalBg);
-    root.style.setProperty('--team' + teamNum + '-border', finalFg);
-  }
 
-  // Check and display logos
-  function checkAndDisplayLogos() {
-    var shouldShow = teams[1].logo && teams[2].logo;
-    
-    if (shouldShow !== bothTeamsHaveLogos) {
-      bothTeamsHaveLogos = shouldShow;
-      
-      if (shouldShow) {
-        $elements.team1.logo.attr('src', teams[1].logo).show();
-        $elements.team2.logo.attr('src', teams[2].logo).show();
-        $elements.logoContainers.show();
-      } else {
-        $elements.team1.logo.hide();
-        $elements.team2.logo.hide();
-        $elements.logoContainers.hide();
-      }
-    }
-  }
-
-  // Equalize team score block widths and set wrapper width
-  function equalizeTeamBoxWidths() {
-    requestAnimationFrame(function() {
-      // Force a reflow to get natural widths if needed
-      var team1Width = $elements.team1.name.parent().get(0).scrollWidth;
-      var team2Width = $elements.team2.name.parent().get(0).scrollWidth;
-
-      // Add 1px buffer to the maximum width to prevent overflow
-      var maxWidth = Math.max(team1Width, team2Width) + TEAM_NAME_OVERFLOW_BUFFER_PIXELS;
-      
-      // Single write
-      $elements.teamScoreBlocks.css('width', maxWidth + 'px');
-      
-      var vsClockWidth = $elements.vsClockContainer.outerWidth();
-      var hasLogo = $elements.gameInfoWrapper.hasClass(CLASS_HAS_LOGO);
-      var padding = hasLogo ? 280 : 40;
-      
-      var totalWidth = (maxWidth * 2) + vsClockWidth + padding;
-      $elements.gameInfoWrapper.css('width', totalWidth + 'px');
-    });
-}
-
-  // Sort skaters alphabetically by number (as text)
-  function sortSkaters(skaters) {
-    return Object.values(skaters).sort(function(a, b) {
-      var numA = String(a.number || '');
-      var numB = String(b.number || '');
-      
-      if (numA === '' && numB === '') return 0;
-      if (numA === '') return 1;
-      if (numB === '') return -1;
-      
-      return numA.localeCompare(numB);
-    });
-  }
-
-  // Combined roster and penalties update
-  function updateRosterAndPenalties(teamNum) {
-    var skaters = teams[teamNum].skaters;
-    var sortedSkaters = sortSkaters(skaters);
-    var team = $elements['team' + teamNum];
-    
-    var expulsionIds = getExpulsionPenaltyIds();
-    var hasExpulsions = expulsionIds.length > 0;
-    
-    var rosterParts = [];
-    var penaltyParts = [];
-    
-    for (var i = 0; i < sortedSkaters.length; i++) {
-      var skater = sortedSkaters[i];
-      
-      if (!skater.number || !skater.name) continue;
-      
-      // Check if skater is a captain
-      var isCaptain = skater.flags === CAPTAIN_FLAG || skater.flags.split(',').indexOf(CAPTAIN_FLAG) !== -1;
-      
-      rosterParts.push(`
-        <div class="roster-line">
-          <div class="roster-number">${skater.number}</div>
-          <div class="roster-name">${skater.name}${isCaptain ? ' <span class="captain-indicator">C</span>' : ''}</div>
-        </div>
-      `);
-      
-      var displayCodes = [];
-      var penaltyDetails = skater.penaltyDetails;
-      
-      // Filter penalties
-      for (var j = 0; j < penaltyDetails.length; j++) {
-        var penalty = penaltyDetails[j];
-        var codeUpper = String(penalty.code || '').trim().toUpperCase();
-        
-        if (FILTERED_PENALTY_CODES.indexOf(codeUpper) !== -1) continue;
-        if (hasExpulsions && expulsionIds.indexOf(penalty.id) !== -1) continue;
-        
-        displayCodes.push(penalty.code);
-      }
-      
-      var codes = displayCodes.join(' ');
-      var displayCount = displayCodes.length;
-      
-      var isExpelled = isSkaterExpelled(teamNum, skater.id);
-      var isFouledOut = false;
-      var displayValue;
-      
-      if (isExpelled) {
-        displayValue = EXPELLED_DISPLAY;
-      } else {
-        // Check for fouled out
-        var totalPenalties = skater.penalties.length;
-        if (totalPenalties >= FOULOUT_PENALTY_COUNT) {
-          isFouledOut = true;
-        } else {
-          for (var k = 0; k < skater.penalties.length; k++) {
-            if (String(skater.penalties[k] || '').trim().toUpperCase() === FOULOUT_DISPLAY) {
-              isFouledOut = true;
-              break;
-            }
-          }
-        }
-        displayValue = isFouledOut ? FOULOUT_DISPLAY : displayCount;
-      }
-      
-      var countClass = getPenaltyCountClass(teamNum, skater.id, displayCount);
-      
-      penaltyParts.push(
-        '<div class="penalty-line">',
-        '<div class="penalty-codes">', codes, '</div>',
-        '<div class="penalty-count ', countClass, '">', displayValue, '</div>',
-        '</div>'
-      );
-    }
-    
-    team.roster.html(rosterParts.join(''));
-    team.penalties.html(penaltyParts.join(''));
-  }
-
-  // Update penalties only
-  function updatePenalties(teamNum) {
-    var skaters = teams[teamNum].skaters;
-    var state = WS.state;
+    const skaters = appState.teams[teamNum].skaters;
+    const state = WS.state;
     
     // Clear penalty lists
-    for (var skaterId in skaters) {
+    for (const skaterId in skaters) {
       if (Object.prototype.hasOwnProperty.call(skaters, skaterId)) {
-        var skater = skaters[skaterId];
+        const skater = skaters[skaterId];
         skater.penalties = [];
         skater.penaltyIds = [];
         skater.penaltyDetails = [];
@@ -623,15 +560,16 @@ $(function() {
     }
     
     // Single-pass penalty collection
-    var penaltyData = {};
+    const penaltyData = {};
     
-    for (var key in state) {
+    for (const key in state) {
       if (!Object.prototype.hasOwnProperty.call(state, key)) continue;
-        var match = key.match(REGEX_PATTERNS.penaltyPattern);
+      
+      const match = key.match(REGEX_PATTERNS.penaltyPattern);
       if (match && match[1] == teamNum) {
-        var skaterIdMatch = match[2];
-        var penaltyNumMatch = match[3];
-        var field = match[4];
+        const skaterIdMatch = match[2];
+        const penaltyNumMatch = match[3];
+        const field = match[4];
         
         if (!penaltyData[skaterIdMatch]) {
           penaltyData[skaterIdMatch] = {};
@@ -645,13 +583,13 @@ $(function() {
     }
     
     // Populate skater penalty arrays
-    for (var skaterKey in penaltyData) {
+    for (const skaterKey in penaltyData) {
       if (skaters[skaterKey]) {
-        var skaterObj = skaters[skaterKey];
-        var penalties = penaltyData[skaterKey];
+        const skaterObj = skaters[skaterKey];
+        const penalties = penaltyData[skaterKey];
         
-        for (var penaltyKey in penalties) {
-          var penalty = penalties[penaltyKey];
+        for (const penaltyKey in penalties) {
+          const penalty = penalties[penaltyKey];
           if (penalty.code && penalty.id) {
             skaterObj.penalties.push(penalty.code);
             skaterObj.penaltyIds.push(penalty.id);
@@ -664,29 +602,190 @@ $(function() {
     updateRosterAndPenalties(teamNum);
   }
 
-  // Update clock
+  /*****************************************
+  ** Roster and penalty display functions **
+  *****************************************/
+
+  // Build roster HTML for a player
+  function buildRosterHTML(skater) {
+    const isCaptain = skater.flags === DISPLAY_TEXT.captainFlag || 
+                      skater.flags.split(',').includes(DISPLAY_TEXT.captainFlag);
+    
+    const captainIndicator = isCaptain ? ' <span class="captain-indicator">C</span>' : '';
+    
+    // Sanitize roster user input
+    const safeNumber = sanitizeHTML(skater.number);
+    const safeName = sanitizeHTML(skater.name);
+    
+    return `
+      <div class="roster-line">
+        <div class="roster-number">${safeNumber}</div>
+        <div class="roster-name">${safeName}${captainIndicator}</div>
+      </div>
+    `;
+  }
+
+
+  // Build penalty HTML for a player
+  function buildPenaltyHTML(teamNum, skater, expulsionIds) {
+    const displayPenalties = getDisplayPenalties(skater.penaltyDetails, expulsionIds);
+    
+    // Sanitize penalty codes
+    const codes = displayPenalties.map(p => sanitizeHTML(p.code)).join(' ');
+    const displayCount = displayPenalties.length;
+    
+    // Determine the display value for the player's total penalties (EXP, FO, or count)
+    let displayValue;
+    if (isSkaterExpelled(teamNum, skater.id)) {
+      displayValue = DISPLAY_TEXT.expelledDisplay;
+    } else if (isSkaterFouledOut(skater)) {
+      displayValue = DISPLAY_TEXT.fouloutDisplay;
+    } else {
+      displayValue = displayCount;
+    }
+
+    // Set the CSS class (bg color) for the total count
+    const countClass = getPenaltyCountClass(teamNum, skater.id, displayCount);
+    
+    return [
+      '<div class="penalty-line">',
+      `<div class="penalty-codes">${codes}</div>`,
+      `<div class="penalty-count ${countClass}">${displayValue}</div>`,
+      '</div>'
+    ].join('');
+  }
+
+  // Update rosters and penalties
+  function updateRosterAndPenalties(teamNum) {
+    const skaters = appState.teams[teamNum].skaters;
+    const sortedSkaters = sortSkaters(skaters);
+    const team = $elements[`team${teamNum}`];
+    const expulsionIds = getExpulsionPenaltyIds();
+    
+    const rosterParts = [];
+    const penaltyParts = [];
+    
+    for (const skater of sortedSkaters) {
+      // Skip skaters without number or name
+      if (!skater.number || !skater.name) continue;
+      
+      rosterParts.push(buildRosterHTML(skater));
+      penaltyParts.push(buildPenaltyHTML(teamNum, skater, expulsionIds));
+    }
+    
+    team.roster.html(rosterParts.join(''));
+    team.penalties.html(penaltyParts.join(''));
+    
+    if (!loadingTracker.initialized) {
+      loadingTracker.markReceived('teamRosters');
+      loadingTracker.markReceived('teamPenalties');
+    }
+  }
+
+  /**************************
+  ** Team update functions **
+  **************************/
+
+  // Update team colors
+  function updateTeamColors(teamNum) {
+    if (!isWSReady()) return;
+    
+    const fgColor = safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Color(whiteboard.fg)`);
+    const bgColor = safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Color(whiteboard.bg)`);
+    const colors = appState.teams[teamNum].colors;
+    
+    // Skip update if colors haven't changed
+    if (colors.fg === fgColor && colors.bg === bgColor) {
+      if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
+      return;
+    }
+
+    // Set team colors
+    colors.fg = fgColor;
+    colors.bg = bgColor;
+
+    // Use default colors if none ar set
+    const finalFg = fgColor || 'white';
+    const finalBg = bgColor || 'black';
+    
+    appState.dom.root.style.setProperty(`--team${teamNum}-fg`, finalFg);
+    appState.dom.root.style.setProperty(`--team${teamNum}-bg`, finalBg);
+    appState.dom.root.style.setProperty(`--team${teamNum}-border`, finalFg);
+    
+    if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
+  }
+
+  // Check for and display logos if present
+  function checkAndDisplayLogos() {
+    const shouldShow = appState.teams[1].logo && appState.teams[2].logo;
+    
+    if (shouldShow !== appState.flags.bothTeamsHaveLogos) {
+      appState.flags.bothTeamsHaveLogos = shouldShow;
+      
+      if (shouldShow) {
+        $elements.team1.logo.attr('src', appState.teams[1].logo).show();
+        $elements.team2.logo.attr('src', appState.teams[2].logo).show();
+        $elements.logoContainers.show();
+      } else {
+        $elements.team1.logo.hide();
+        $elements.team2.logo.hide();
+        $elements.logoContainers.hide();
+      }
+    }
+    
+    if (!loadingTracker.initialized) loadingTracker.markReceived('teamLogos');
+  }
+
+  // Equalize team name and score block widths and set wrapper width
+  function equalizeTeamBoxWidths() {
+    requestAnimationFrame(() => {
+      // Force a reflow to get natural widths if needed
+      const team1Width = $elements.team1.name.parent().get(0).scrollWidth;
+      const team2Width = $elements.team2.name.parent().get(0).scrollWidth;
+
+      // Add a buffer to the maximum width to prevent overflow/truncation
+      const maxWidth = Math.max(team1Width, team2Width) + CONFIG.teamNameOverflowBufferPixels;
+      
+      // Single write operation
+      $elements.teamScoreBlocks.css('width', `${maxWidth}px`);
+      
+      const vsClockWidth = $elements.vsClockContainer.outerWidth();
+      const hasLogo = $elements.gameInfoWrapper.hasClass(CSS_CLASSES.HAS_LOGO);
+      const padding = hasLogo ? 280 : 40;
+      
+      const totalWidth = (maxWidth * 2) + vsClockWidth + padding;
+      $elements.gameInfoWrapper.css('width', `${totalWidth}px`);
+    });
+  }
+
+  /******************************************
+  ** Clock and game state update functions **
+  ******************************************/
+
+// Update the game clock
   function updateClock() {
+    if (!isWSReady()) return;
+    
     try {
-      var state = WS.state;
-      var officialScore = isTrue(state['ScoreBoard.CurrentGame.OfficialScore']);
-      var inOvertime = isTrue(state['ScoreBoard.CurrentGame.InOvertime']);
-      var currentPeriod = parseInt(state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
-      var intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']) || 0;
-      var periodTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Period).Time']) || 0;
-      var numPeriods = parseInt(state['ScoreBoard.CurrentGame.Rule(Period.Number)']) || 2;
-      var intermissionRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']);
+      // Get the clock label
+      const officialScore = isTrue(safeGetState('ScoreBoard.CurrentGame.OfficialScore'));
+      const inOvertime = isTrue(safeGetState('ScoreBoard.CurrentGame.InOvertime'));
+      const currentPeriod = parseInt(safeGetState('ScoreBoard.CurrentGame.CurrentPeriodNumber')) || 0;
+      const intermissionTime = parseInt(safeGetState('ScoreBoard.CurrentGame.Clock(Intermission).Time')) || 0;
+      const periodTime = parseInt(safeGetState('ScoreBoard.CurrentGame.Clock(Period).Time')) || 0;
+      const periodRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Period).Running'));
+      const numPeriods = parseInt(safeGetState('ScoreBoard.CurrentGame.Rule(Period.Number)')) || 2;
+      const intermissionRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Intermission).Running'));
+
+      // Determine if the game is over
+      const gameOver = currentPeriod > numPeriods || 
+                      (currentPeriod >= numPeriods && (intermissionRunning || intermissionTime > 0));
       
-      var gameOver = currentPeriod > numPeriods || 
-                    (currentPeriod >= numPeriods && (intermissionRunning || intermissionTime > 0));
-      
-      // Hide clock for unofficial score, overtime, or official
+      // Hide the period clock for for unofficial/official score or overtime
       if (officialScore || gameOver || inOvertime) {
         $elements.gameClock.html('&nbsp;');
-        return;
-      }
-      
-      if (currentPeriod === 0) {
-        // If start time is missing or in past, show period clock for the upcoming period
+      // Before period 1, if the IGRF start time is missing or in the past, show the upcoming period clock
+      } else if (currentPeriod === 0) {
         if (isStartTimeMissingOrPast()) {
           $elements.gameClock.text(formatTime(periodTime));
         } else if (intermissionTime <= 0) {
@@ -694,74 +793,71 @@ $(function() {
         } else {
           $elements.gameClock.text(formatTime(intermissionTime));
         }
-        return;
-      }
-      
-      if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionTime > 0) {
+      // Between periods, show the intermission clock
+      } else if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionRunning && !periodRunning) {
         $elements.gameClock.text(formatTime(intermissionTime));
-        return;
+      } else {
+        $elements.gameClock.text(formatTime(periodTime));
       }
       
-      $elements.gameClock.text(formatTime(periodTime));
+      if (!loadingTracker.initialized) loadingTracker.markReceived('gameInfo');
       
     } catch(error) {
       console.error('Error updating clock:', error);
     }
   }
 
-  // Format time from milliseconds
-  function formatTime(ms) {
-    var totalSeconds = Math.floor(ms / 1000);
-    var minutes = Math.floor(totalSeconds / 60);
-    var seconds = totalSeconds % 60;
-    return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-  }
-
   // Update game state (period info)
   function updateGameState() {
+    if (!isWSReady()) return;
+    
     try {
-      var state = WS.state;
-      var currentPeriod = parseInt(state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
-      var inOvertime = isTrue(state['ScoreBoard.CurrentGame.InOvertime']);
-      var officialScore = isTrue(state['ScoreBoard.CurrentGame.OfficialScore']);
-      var intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']) || 0;
-      var numPeriods = parseInt(state['ScoreBoard.CurrentGame.Rule(Period.Number)']) || 2;
-      var intermissionRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']);
-      
+      const currentPeriod = parseInt(safeGetState('ScoreBoard.CurrentGame.CurrentPeriodNumber')) || 0;
+      const inOvertime = isTrue(safeGetState('ScoreBoard.CurrentGame.InOvertime'));
+      const officialScore = isTrue(safeGetState('ScoreBoard.CurrentGame.OfficialScore'));
+      const intermissionTime = parseInt(safeGetState('ScoreBoard.CurrentGame.Clock(Intermission).Time')) || 0;
+      const periodRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Period).Running'));
+      const numPeriods = parseInt(safeGetState('ScoreBoard.CurrentGame.Rule(Period.Number)')) || 2;
+      const intermissionRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Intermission).Running'));
+
       // Get intermission labels from settings with fallback to defaults
-      var labels = {
-        preGame: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)', DEFAULT_INTERMISSION_LABELS.preGame),
-        intermission: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)', DEFAULT_INTERMISSION_LABELS.intermission),
-        unofficial: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)', DEFAULT_INTERMISSION_LABELS.unofficial),
-        official: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)', DEFAULT_INTERMISSION_LABELS.official)
+      const labels = {
+        preGame: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)', DISPLAY_TEXT.intermission.preGame),
+        intermission: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)', DISPLAY_TEXT.intermission.intermission),
+        unofficial: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)', DISPLAY_TEXT.intermission.unofficial),
+        official: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)', DISPLAY_TEXT.intermission.official)
       };
+
+      // Determine if the game is over
+      const gameOver = currentPeriod > numPeriods || 
+                      (currentPeriod >= numPeriods && (intermissionRunning || intermissionTime > 0));
       
-      var gameOver = currentPeriod > numPeriods || 
-                    (currentPeriod >= numPeriods && (intermissionRunning || intermissionTime > 0));
-      
-      var text;
-      
+      let text;
+
+      // Determine the correct clock label
       if (officialScore) {
         text = labels.official;
       } else if (gameOver) {
         text = labels.unofficial;
       } else if (inOvertime) {
-        text = DEFAULT_INTERMISSION_LABELS.overtime;
-      } else if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionTime > 0) {
+        text = DISPLAY_TEXT.intermission.overtime;
+      } else if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionRunning && !periodRunning) {
         text = labels.intermission;
       } else if (currentPeriod > 0 && currentPeriod <= numPeriods) {
-        text = 'Period ' + currentPeriod;
+        text = `Period ${currentPeriod}`;
+      // If start time is missing or in past, show DISPLAY_TEXT.preFirstPeriodLabel for the upcoming period
       } else if (currentPeriod === 0 && isStartTimeMissingOrPast()) {
-        // If start time is missing or in past, show PRE_FIRST_PERIOD_LABEL for upcoming period
-        text = PRE_FIRST_PERIOD_LABEL;
+        text = DISPLAY_TEXT.preFirstPeriodLabel;
       } else if (currentPeriod === 0 && intermissionTime > 0) {
         text = labels.preGame;
       } else {
-        text = DEFAULT_INTERMISSION_LABELS.comingUp;
+        text = DISPLAY_TEXT.intermission.comingUp;
       }
       
       $elements.periodInfo.text(text);
       updateClock();
+      
+      if (!loadingTracker.initialized) loadingTracker.markReceived('gameInfo');
       
     } catch(error) {
       console.error('Error updating game state:', error);
@@ -770,79 +866,379 @@ $(function() {
 
   // Update tournament name and game number if available
   function updateTournamentName() {
-    var tournament = trimValue(WS.state['ScoreBoard.CurrentGame.EventInfo(Tournament)']);
-    var gameNo = trimValue(WS.state['ScoreBoard.CurrentGame.EventInfo(GameNo)']);
+    const tournament = trimValue(safeGetState('ScoreBoard.CurrentGame.EventInfo(Tournament)'));
+    const gameNo = trimValue(safeGetState('ScoreBoard.CurrentGame.EventInfo(GameNo)'));
     
     if (tournament) {
-      var displayText = tournament;
-      if (gameNo) {
-        displayText = tournament + ' - Game ' + gameNo;
-      }
+      const displayText = gameNo ? `${tournament} - Game ${gameNo}` : tournament;
       $elements.tournamentName.text(displayText).show();
     } else {
       $elements.tournamentName.hide();
     }
+    
+    if (!loadingTracker.initialized) loadingTracker.markReceived('gameInfo');
   }
 
   // Load custom logo if available
   function loadCustomLogo() {
-    var logoImg = new Image();
-    var $wrapper = $('.game-info-wrapper');
-    
-    logoImg.onload = function() {
-      $elements.customLogoSpace.html('<img src="' + BANNER_LOGO_PATH + '" class="custom-logo" />');
-      $wrapper.addClass(CLASS_HAS_LOGO);
+    // Check if the logo path is configured
+    if (!CONFIG.bannerLogoPath) {
+      return;
+    }
+
+    const logoImg = new Image();
+
+    // Attempt to load custom logo and add symmetrical padding
+    logoImg.onload = () => {
+      $elements.customLogoSpace.html(`<img src="${CONFIG.bannerLogoPath}" class="custom-logo" />`);
+      $elements.gameInfoWrapper.addClass(CSS_CLASSES.HAS_LOGO);
     };
-    logoImg.onerror = function() {
+
+    // Do not add symmetrical padding if logo fails to load
+    logoImg.onerror = () => {
       $elements.customLogoSpace.empty();
-      $wrapper.removeClass(CLASS_HAS_LOGO);
+      $elements.gameInfoWrapper.removeClass(CSS_CLASSES.HAS_LOGO);
     };
-    logoImg.src = BANNER_LOGO_PATH;
+
+    logoImg.src = CONFIG.bannerLogoPath;
   }
 
-  // Initialize display
-  function initializeDisplay() {
-    try {
-      var state = WS.state;
-      
-      for (var teamNum = 1; teamNum <= NUM_TEAMS; teamNum++) {
-        var altName = trimValue(state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)']);
-        var name = trimValue(state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name']);
-        var total = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').TotalPenalties'];
-        
-        $elements['team' + teamNum].name.text(altName || name || '');
-        $elements['team' + teamNum].total.text(total || '0');
-        
-        updateTeamColors(teamNum);
+  /**************************************
+  ** WebSocket event handler functions **
+  **************************************/
+
+  // Debounced penalty update with cleanup
+  const debouncedPenaltyUpdate = {
+    timers: {},
+
+    update(teamNum) {
+      const delay = appState.flags.initialLoadComplete 
+        ? TIMING.debouncePenaltyNormalMs 
+        : TIMING.debouncePenaltyInitMs;
+
+      // Clear existing timer
+      if (this.timers[teamNum]) {
+        clearTimeout(this.timers[teamNum]);
       }
       
+      this.timers[teamNum] = setTimeout(() => {
+        // Clean up timer reference after execution
+        delete this.timers[teamNum];
+        
+        // Run update only if WebSocket is ready
+        if (isWSReady()) {
+          updatePenalties(teamNum);
+        }
+      }, delay);
+    },
+    
+    // Clear all timers
+    clearAll() {
+      Object.values(this.timers).forEach(timer => clearTimeout(timer));
+      this.timers = {};
+    },
+    
+    // Clear specific team timer
+    clear(teamNum) {
+      if (this.timers[teamNum]) {
+        clearTimeout(this.timers[teamNum]);
+        delete this.timers[teamNum];
+      }
+    }
+  };
+
+  // Unified team update handler
+  function handleTeamUpdate(key, value) {
+    const match = key.match(REGEX_PATTERNS.teamNumber);
+    if (!match) return;
+
+    const teamNum = parseInt(match[1]);
+    const team = $elements[`team${teamNum}`];
+
+    // Check for a team name in the "whiteboard" custom name
+    if (key.includes('.AlternateName(whiteboard)') || 
+        (REGEX_PATTERNS.teamName.test(key) && !key.includes('AlternateName') && !key.includes('.Skater('))) {
+
+      const altName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`));
+      const name = altName || trimValue(value);
+
+      // Use the IGRF team name or a default value if the "whiteboard" custom name is empty/default
+      const currentText = team.name.text();
+      if (name || !currentText || currentText === DISPLAY_TEXT.defaultTeamNamePrefix + teamNum) {
+        team.name.text(name || '');
+        updateQueue.schedule(equalizeTeamBoxWidths);
+      }
+      
+      if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
+
+    } else if (REGEX_PATTERNS.teamScore.test(key) && !key.includes('Skater')) {
+      team.score.text(value || '0');
+      if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
+
+    // Check for and display team logos
+    } else if (REGEX_PATTERNS.teamLogo.test(key)) {
+      appState.teams[teamNum].logo = value || '';
+      checkAndDisplayLogos();
+
+    // Update team roster colors
+    } else if (REGEX_PATTERNS.teamColor.test(key)) {
+      updateQueue.schedule(() => updateTeamColors(teamNum));
+
+    // Set the team penalty total values
+    } else if (REGEX_PATTERNS.teamPenalties.test(key)) {
+      team.total.text(value || '0');
+      if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
+    }
+  }
+
+  // Unified player update handler
+  function handleSkaterUpdate(key, value) {
+    const match = key.match(REGEX_PATTERNS.skaterPattern);
+    if (!match) return;
+    
+    const teamNum = parseInt(match[1]);
+    const skaterId = match[2];
+    const skater = getOrCreateSkater(teamNum, skaterId);
+    
+    if (REGEX_PATTERNS.skaterNumber.test(key)) {
+      skater.number = trimValue(value);
+      updateRosterAndPenalties(teamNum);
+    } else if (REGEX_PATTERNS.skaterName.test(key) && !REGEX_PATTERNS.skaterNameExclude.test(key)) {
+      skater.name = trimValue(value);
+      updateRosterAndPenalties(teamNum);
+    } else if (REGEX_PATTERNS.skaterFlags.test(key)) {
+      skater.flags = trimValue(value);
+      updateRosterAndPenalties(teamNum);
+    }
+  }
+
+  // Handle penalty updates
+  function handlePenaltyUpdate(key, _value) {
+    const match = key.match(REGEX_PATTERNS.teamNumber);
+    if (match) {
+      debouncedPenaltyUpdate.update(parseInt(match[1]));
+    }
+  }
+
+  // Handle expulsion updates
+  function handleExpulsionUpdate(key, _value) {
+    invalidateExpulsionCache();
+    
+    if (!loadingTracker.initialized) loadingTracker.markReceived('gameInfo');
+    
+    const expulsionIdMatch = key.match(REGEX_PATTERNS.expulsionId);
+    
+    if (expulsionIdMatch && expulsionIdMatch[1]) {
+      const id = expulsionIdMatch[1];
+      
+      // Find which team has this unique expulsion penalty ID      
+      for (let teamNum = 1; teamNum <= RULES.numTeams; teamNum++) {
+        const skaters = appState.teams[teamNum].skaters;
+
+        for (const skaterId in skaters) {
+          if (Object.prototype.hasOwnProperty.call(skaters, skaterId)) {
+            const skater = skaters[skaterId];
+            if (skater.penaltyIds && skater.penaltyIds.includes(id)) {
+              updateRosterAndPenalties(teamNum);
+              return;
+            }
+          }
+        }
+      }
+    }
+
+    // Fallback: update both teams if we can't determine which team has this penalty
+    updateRosterAndPenalties(1);
+    updateRosterAndPenalties(2);
+  }
+
+  /***************************
+  ** Memory leak prevention **
+  ****************************/
+
+  // Store all registered handlers for cleanup
+  const registeredHandlers = [];
+  let cleanupRegistered = false;
+
+  // Register a WebSocket handler with automatic cleanup tracking
+  function registerHandler(paths, handler) {
+    if (!isWSReady()) {
+      console.warn('Attempted to register handler before WebSocket ready');
+      return;
+    }
+
+    WS.Register(paths, handler);
+    registeredHandlers.push({ paths, handler });
+  }
+
+  // Clean up all registered handlers and timers
+  function cleanup() {
+    console.log('Cleaning up overlay resources...');
+
+    // Unregister WebSocket handlers
+    registeredHandlers.forEach(({ paths, handler }) => {
+      if (WS && WS.Unregister) {
+        try {
+          WS.Unregister(paths, handler);
+        } catch (error) {
+          console.warn('Error unregistering handler:', error);
+        }
+      }
+    });
+    registeredHandlers.length = 0;
+    
+    // Clear all penalty update timers
+    debouncedPenaltyUpdate.clearAll();
+
+    // Clear update queue
+    if (updateQueue.pending) {
+      updateQueue.callbacks = [];
+      updateQueue.pending = false;
+    }
+
+    console.log('Cleanup complete');
+  }
+
+  // Register cleanup handler ( once during initialization)
+  function registerCleanupHandler() {
+    if (cleanupRegistered) return;
+
+    $(window).on('beforeunload', cleanup);
+
+    // Also cleanup on visibility change (for SPAs)
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        cleanup();
+      }
+    });
+
+    cleanupRegistered = true;
+  }
+
+  /*******************
+  ** Initialization **
+  *******************/
+
+  // Initialize display with initial data
+  function initializeDisplay() {
+    if (!isWSReady()) {
+      console.warn('WebSocket not ready during initialization, retrying...');
+      setTimeout(initializeDisplay, TIMING.wsWaitMs);
+      return;
+    }
+    
+    try {
+      loadingTracker.startLoading();
+      
+      // Initialize team data
+      for (let teamNum = 1; teamNum <= RULES.numTeams; teamNum++) {
+        const altName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`));
+        const name = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Name`));
+        const total = safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).TotalPenalties`, '0');
+        const score = safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Score`, '0');
+        
+        // Set team name, or default name after delay
+        if (altName || name) {
+          $elements[`team${teamNum}`].name.text(altName || name);
+        } else {
+          setTimeout(() => {
+            const currentText = $elements[`team${teamNum}`].name.text();
+            const checkAltName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`));
+            const checkName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Name`));
+            
+            if ((!currentText || currentText.trim() === '') && !checkAltName && !checkName) {
+              $elements[`team${teamNum}`].name.text(DISPLAY_TEXT.defaultTeamNamePrefix + teamNum);
+              updateQueue.schedule(equalizeTeamBoxWidths);
+            }
+          }, TIMING.defaultNameDelayMs);
+        }
+        
+        $elements[`team${teamNum}`].score.text(score);
+        $elements[`team${teamNum}`].total.text(total);
+        
+        updateTeamColors(teamNum);
+        updatePenalties(teamNum);
+      }
+
+      // Mark basic team data as received
+      loadingTracker.markReceived('teamsBasicData');
+      loadingTracker.markReceived('teamsBasicData');
+
       updateTournamentName();
       updateClock();
       updateGameState();
       checkAndDisplayLogos();
       equalizeTeamBoxWidths();
-      
-      setTimeout(function() {
-        initialLoadComplete = true;
-      }, INIT_COMPLETE_MS);
-      
-      setTimeout(function() {
-        for (var teamNum = 1; teamNum <= NUM_TEAMS; teamNum++) {
-          var currentText = $elements['team' + teamNum].name.text();
-          var altName = trimValue(WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)']);
-          var name = trimValue(WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name']);
-          
-          if ((!currentText || currentText.trim() === '') && !altName && !name) {
-            $elements['team' + teamNum].name.text(DEFAULT_TEAM_NAME_PREFIX + teamNum);
-            updateQueue.schedule(equalizeTeamBoxWidths);
-          }
-        }
-      }, DEFAULT_NAME_DELAY_MS);
-      
+
     } catch(error) {
       console.error('Error during initialization:', error);
+      setTimeout(initializeDisplay, TIMING.wsWaitMs * 2);
     }
   }
 
+  // Initialize WebSocket listeners
+  function init() {
+    if (!isWSReady()) {
+      console.log('Waiting for WebSocket...');
+      setTimeout(init, TIMING.wsWaitMs);
+      return;
+    }
+    
+    try {
+      WS.Connect();
+      WS.AutoRegister();
+
+      // Register cleanup handler
+      registerCleanupHandler();
+
+      // Register all team data with wildcards (using safe wrapper)
+      registerHandler(['ScoreBoard.CurrentGame.Team(*)'], handleTeamUpdate);
+      registerHandler(['ScoreBoard.CurrentGame.Team(*).Skater(*)'], handleSkaterUpdate);
+      registerHandler(['ScoreBoard.CurrentGame.Team(*).Skater(*).Penalty(*)'], handlePenaltyUpdate);
+
+      // Register for expulsion updates
+      registerHandler(['ScoreBoard.CurrentGame.Expulsion(*)'], handleExpulsionUpdate);
+
+      // Clock and game state
+      registerHandler(['ScoreBoard.CurrentGame.Clock(*)'], debounce(updateClock, TIMING.debounceClockMs));
+      registerHandler(['ScoreBoard.CurrentGame'], updateGameState);
+      registerHandler(['ScoreBoard.CurrentGame.OfficialScore'], updateGameState);
+
+      // Intermission label settings
+      registerHandler(['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)'], updateGameState);
+      registerHandler(['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)'], updateGameState);
+      registerHandler(['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)'], updateGameState);
+      registerHandler(['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)'], updateGameState);
+
+      // Tournament info
+      registerHandler(['ScoreBoard.CurrentGame.EventInfo(Tournament)'], updateTournamentName);
+      registerHandler(['ScoreBoard.CurrentGame.EventInfo(GameNo)'], updateTournamentName);
+
+      // Event info for start time checking
+      registerHandler(['ScoreBoard.CurrentGame.EventInfo(Date)'], updateGameState);
+      registerHandler(['ScoreBoard.CurrentGame.EventInfo(StartTime)'], updateGameState);
+
+      loadCustomLogo();
+      setTimeout(initializeDisplay, TIMING.initDelayMs);
+      
+      console.log('Penalties overlay initialization started');
+      
+    } catch(error) {
+      console.error('Failed to initialize overlay:', error);
+      // Retry after delay
+      setTimeout(init, TIMING.wsWaitMs * 5);
+    }
+  }
+
+  // Wait for WebSocket to finish loading
+  function waitForWS() {
+    if (typeof WS === 'undefined') {
+      setTimeout(waitForWS, TIMING.wsWaitMs);
+      return;
+    }
+    init();
+  }
+
+  // Start the application
   waitForWS();
 });
