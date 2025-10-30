@@ -846,10 +846,62 @@ $(function() {
         }
       }
     }
-    
+
     // Fallback: update both teams if we can't determine which team has this penalty
     updateRosterAndPenalties(1);
     updateRosterAndPenalties(2);
+  }
+
+  /*******************
+  ** Initialization **
+  *******************/
+
+  // Initialize display with initial data
+  function initializeDisplay() {
+    try {
+      const state = WS.state;
+
+      // Initialize team names, total penalty counts, and colors
+      for (let teamNum = 1; teamNum <= RULES.numTeams; teamNum++) {
+        const altName = trimValue(state[`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`]);
+        const name = trimValue(state[`ScoreBoard.CurrentGame.Team(${teamNum}).Name`]);
+        const total = state[`ScoreBoard.CurrentGame.Team(${teamNum}).TotalPenalties`];
+        
+        $elements[`team${teamNum}`].name.text(altName || name || '');
+        $elements[`team${teamNum}`].total.text(total || '0');
+        
+        updateTeamColors(teamNum);
+      }
+
+      // Initialize game information
+      updateTournamentName();
+      updateClock();
+      updateGameState();
+      checkAndDisplayLogos();
+      equalizeTeamBoxWidths();
+
+      // Mark initialization as complete after delay
+      setTimeout(() => {
+        appState.flags.initialLoadComplete = true;
+      }, TIMING.initCompleteMs);
+
+      // Set default team names if needed after delay
+      setTimeout(() => {
+        for (let teamNum = 1; teamNum <= RULES.numTeams; teamNum++) {
+          const currentText = $elements[`team${teamNum}`].name.text();
+          const altName = trimValue(WS.state[`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`]);
+          const name = trimValue(WS.state[`ScoreBoard.CurrentGame.Team(${teamNum}).Name`]);
+
+          if ((!currentText || currentText.trim() === '') && !altName && !name) {
+            $elements[`team${teamNum}`].name.text(DISPLAY_TEXT.defaultTeamNamePrefix + teamNum);
+            updateQueue.schedule(equalizeTeamBoxWidths);
+          }
+        }
+      }, TIMING.defaultNameDelayMs);
+
+    } catch(error) {
+      console.error('Error during initialization:', error);
+    }
   }
 
   // Initialize WebSocket listeners
@@ -904,50 +956,6 @@ $(function() {
 
   // Debounced clock update
   var debouncedClockUpdate = debounce(updateClock, TIMING.debounceClockMs);
-
-  // Initialize display
-  function initializeDisplay() {
-    try {
-      var state = WS.state;
-      
-      for (var teamNum = 1; teamNum <= RULES.numTeams; teamNum++) {
-        var altName = trimValue(state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)']);
-        var name = trimValue(state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name']);
-        var total = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').TotalPenalties'];
-        
-        $elements['team' + teamNum].name.text(altName || name || '');
-        $elements['team' + teamNum].total.text(total || '0');
-        
-        updateTeamColors(teamNum);
-      }
-      
-      updateTournamentName();
-      updateClock();
-      updateGameState();
-      checkAndDisplayLogos();
-      equalizeTeamBoxWidths();
-      
-      setTimeout(function() {
-        appState.flags.initialLoadComplete = true;
-      }, TIMING.initCompleteMs);
-      
-      setTimeout(function() {
-        for (var teamNum = 1; teamNum <= RULES.numTeams; teamNum++) {
-          var currentText = $elements['team' + teamNum].name.text();
-          var altName = trimValue(WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)']);
-          var name = trimValue(WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Name']);
-          
-          if ((!currentText || currentText.trim() === '') && !altName && !name) {
-            $elements['team' + teamNum].name.text(DISPLAY_TEXT.defaultTeamNamePrefix + teamNum);
-            updateQueue.schedule(equalizeTeamBoxWidths);
-          }
-        }
-      }, TIMING.defaultNameDelayMs);
-      
-    } catch(error) {
-      console.error('Error during initialization:', error);
-    }
-  }
 
   waitForWS();
 });
