@@ -824,12 +824,10 @@ $(function() {
     invalidateExpulsionCache();
     
     // Try to determine which team this affects by parsing expulsion info
-    const state = WS.state;
     const expulsionIdMatch = key.match(REGEX_PATTERNS.expulsionId);
     
     if (expulsionIdMatch && expulsionIdMatch[1]) {
       const id = expulsionIdMatch[1];
-      
       
       // Info format: "Team Name #Number Period X Jam Y for Code."
       // Find which team has this penalty ID      
