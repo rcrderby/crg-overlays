@@ -713,8 +713,8 @@ $(function() {
     
     for (const key in state) {
       if (!Object.prototype.hasOwnProperty.call(state, key)) continue;
-
-        const match = key.match(REGEX_PATTERNS.penaltyPattern);
+      
+      const match = key.match(REGEX_PATTERNS.penaltyPattern);
       if (match && match[1] == teamNum) {
         const skaterIdMatch = match[2];
         const penaltyNumMatch = match[3];
