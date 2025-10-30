@@ -695,13 +695,13 @@ $(function() {
 
   // Update penalties only
   function updatePenalties(teamNum) {
-    var skaters = teams[teamNum].skaters;
-    var state = WS.state;
+    const skaters = appState.teams[teamNum].skaters;
+    const state = WS.state;
     
     // Clear penalty lists
-    for (var skaterId in skaters) {
+    for (const skaterId in skaters) {
       if (Object.prototype.hasOwnProperty.call(skaters, skaterId)) {
-        var skater = skaters[skaterId];
+        const skater = skaters[skaterId];
         skater.penalties = [];
         skater.penaltyIds = [];
         skater.penaltyDetails = [];
@@ -709,15 +709,16 @@ $(function() {
     }
     
     // Single-pass penalty collection
-    var penaltyData = {};
+    const penaltyData = {};
     
-    for (var key in state) {
+    for (const key in state) {
       if (!Object.prototype.hasOwnProperty.call(state, key)) continue;
-        var match = key.match(REGEX_PATTERNS.penaltyPattern);
+
+        const match = key.match(REGEX_PATTERNS.penaltyPattern);
       if (match && match[1] == teamNum) {
-        var skaterIdMatch = match[2];
-        var penaltyNumMatch = match[3];
-        var field = match[4];
+        const skaterIdMatch = match[2];
+        const penaltyNumMatch = match[3];
+        const field = match[4];
         
         if (!penaltyData[skaterIdMatch]) {
           penaltyData[skaterIdMatch] = {};
@@ -731,13 +732,13 @@ $(function() {
     }
     
     // Populate skater penalty arrays
-    for (var skaterKey in penaltyData) {
+    for (const skaterKey in penaltyData) {
       if (skaters[skaterKey]) {
-        var skaterObj = skaters[skaterKey];
-        var penalties = penaltyData[skaterKey];
+        const skaterObj = skaters[skaterKey];
+        const penalties = penaltyData[skaterKey];
         
-        for (var penaltyKey in penalties) {
-          var penalty = penalties[penaltyKey];
+        for (const penaltyKey in penalties) {
+          const penalty = penalties[penaltyKey];
           if (penalty.code && penalty.id) {
             skaterObj.penalties.push(penalty.code);
             skaterObj.penaltyIds.push(penalty.id);
