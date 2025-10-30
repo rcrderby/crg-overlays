@@ -1021,6 +1021,9 @@ $(function() {
     }
     
     try {
+      // Pre-populate expulsion cache before loading penalties to show "EXP" immediately on initial load
+      getExpulsionPenaltyIds();
+      
       // Initialize team names, total penalty counts, and colors
       for (let teamNum = 1; teamNum <= RULES.numTeams; teamNum++) {
         const altName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`));
