@@ -330,32 +330,32 @@ $(function() {
     return skaters[skaterId];
   }
 
-  // Helper function to determine penalty count CSS class
+  /**********************
+  ** Penalty functions **
+  **********************/
+
+  // Determine penalty count CSS class based on penalty count
   function getPenaltyCountClass(teamNum, skaterId, displayCount) {
+    // First, check for expelled status
     if (isSkaterExpelled(teamNum, skaterId)) {
       return CSS_CLASSES.PENALTY_EXPELLED;
     }
     
-    var skater = teams[teamNum].skaters[skaterId];
+    const skater = appState.teams[teamNum].skaters[skaterId];
     if (!skater || !skater.penalties) return '';
-    
-    var totalPenalties = skater.penalties.length;
-    
-    // Check for fouled out (FO code or 7+ total penalties)
-    if (totalPenalties >= RULES.fouloutPenaltyCount) {
+  
+    // Next, check for fouled out status
+    if (isSkaterFouledOut(skater)) {
       return CSS_CLASSES.PENALTY_FOULOUT;
     }
-    
-    // Check for FO code
-    for (var i = 0; i < skater.penalties.length; i++) {
-      if (String(skater.penalties[i] || '').trim().toUpperCase() === FOULOUT_DISPLAY) {
-        return CSS_CLASSES.PENALTY_FOULOUT;
-      }
+
+    // Color code penalties based on display count (excluding FO)
+    if (displayCount === RULES.warningPenaltyCount6) {
+      return CSS_CLASSES.PENALTY_6;
     }
-    
-    // Color code based on display count (excluding FO)
-    if (displayCount === RULES.warningPenaltyCount6) return CSS_CLASSES.PENALTY_6;
-    if (displayCount === RULES.warningPenaltyCount5) return CSS_CLASSES.PENALTY_5;
+    if (displayCount === RULES.warningPenaltyCount5) {
+      return CSS_CLASSES.PENALTY_5;
+    }
     
     return '';
   }
