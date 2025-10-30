@@ -166,6 +166,29 @@ $(function() {
     };
   }
 
+  /*********************************
+  ** Batch update queue functions **
+  *********************************/
+
+  // Batch update helper for reducing reflows
+  var updateQueue = {
+    pending: false,
+    callbacks: [],
+    schedule: function(callback) {
+      this.callbacks.push(callback);
+      if (!this.pending) {
+        this.pending = true;
+        requestAnimationFrame(this.flush.bind(this));
+      }
+    },
+    flush: function() {
+      var callbacks = this.callbacks;
+      this.callbacks = [];
+      this.pending = false;
+      callbacks.forEach(function(cb) { cb(); });
+    }
+  };
+
   // Helper function to get expulsion penalty IDs (cached)
   function getExpulsionPenaltyIds() {
     if (appState.cache.expulsionIdsCacheValid) {
@@ -250,25 +273,6 @@ $(function() {
       return true;
     }
   }
-
-  // Batch update helper for reducing reflows
-  var updateQueue = {
-    pending: false,
-    callbacks: [],
-    schedule: function(callback) {
-      this.callbacks.push(callback);
-      if (!this.pending) {
-        this.pending = true;
-        requestAnimationFrame(this.flush.bind(this));
-      }
-    },
-    flush: function() {
-      var callbacks = this.callbacks;
-      this.callbacks = [];
-      this.pending = false;
-      callbacks.forEach(function(cb) { cb(); });
-    }
-  };
 
   // Helper function to determine penalty count CSS class
   function getPenaltyCountClass(teamNum, skaterId, displayCount) {
