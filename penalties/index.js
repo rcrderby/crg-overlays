@@ -919,7 +919,7 @@ $(function() {
       WS.Register(['ScoreBoard.CurrentGame.Expulsion(*)'], handleExpulsionUpdate);
       
       // Clock and game state
-      WS.Register(['ScoreBoard.CurrentGame.Clock(*)'], debouncedClockUpdate);
+      WS.Register(['ScoreBoard.CurrentGame.Clock(*)'], debounce(updateClock, TIMING.debounceClockMs));
       WS.Register(['ScoreBoard.CurrentGame'], updateGameState);
       WS.Register(['ScoreBoard.CurrentGame.OfficialScore'], updateGameState);
       
