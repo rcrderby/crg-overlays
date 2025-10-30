@@ -803,9 +803,10 @@ $(function() {
   ** WebSocket event handler functions **
   **************************************/
 
-  // Debounced penalty update with variable delay (during initial load)
+  // Debounced penalty update with cleanup
   const debouncedPenaltyUpdate = {
-    timers: {}, 
+    timers: {},
+
     update(teamNum) {
       const delay = appState.flags.initialLoadComplete 
         ? TIMING.debouncePenaltyNormalMs 
@@ -820,6 +821,7 @@ $(function() {
         // Clean up timer reference after execution
         delete this.timers[teamNum];
         
+        // Run update only if WebSocket is ready
         if (isWSReady()) {
           updatePenalties(teamNum);
         }
@@ -943,6 +945,69 @@ $(function() {
     updateRosterAndPenalties(2);
   }
 
+  /***************************
+  ** Memory leak prevention **
+  ****************************/
+
+  // Store all registered handlers for cleanup
+  const registeredHandlers = [];
+  let cleanupRegistered = false;
+
+  // Register a WebSocket handler with automatic cleanup tracking
+  function registerHandler(paths, handler) {
+    if (!isWSReady()) {
+      console.warn('Attempted to register handler before WebSocket ready');
+      return;
+    }
+
+    WS.Register(paths, handler);
+    registeredHandlers.push({ paths, handler });
+  }
+
+  // Clean up all registered handlers and timers
+  function cleanup() {
+    console.log('Cleaning up overlay resources...');
+
+    // Unregister WebSocket handlers
+    registeredHandlers.forEach(({ paths, handler }) => {
+      if (WS && WS.Unregister) {
+        try {
+          WS.Unregister(paths, handler);
+        } catch (error) {
+          console.warn('Error unregistering handler:', error);
+        }
+      }
+    });
+    registeredHandlers.length = 0;
+    
+    // Clear all penalty update timers
+    debouncedPenaltyUpdate.clearAll();
+
+    // Clear update queue
+    if (updateQueue.pending) {
+      updateQueue.callbacks = [];
+      updateQueue.pending = false;
+    }
+
+    console.log('Cleanup complete');
+  }
+
+  // Register cleanup handler ( once during initialization)
+  function registerCleanupHandler() {
+    if (cleanupRegistered) return;
+
+    $(window).on('beforeunload', cleanup);
+
+    // Also cleanup on visibility change (for SPAs)
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        cleanup();
+      }
+    });
+
+    cleanupRegistered = true;
+  }
+
   /*******************
   ** Initialization **
   *******************/
@@ -1013,33 +1078,36 @@ $(function() {
       WS.Connect();
       WS.AutoRegister();
 
-      // Register all team data with wildcards
-      WS.Register(['ScoreBoard.CurrentGame.Team(*)'], handleTeamUpdate);
-      WS.Register(['ScoreBoard.CurrentGame.Team(*).Skater(*)'], handleSkaterUpdate);
-      WS.Register(['ScoreBoard.CurrentGame.Team(*).Skater(*).Penalty(*)'], handlePenaltyUpdate);
-      
+      // CRITICAL FIX #2: Register cleanup handler
+      registerCleanupHandler();
+
+      // Register all team data with wildcards (using safe wrapper)
+      registerHandler(['ScoreBoard.CurrentGame.Team(*)'], handleTeamUpdate);
+      registerHandler(['ScoreBoard.CurrentGame.Team(*).Skater(*)'], handleSkaterUpdate);
+      registerHandler(['ScoreBoard.CurrentGame.Team(*).Skater(*).Penalty(*)'], handlePenaltyUpdate);
+
       // Register for expulsion updates
-      WS.Register(['ScoreBoard.CurrentGame.Expulsion(*)'], handleExpulsionUpdate);
-      
+      registerHandler(['ScoreBoard.CurrentGame.Expulsion(*)'], handleExpulsionUpdate);
+
       // Clock and game state
-      WS.Register(['ScoreBoard.CurrentGame.Clock(*)'], debounce(updateClock, TIMING.debounceClockMs));
-      WS.Register(['ScoreBoard.CurrentGame'], updateGameState);
-      WS.Register(['ScoreBoard.CurrentGame.OfficialScore'], updateGameState);
-      
+      registerHandler(['ScoreBoard.CurrentGame.Clock(*)'], debounce(updateClock, TIMING.debounceClockMs));
+      registerHandler(['ScoreBoard.CurrentGame'], updateGameState);
+      registerHandler(['ScoreBoard.CurrentGame.OfficialScore'], updateGameState);
+
       // Intermission label settings
-      WS.Register(['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)'], updateGameState);
-      WS.Register(['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)'], updateGameState);
-      WS.Register(['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)'], updateGameState);
-      WS.Register(['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)'], updateGameState);
+      registerHandler(['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)'], updateGameState);
+      registerHandler(['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)'], updateGameState);
+      registerHandler(['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)'], updateGameState);
+      registerHandler(['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)'], updateGameState);
 
       // Tournament info
-      WS.Register(['ScoreBoard.CurrentGame.EventInfo(Tournament)'], updateTournamentName);
-      WS.Register(['ScoreBoard.CurrentGame.EventInfo(GameNo)'], updateTournamentName);
-      
+      registerHandler(['ScoreBoard.CurrentGame.EventInfo(Tournament)'], updateTournamentName);
+      registerHandler(['ScoreBoard.CurrentGame.EventInfo(GameNo)'], updateTournamentName);
+
       // Event info for start time checking
-      WS.Register(['ScoreBoard.CurrentGame.EventInfo(Date)'], updateGameState);
-      WS.Register(['ScoreBoard.CurrentGame.EventInfo(StartTime)'], updateGameState);
-      
+      registerHandler(['ScoreBoard.CurrentGame.EventInfo(Date)'], updateGameState);
+      registerHandler(['ScoreBoard.CurrentGame.EventInfo(StartTime)'], updateGameState);
+
       loadCustomLogo();
       setTimeout(initializeDisplay, TIMING.initDelayMs);
       
