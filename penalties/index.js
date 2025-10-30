@@ -226,29 +226,7 @@ $(function() {
     appState.cache.expulsionIdsValid = false;
   }
 
-  // Helper function to check if a skater is expelled
-  function isSkaterExpelled(teamNum, skaterId) {
-    var skater = teams[teamNum].skaters[skaterId];
-    if (!skater || !skater.penaltyIds || skater.penaltyIds.length === 0) {
-      return false;
-    }
-    
-    var expulsionIds = getExpulsionPenaltyIds();
-    if (expulsionIds.length === 0) {
-      return false;
-    }
-    
-    // Quick check - if skater has fewer penalties than expulsions exist, check each
-    for (var i = 0; i < skater.penaltyIds.length; i++) {
-      if (expulsionIds.indexOf(skater.penaltyIds[i]) !== -1) {
-        return true;
-      }
-    }
-    
-    return false;
-  }
-
-  // Helper function to check if game start time is missing or in the past (with caching)
+  // Check if game start time is missing or in the past (with caching)
   function isStartTimeMissingOrPast() {
     var now = Date.now();
     
@@ -278,6 +256,28 @@ $(function() {
       appState.cache.startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
       return true;
     }
+  }
+
+  // Helper function to check if a skater is expelled
+  function isSkaterExpelled(teamNum, skaterId) {
+    var skater = teams[teamNum].skaters[skaterId];
+    if (!skater || !skater.penaltyIds || skater.penaltyIds.length === 0) {
+      return false;
+    }
+    
+    var expulsionIds = getExpulsionPenaltyIds();
+    if (expulsionIds.length === 0) {
+      return false;
+    }
+    
+    // Quick check - if skater has fewer penalties than expulsions exist, check each
+    for (var i = 0; i < skater.penaltyIds.length; i++) {
+      if (expulsionIds.indexOf(skater.penaltyIds[i]) !== -1) {
+        return true;
+      }
+    }
+    
+    return false;
   }
 
   // Helper function to determine penalty count CSS class
