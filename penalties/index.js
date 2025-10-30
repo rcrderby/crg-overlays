@@ -748,15 +748,6 @@ $(function() {
     }
   };
 
-  // Wait for WS to be loaded
-  function waitForWS() {
-    if (typeof WS === 'undefined') {
-      setTimeout(waitForWS, TIMING.wsWaitMs);
-      return;
-    }
-    init();
-  }
-
   // Unified team update handler
   function handleTeamUpdate(key, value) {
     const match = key.match(REGEX_PATTERNS.teamNumber);
@@ -900,6 +891,15 @@ $(function() {
     } catch(error) {
       console.error('Failed to initialize overlay:', error);
     }
+  }
+
+  // Wait for WS to be loaded
+  function waitForWS() {
+    if (typeof WS === 'undefined') {
+      setTimeout(waitForWS, TIMING.wsWaitMs);
+      return;
+    }
+    init();
   }
 
   // Debounced clock update
