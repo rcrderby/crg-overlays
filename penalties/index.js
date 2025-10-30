@@ -729,6 +729,25 @@ $(function() {
     logoImg.src = CONFIG.bannerLogoPath;
   }
 
+  /**************************************
+  ** WebSocket event handler functions **
+  **************************************/
+
+  // Debounced penalty update with variable delay (during initial load)
+  const debouncedPenaltyUpdate = {
+    timers: {},
+    update(teamNum) {
+      const delay = appState.flags.initialLoadComplete 
+        ? TIMING.debouncePenaltyNormalMs 
+        : TIMING.debouncePenaltyInitMs;
+
+      clearTimeout(this.timers[teamNum]);
+      this.timers[teamNum] = setTimeout(() => {
+        updatePenalties(teamNum);
+      }, delay);
+    }
+  };
+
   // Wait for WS to be loaded
   function waitForWS() {
     if (typeof WS === 'undefined') {
@@ -781,18 +800,6 @@ $(function() {
 
   // Debounced clock update
   var debouncedClockUpdate = debounce(updateClock, TIMING.debounceClockMs);
-  
-  // Debounced penalty update - longer delay during initial load
-  var debouncedPenaltyUpdate = {
-    timers: {},
-    update: function(teamNum) {
-      var delay = appState.flags.initialLoadComplete ? TIMING.debouncePenaltyNormalMs : TIMING.debouncePenaltyInitMs;
-      clearTimeout(this.timers[teamNum]);
-      this.timers[teamNum] = setTimeout(function() {
-        updatePenalties(teamNum);
-      }, delay);
-    }
-  };
 
   // Unified team update handler
   function handleTeamUpdate(key, value) {
