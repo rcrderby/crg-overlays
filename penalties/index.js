@@ -508,6 +508,35 @@ $(function() {
     team.penalties.html(penaltyParts.join(''));
   }
 
+  /**************************
+  ** Team update functions **
+  **************************/
+
+  // Update team colors
+  function updateTeamColors(teamNum) {
+    const state = WS.state;
+    const fgColor = state[`ScoreBoard.CurrentGame.Team(${teamNum}).Color(whiteboard.fg)`];
+    const bgColor = state[`ScoreBoard.CurrentGame.Team(${teamNum}).Color(whiteboard.bg)`];
+    const colors = teams[teamNum].colors;
+    
+    // Skip update if colors haven't changed
+    if (colors.fg === fgColor && colors.bg === bgColor) {
+      return;
+    }
+    
+    // Set team colors
+    colors.fg = fgColor;
+    colors.bg = bgColor;
+    
+    // Use default colors if none are set
+    const finalFg = fgColor || 'white';
+    const finalBg = bgColor || 'black';
+    
+    appState.dom.root.style.setProperty(`--team${teamNum}-fg`, finalFg);
+    appState.dom.root.style.setProperty(`--team${teamNum}-bg`, finalBg);
+    appState.dom.root.style.setProperty(`--team${teamNum}-border`, finalFg);
+  }
+
   // Wait for WS to be loaded
   function waitForWS() {
     if (typeof WS === 'undefined') {
@@ -684,30 +713,6 @@ $(function() {
     // Fallback: update both teams if we can't determine which one
     updateRosterAndPenalties(1);
     updateRosterAndPenalties(2);
-  }
-
-  // Update team colors
-  function updateTeamColors(teamNum) {
-    var state = WS.state;
-    var fgColor = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Color(whiteboard.fg)'];
-    var bgColor = state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Color(whiteboard.bg)'];
-    var colors = teams[teamNum].colors;
-    
-    // Skip if colors haven't changed
-    if (colors.fg === fgColor && colors.bg === bgColor) {
-      return;
-    }
-    
-    colors.fg = fgColor;
-    colors.bg = bgColor;
-    
-    // Use default colors if not set
-    var finalFg = fgColor || 'white';
-    var finalBg = bgColor || 'black';
-    
-    root.style.setProperty('--team' + teamNum + '-fg', finalFg);
-    root.style.setProperty('--team' + teamNum + '-bg', finalBg);
-    root.style.setProperty('--team' + teamNum + '-border', finalFg);
   }
 
   // Check and display logos
