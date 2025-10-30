@@ -171,21 +171,23 @@ $(function() {
   *********************************/
 
   // Batch update helper for reducing reflows
-  var updateQueue = {
+  const updateQueue = {
     pending: false,
     callbacks: [],
-    schedule: function(callback) {
+    
+    schedule(callback) {
       this.callbacks.push(callback);
       if (!this.pending) {
         this.pending = true;
         requestAnimationFrame(this.flush.bind(this));
       }
     },
-    flush: function() {
-      var callbacks = this.callbacks;
+    
+    flush() {
+      const callbacks = this.callbacks;
       this.callbacks = [];
       this.pending = false;
-      callbacks.forEach(function(cb) { cb(); });
+      callbacks.forEach(cb => cb());
     }
   };
 
