@@ -85,6 +85,7 @@ $(function() {
     cache: {
       expulsionIds: [],
       expulsionIdsValid: false,
+      expulsionIdsExpiry: 0,
       startTimePast: null,
       startTimeCacheExpiry: 0
     },
@@ -140,8 +141,16 @@ $(function() {
   // Determine if the WebSocket is available for use
   function isWSReady() {
     return typeof WS !== 'undefined' && 
-          typeof WS.state !== 'undefined' && 
-          Object.keys(WS.state).length > 0;
+           typeof WS.state !== 'undefined' && 
+           Object.keys(WS.state).length > 0;
+  }
+
+  // Sanitize user input to prevent XSS via HTML injection in roster or team data
+  function sanitizeHTML(str) {
+    if (str === null || str === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
   }
 
   // Check boolean values from the WebSocket
@@ -482,10 +491,14 @@ $(function() {
     
     const captainIndicator = isCaptain ? ' <span class="captain-indicator">C</span>' : '';
     
+    // Sanitize roster user input
+    const safeNumber = sanitizeHTML(skater.number);
+    const safeName = sanitizeHTML(skater.name);
+    
     return `
       <div class="roster-line">
-        <div class="roster-number">${skater.number}</div>
-        <div class="roster-name">${skater.name}${captainIndicator}</div>
+        <div class="roster-number">${safeNumber}</div>
+        <div class="roster-name">${safeName}${captainIndicator}</div>
       </div>
     `;
   }
@@ -494,7 +507,9 @@ $(function() {
   // Build penalty HTML for a player
   function buildPenaltyHTML(teamNum, skater, expulsionIds) {
     const displayPenalties = getDisplayPenalties(skater.penaltyDetails, expulsionIds);
-    const codes = displayPenalties.map(p => p.code).join(' ');
+    
+    // Sanitize penalty codes
+    const codes = displayPenalties.map(p => sanitizeHTML(p.code)).join(' ');
     const displayCount = displayPenalties.length;
     
     // Determine the display value for the player's total penalties (EXP, FO, or count)
