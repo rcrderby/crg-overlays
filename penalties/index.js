@@ -1023,6 +1023,15 @@ $(function() {
     }
   }
 
+  // Wait for WebSocket to finish loading
+  function waitForWS() {
+    if (typeof WS === 'undefined') {
+      setTimeout(waitForWS, TIMING.wsWaitMs);
+      return;
+    }
+    init();
+  }
+
   // Start the application
   waitForWS();
 });
