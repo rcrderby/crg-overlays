@@ -798,6 +798,27 @@ $(function() {
     }
   }
 
+  // Unified player update handler
+  function handleSkaterUpdate(key, value) {
+    const match = key.match(REGEX_PATTERNS.skaterPattern);
+    if (!match) return;
+    
+    const teamNum = parseInt(match[1]);
+    const skaterId = match[2];
+    const skater = getOrCreateSkater(teamNum, skaterId);
+    
+    if (REGEX_PATTERNS.skaterNumber.test(key)) {
+      skater.number = trimValue(value);
+      updateRosterAndPenalties(teamNum);
+    } else if (REGEX_PATTERNS.skaterName.test(key) && !REGEX_PATTERNS.skaterNameExclude.test(key)) {
+      skater.name = trimValue(value);
+      updateRosterAndPenalties(teamNum);
+    } else if (REGEX_PATTERNS.skaterFlags.test(key)) {
+      skater.flags = trimValue(value);
+      updateRosterAndPenalties(teamNum);
+    }
+  }
+
   // Initialize WebSocket listeners
   function init() {
     try {
@@ -841,39 +862,6 @@ $(function() {
 
   // Debounced clock update
   var debouncedClockUpdate = debounce(updateClock, TIMING.debounceClockMs);
-
-  // Unified skater update handler
-  function handleSkaterUpdate(key, value) {
-    var match = key.match(REGEX_PATTERNS.skaterPattern);
-    if (!match) return;
-    
-    var teamNum = parseInt(match[1]);
-    var skaterId = match[2];
-    var skaters = teams[teamNum].skaters;
-    
-    if (!skaters[skaterId]) {
-      skaters[skaterId] = { 
-        id: skaterId, 
-        number: '', 
-        name: '', 
-        penalties: [],
-        penaltyIds: [],
-        penaltyDetails: [],
-        flags: ''
-      };
-    }
-    
-    if (REGEX_PATTERNS.skaterNumber.test(key)) {
-      skaters[skaterId].number = trimValue(value);
-      updateRosterAndPenalties(teamNum);
-    } else if (REGEX_PATTERNS.skaterName.test(key) && !REGEX_PATTERNS.skaterNameExclude.test(key)) {
-      skaters[skaterId].name = trimValue(value);
-      updateRosterAndPenalties(teamNum);
-    } else if (REGEX_PATTERNS.skaterFlags.test(key)) {
-      skaters[skaterId].flags = trimValue(value);
-      updateRosterAndPenalties(teamNum);
-    }
-  }
 
   // Handle penalty updates
   function handlePenaltyUpdate(key, _value) {
