@@ -537,6 +537,25 @@ $(function() {
     appState.dom.root.style.setProperty(`--team${teamNum}-border`, finalFg);
   }
 
+  // Check for and display logos if present
+  function checkAndDisplayLogos() {
+    const shouldShow = appState.teams[1].logo && appState.teams[2].logo;
+    
+    if (shouldShow !== appState.flags.bothTeamsHaveLogos) {
+      appState.flags.bothTeamsHaveLogos = shouldShow;
+      
+      if (shouldShow) {
+        $elements.team1.logo.attr('src', appState.teams[1].logo).show();
+        $elements.team2.logo.attr('src', appState.teams[2].logo).show();
+        $elements.logoContainers.show();
+      } else {
+        $elements.team1.logo.hide();
+        $elements.team2.logo.hide();
+        $elements.logoContainers.hide();
+      }
+    }
+  }
+
   // Wait for WS to be loaded
   function waitForWS() {
     if (typeof WS === 'undefined') {
@@ -713,25 +732,6 @@ $(function() {
     // Fallback: update both teams if we can't determine which one
     updateRosterAndPenalties(1);
     updateRosterAndPenalties(2);
-  }
-
-  // Check and display logos
-  function checkAndDisplayLogos() {
-    var shouldShow = teams[1].logo && teams[2].logo;
-    
-    if (shouldShow !== appState.flags.bothTeamsHaveLogos) {
-      appState.flags.bothTeamsHaveLogos = shouldShow;
-      
-      if (shouldShow) {
-        $elements.team1.logo.attr('src', teams[1].logo).show();
-        $elements.team2.logo.attr('src', teams[2].logo).show();
-        $elements.logoContainers.show();
-      } else {
-        $elements.team1.logo.hide();
-        $elements.team2.logo.hide();
-        $elements.logoContainers.hide();
-      }
-    }
   }
 
   // Equalize team score block widths and set wrapper width
