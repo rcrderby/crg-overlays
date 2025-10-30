@@ -594,6 +594,7 @@ $(function() {
       const currentPeriod = parseInt(state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
       const intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']) || 0;
       const periodTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Period).Time']) || 0;
+      const periodRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Period).Running']);
       const numPeriods = parseInt(state['ScoreBoard.CurrentGame.Rule(Period.Number)']) || 2;
       const intermissionRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']);
 
@@ -620,7 +621,7 @@ $(function() {
       }
   
       // Between periods, show the intermission clock
-      if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionTime > 0) {
+      if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionRunning && !periodRunning) {
         $elements.gameClock.text(formatTime(intermissionTime));
         return;
       }
@@ -641,6 +642,7 @@ $(function() {
       const inOvertime = isTrue(state['ScoreBoard.CurrentGame.InOvertime']);
       const officialScore = isTrue(state['ScoreBoard.CurrentGame.OfficialScore']);
       const intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']) || 0;
+      const periodRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Period).Running']);
       const numPeriods = parseInt(state['ScoreBoard.CurrentGame.Rule(Period.Number)']) || 2;
       const intermissionRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']);
       
@@ -677,7 +679,7 @@ $(function() {
         text = labels.unofficial;
       } else if (inOvertime) {
         text = DISPLAY_TEXT.intermission.overtime;
-      } else if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionTime > 0) {
+      } else if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionRunning && !periodRunning) {
         text = labels.intermission;
       } else if (currentPeriod > 0 && currentPeriod <= numPeriods) {
         text = `Period ${currentPeriod}`;
