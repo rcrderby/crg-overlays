@@ -517,7 +517,7 @@ $(function() {
     const state = WS.state;
     const fgColor = state[`ScoreBoard.CurrentGame.Team(${teamNum}).Color(whiteboard.fg)`];
     const bgColor = state[`ScoreBoard.CurrentGame.Team(${teamNum}).Color(whiteboard.bg)`];
-    const colors = teams[teamNum].colors;
+    const colors = appState.teams[teamNum].colors;
     
     // Skip update if colors haven't changed
     if (colors.fg === fgColor && colors.bg === bgColor) {
