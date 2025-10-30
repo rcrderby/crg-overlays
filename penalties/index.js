@@ -129,6 +129,21 @@ $(function() {
   ** Helper functions **
   *********************/
 
+  // Safely retrieve values from the WebSocket state, avoiding race conditions
+  function safeGetState(key, defaultValue = null) {
+    if (!WS || !WS.state || typeof WS.state[key] === 'undefined') {
+      return defaultValue;
+    }
+    return WS.state[key];
+  }
+
+  // Determine if the WebSocket is available for use
+  function isWSReady() {
+    return typeof WS !== 'undefined' && 
+          typeof WS.state !== 'undefined' && 
+          Object.keys(WS.state).length > 0;
+  }
+
   // Check boolean values from the WebSocket
   function isTrue(value) {
     return value === true || value === 'true';
@@ -152,7 +167,10 @@ $(function() {
 
   // Get intermission label with fallback to default
   function getIntermissionLabel(stateKey, defaultValue) {
-    const value = trimValue(WS.state[stateKey]);
+    if (!isWSReady()) {
+      return defaultValue;
+    }
+    const value = trimValue(safeGetState(stateKey));
     return value || defaultValue;
   }
 
@@ -201,7 +219,11 @@ $(function() {
     if (appState.cache.expulsionIdsValid) {
       return appState.cache.expulsionIds;
     }
-    
+
+    if (!isWSReady()) {
+      return [];
+    }
+
     const ids = [];
     const state = WS.state;
     
@@ -236,9 +258,14 @@ $(function() {
       return appState.cache.startTimePast;
     }
     
-    const state = WS.state;
-    const startDate = state['ScoreBoard.CurrentGame.EventInfo(Date)'];
-    const startTime = state['ScoreBoard.CurrentGame.EventInfo(StartTime)'];
+    if (!isWSReady()) {
+      appState.cache.startTimePast = true;
+      appState.cache.startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
+      return true;
+    }
+    
+    const startDate = safeGetState('ScoreBoard.CurrentGame.EventInfo(Date)');
+    const startTime = safeGetState('ScoreBoard.CurrentGame.EventInfo(StartTime)');
     
     // If no date or time is set, treat as if start time is missing/past
     if (!startDate || !startTime) {
@@ -384,6 +411,10 @@ $(function() {
 
   // Update team penalties (collect all penalty data)
   function updatePenalties(teamNum) {
+    if (!isWSReady()) {
+      return;
+    }
+
     const skaters = appState.teams[teamNum].skaters;
     const state = WS.state;
     
@@ -515,9 +546,12 @@ $(function() {
 
   // Update team colors
   function updateTeamColors(teamNum) {
-    const state = WS.state;
-    const fgColor = state[`ScoreBoard.CurrentGame.Team(${teamNum}).Color(whiteboard.fg)`];
-    const bgColor = state[`ScoreBoard.CurrentGame.Team(${teamNum}).Color(whiteboard.bg)`];
+    if (!isWSReady()) {
+      return;
+    }
+    
+    const fgColor = safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Color(whiteboard.fg)`);
+    const bgColor = safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Color(whiteboard.bg)`);
     const colors = appState.teams[teamNum].colors;
     
     // Skip update if colors haven't changed
@@ -585,18 +619,20 @@ $(function() {
 
 // Update the game clock
   function updateClock() {
+    if (!isWSReady()) {
+      return;
+    }
+    
     try {
-      const state = WS.state;
-
       // Get the clock label
-      const officialScore = isTrue(state['ScoreBoard.CurrentGame.OfficialScore']);
-      const inOvertime = isTrue(state['ScoreBoard.CurrentGame.InOvertime']);
-      const currentPeriod = parseInt(state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
-      const intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']) || 0;
-      const periodTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Period).Time']) || 0;
-      const periodRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Period).Running']);
-      const numPeriods = parseInt(state['ScoreBoard.CurrentGame.Rule(Period.Number)']) || 2;
-      const intermissionRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']);
+      const officialScore = isTrue(safeGetState('ScoreBoard.CurrentGame.OfficialScore'));
+      const inOvertime = isTrue(safeGetState('ScoreBoard.CurrentGame.InOvertime'));
+      const currentPeriod = parseInt(safeGetState('ScoreBoard.CurrentGame.CurrentPeriodNumber')) || 0;
+      const intermissionTime = parseInt(safeGetState('ScoreBoard.CurrentGame.Clock(Intermission).Time')) || 0;
+      const periodTime = parseInt(safeGetState('ScoreBoard.CurrentGame.Clock(Period).Time')) || 0;
+      const periodRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Period).Running'));
+      const numPeriods = parseInt(safeGetState('ScoreBoard.CurrentGame.Rule(Period.Number)')) || 2;
+      const intermissionRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Intermission).Running'));
 
       // Determine if the game is over
       const gameOver = currentPeriod > numPeriods || 
@@ -636,15 +672,18 @@ $(function() {
 
   // Update game state (period info)
   function updateGameState() {
+    if (!isWSReady()) {
+      return;
+    }
+    
     try {
-      const state = WS.state;
-      const currentPeriod = parseInt(state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
-      const inOvertime = isTrue(state['ScoreBoard.CurrentGame.InOvertime']);
-      const officialScore = isTrue(state['ScoreBoard.CurrentGame.OfficialScore']);
-      const intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']) || 0;
-      const periodRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Period).Running']);
-      const numPeriods = parseInt(state['ScoreBoard.CurrentGame.Rule(Period.Number)']) || 2;
-      const intermissionRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']);
+      const currentPeriod = parseInt(safeGetState('ScoreBoard.CurrentGame.CurrentPeriodNumber')) || 0;
+      const inOvertime = isTrue(safeGetState('ScoreBoard.CurrentGame.InOvertime'));
+      const officialScore = isTrue(safeGetState('ScoreBoard.CurrentGame.OfficialScore'));
+      const intermissionTime = parseInt(safeGetState('ScoreBoard.CurrentGame.Clock(Intermission).Time')) || 0;
+      const periodRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Period).Running'));
+      const numPeriods = parseInt(safeGetState('ScoreBoard.CurrentGame.Rule(Period.Number)')) || 2;
+      const intermissionRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Intermission).Running'));
       
       // Get intermission labels from settings with fallback to defaults
       const labels = {
@@ -702,8 +741,8 @@ $(function() {
 
   // Update tournament name and game number if available
   function updateTournamentName() {
-    const tournament = trimValue(WS.state['ScoreBoard.CurrentGame.EventInfo(Tournament)']);
-    const gameNo = trimValue(WS.state['ScoreBoard.CurrentGame.EventInfo(GameNo)']);
+    const tournament = trimValue(safeGetState('ScoreBoard.CurrentGame.EventInfo(Tournament)'));
+    const gameNo = trimValue(safeGetState('ScoreBoard.CurrentGame.EventInfo(GameNo)'));
     
     if (tournament) {
       const displayText = gameNo ? `${tournament} - Game ${gameNo}` : tournament;
@@ -751,7 +790,9 @@ $(function() {
 
       clearTimeout(this.timers[teamNum]);
       this.timers[teamNum] = setTimeout(() => {
-        updatePenalties(teamNum);
+        if (isWSReady()) {
+          updatePenalties(teamNum);
+        }
       }, delay);
     }
   };
@@ -768,7 +809,7 @@ $(function() {
     if (key.includes('.AlternateName(whiteboard)') || 
         (REGEX_PATTERNS.teamName.test(key) && !key.includes('AlternateName') && !key.includes('.Skater('))) {
 
-      const altName = trimValue(WS.state[`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`]);
+      const altName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`));
       const name = altName || trimValue(value);
       
       // Use the IGRF team name or a default value if the "whiteboard" custom name is empty/default
@@ -864,17 +905,21 @@ $(function() {
 
   // Initialize display with initial data
   function initializeDisplay() {
+    if (!isWSReady()) {
+      console.warn('WebSocket not ready during initialization, retrying...');
+      setTimeout(initializeDisplay, TIMING.wsWaitMs);
+      return;
+    }
+    
     try {
-      const state = WS.state;
-
       // Initialize team names, total penalty counts, and colors
       for (let teamNum = 1; teamNum <= RULES.numTeams; teamNum++) {
-        const altName = trimValue(state[`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`]);
-        const name = trimValue(state[`ScoreBoard.CurrentGame.Team(${teamNum}).Name`]);
-        const total = state[`ScoreBoard.CurrentGame.Team(${teamNum}).TotalPenalties`];
+        const altName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`));
+        const name = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Name`));
+        const total = safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).TotalPenalties`, '0');
         
         $elements[`team${teamNum}`].name.text(altName || name || '');
-        $elements[`team${teamNum}`].total.text(total || '0');
+        $elements[`team${teamNum}`].total.text(total);
         
         updateTeamColors(teamNum);
       }
@@ -895,8 +940,8 @@ $(function() {
       setTimeout(() => {
         for (let teamNum = 1; teamNum <= RULES.numTeams; teamNum++) {
           const currentText = $elements[`team${teamNum}`].name.text();
-          const altName = trimValue(WS.state[`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`]);
-          const name = trimValue(WS.state[`ScoreBoard.CurrentGame.Team(${teamNum}).Name`]);
+          const altName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`));
+          const name = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Name`));
 
           if ((!currentText || currentText.trim() === '') && !altName && !name) {
             $elements[`team${teamNum}`].name.text(DISPLAY_TEXT.defaultTeamNamePrefix + teamNum);
@@ -907,11 +952,19 @@ $(function() {
 
     } catch(error) {
       console.error('Error during initialization:', error);
+      // Retry initialization after delay
+      setTimeout(initializeDisplay, TIMING.wsWaitMs * 2);
     }
   }
 
   // Initialize WebSocket listeners
   function init() {
+    if (!isWSReady()) {
+      console.log('Waiting for WebSocket...');
+      setTimeout(init, TIMING.wsWaitMs);
+      return;
+    }
+    
     try {
       WS.Connect();
       WS.AutoRegister();
@@ -946,18 +999,13 @@ $(function() {
       loadCustomLogo();
       setTimeout(initializeDisplay, TIMING.initDelayMs);
       
+      console.log('Penalties overlay initialized successfully');
+      
     } catch(error) {
       console.error('Failed to initialize overlay:', error);
+      // Retry after delay
+      setTimeout(init, TIMING.wsWaitMs * 5);
     }
-  }
-
-  // Wait for WebSocket to finish loading
-  function waitForWS() {
-    if (typeof WS === 'undefined') {
-      setTimeout(waitForWS, TIMING.wsWaitMs);
-      return;
-    }
-    init();
   }
 
   // Start the application
