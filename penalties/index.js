@@ -556,6 +556,28 @@ $(function() {
     }
   }
 
+  // Equalize team name and score block widths and set wrapper width
+  function equalizeTeamBoxWidths() {
+    requestAnimationFrame(() => {
+      // Force a reflow to get natural widths if needed
+      const team1Width = $elements.team1.name.parent().get(0).scrollWidth;
+      const team2Width = $elements.team2.name.parent().get(0).scrollWidth;
+
+      // Add a buffer to the maximum width to prevent overflow/truncation
+      const maxWidth = Math.max(team1Width, team2Width) + CONFIG.teamNameOverflowBufferPixels;
+      
+      // Single write operation
+      $elements.teamScoreBlocks.css('width', `${maxWidth}px`);
+      
+      const vsClockWidth = $elements.vsClockContainer.outerWidth();
+      const hasLogo = $elements.gameInfoWrapper.hasClass(CSS_CLASSES.HAS_LOGO);
+      const padding = hasLogo ? 280 : 40;
+      
+      const totalWidth = (maxWidth * 2) + vsClockWidth + padding;
+      $elements.gameInfoWrapper.css('width', `${totalWidth}px`);
+    });
+  }
+
   // Wait for WS to be loaded
   function waitForWS() {
     if (typeof WS === 'undefined') {
@@ -732,28 +754,6 @@ $(function() {
     // Fallback: update both teams if we can't determine which one
     updateRosterAndPenalties(1);
     updateRosterAndPenalties(2);
-  }
-
-  // Equalize team score block widths and set wrapper width
-  function equalizeTeamBoxWidths() {
-    requestAnimationFrame(function() {
-      // Force a reflow to get natural widths if needed
-      var team1Width = $elements.team1.name.parent().get(0).scrollWidth;
-      var team2Width = $elements.team2.name.parent().get(0).scrollWidth;
-
-      // Add 1px buffer to the maximum width to prevent overflow
-      var maxWidth = Math.max(team1Width, team2Width) + DISPLAY_TEXT.teamNameOverflowBufferPixels;
-      
-      // Single write
-      $elements.teamScoreBlocks.css('width', maxWidth + 'px');
-      
-      var vsClockWidth = $elements.vsClockContainer.outerWidth();
-      var hasLogo = $elements.gameInfoWrapper.hasClass(CSS_CLASSES.HAS_LOGO);
-      var padding = hasLogo ? 280 : 40;
-      
-      var totalWidth = (maxWidth * 2) + vsClockWidth + padding;
-      $elements.gameInfoWrapper.css('width', totalWidth + 'px');
-    });
   }
 
   // Update clock
