@@ -697,6 +697,19 @@ $(function() {
     }
   }
 
+  // Update tournament name and game number if available
+  function updateTournamentName() {
+    const tournament = trimValue(WS.state['ScoreBoard.CurrentGame.EventInfo(Tournament)']);
+    const gameNo = trimValue(WS.state['ScoreBoard.CurrentGame.EventInfo(GameNo)']);
+    
+    if (tournament) {
+      const displayText = gameNo ? `${tournament} - Game ${gameNo}` : tournament;
+      $elements.tournamentName.text(displayText).show();
+    } else {
+      $elements.tournamentName.hide();
+    }
+  }
+
   // Wait for WS to be loaded
   function waitForWS() {
     if (typeof WS === 'undefined') {
@@ -873,22 +886,6 @@ $(function() {
     // Fallback: update both teams if we can't determine which one
     updateRosterAndPenalties(1);
     updateRosterAndPenalties(2);
-  }
-
-  // Update tournament name and game number if available
-  function updateTournamentName() {
-    var tournament = trimValue(WS.state['ScoreBoard.CurrentGame.EventInfo(Tournament)']);
-    var gameNo = trimValue(WS.state['ScoreBoard.CurrentGame.EventInfo(GameNo)']);
-    
-    if (tournament) {
-      var displayText = tournament;
-      if (gameNo) {
-        displayText = tournament + ' - Game ' + gameNo;
-      }
-      $elements.tournamentName.text(displayText).show();
-    } else {
-      $elements.tournamentName.hide();
-    }
   }
 
   // Load custom logo if available
