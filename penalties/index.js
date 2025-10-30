@@ -578,6 +578,60 @@ $(function() {
     });
   }
 
+  /******************************************
+  ** Clock and game state update functions **
+  ******************************************/
+
+// Update the game clock
+  function updateClock() {
+    try {
+      const state = WS.state;
+
+      // Get the clock label
+      const officialScore = isTrue(state['ScoreBoard.CurrentGame.OfficialScore']);
+      const inOvertime = isTrue(state['ScoreBoard.CurrentGame.InOvertime']);
+      const currentPeriod = parseInt(state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
+      const intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']) || 0;
+      const periodTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Period).Time']) || 0;
+      const numPeriods = parseInt(state['ScoreBoard.CurrentGame.Rule(Period.Number)']) || 2;
+      const intermissionRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']);
+
+      // Determine if the game is over
+      const gameOver = currentPeriod > numPeriods || 
+                      (currentPeriod >= numPeriods && (intermissionRunning || intermissionTime > 0));
+      
+      // Hide the period clock for for unofficial/official score or overtime
+      if (officialScore || gameOver || inOvertime) {
+        $elements.gameClock.html('&nbsp;');
+        return;
+      }
+
+      // Before period 1, if the IGRF start time is missing or in the past, show the upcoming period clock
+      if (currentPeriod === 0) {
+        if (isStartTimeMissingOrPast()) {
+          $elements.gameClock.text(formatTime(periodTime));
+        } else if (intermissionTime <= 0) {
+          $elements.gameClock.html('&nbsp;');
+        } else {
+          $elements.gameClock.text(formatTime(intermissionTime));
+        }
+        return;
+      }
+  
+      // Between periods, show the intermission clock
+      if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionTime > 0) {
+        $elements.gameClock.text(formatTime(intermissionTime));
+        return;
+      }
+
+      // During periods, show the period clock
+      $elements.gameClock.text(formatTime(periodTime));
+      
+    } catch(error) {
+      console.error('Error updating clock:', error);
+    }
+  }
+
   // Wait for WS to be loaded
   function waitForWS() {
     if (typeof WS === 'undefined') {
@@ -754,51 +808,6 @@ $(function() {
     // Fallback: update both teams if we can't determine which one
     updateRosterAndPenalties(1);
     updateRosterAndPenalties(2);
-  }
-
-  // Update clock
-  function updateClock() {
-    try {
-      var state = WS.state;
-      var officialScore = isTrue(state['ScoreBoard.CurrentGame.OfficialScore']);
-      var inOvertime = isTrue(state['ScoreBoard.CurrentGame.InOvertime']);
-      var currentPeriod = parseInt(state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
-      var intermissionTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Intermission).Time']) || 0;
-      var periodTime = parseInt(state['ScoreBoard.CurrentGame.Clock(Period).Time']) || 0;
-      var numPeriods = parseInt(state['ScoreBoard.CurrentGame.Rule(Period.Number)']) || 2;
-      var intermissionRunning = isTrue(state['ScoreBoard.CurrentGame.Clock(Intermission).Running']);
-      
-      var gameOver = currentPeriod > numPeriods || 
-                    (currentPeriod >= numPeriods && (intermissionRunning || intermissionTime > 0));
-      
-      // Hide clock for unofficial score, overtime, or official
-      if (officialScore || gameOver || inOvertime) {
-        $elements.gameClock.html('&nbsp;');
-        return;
-      }
-      
-      if (currentPeriod === 0) {
-        // If start time is missing or in past, show period clock for the upcoming period
-        if (isStartTimeMissingOrPast()) {
-          $elements.gameClock.text(formatTime(periodTime));
-        } else if (intermissionTime <= 0) {
-          $elements.gameClock.html('&nbsp;');
-        } else {
-          $elements.gameClock.text(formatTime(intermissionTime));
-        }
-        return;
-      }
-      
-      if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionTime > 0) {
-        $elements.gameClock.text(formatTime(intermissionTime));
-        return;
-      }
-      
-      $elements.gameClock.text(formatTime(periodTime));
-      
-    } catch(error) {
-      console.error('Error updating clock:', error);
-    }
   }
 
   // Update game state (period info)
