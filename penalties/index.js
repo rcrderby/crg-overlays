@@ -280,6 +280,23 @@ $(function() {
     return skater.penaltyIds.some(penaltyId => expulsionIds.includes(penaltyId));
   }
 
+  // Check if a skater is fouled out
+  function isSkaterFouledOut(skater) {
+    if (!skater || !skater.penalties) return false;
+    
+    const totalPenalties = skater.penalties.length;
+    
+    // Fouled out if 7+ penalties
+    if (totalPenalties >= RULES.fouloutPenaltyCount) {
+      return true;
+    }
+    
+    // Fouled out if FO code present
+    return skater.penalties.some(penalty => 
+      String(penalty || '').trim().toUpperCase() === DISPLAY_TEXT.fouloutDisplay
+    );
+  }
+
   // Helper function to determine penalty count CSS class
   function getPenaltyCountClass(teamNum, skaterId, displayCount) {
     if (isSkaterExpelled(teamNum, skaterId)) {
