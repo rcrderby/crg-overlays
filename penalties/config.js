@@ -9,7 +9,10 @@
 ** <script type="text/javascript" src="index.js"></script>
 ****************************************************************************/
 
-var PenaltiesOverlayConfig = {
+// Create a global namespace for variables
+window.AppConfig = window.AppConfig || {};
+
+window.AppConfig.PenaltiesOverlayConfig = {
   /********************
   ** Timing Settings **
   ********************/

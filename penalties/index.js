@@ -3,6 +3,10 @@
 $(function() {
   'use strict';
 
+  // Import configuration data from global namespace
+  const PenaltiesOverlayConfig = window.AppConfig.PenaltiesOverlayConfig;
+  console.log('Loaded config.js:');
+
   /********************************
   ** Verify that config.js loads **
   ********************************/
@@ -115,7 +119,7 @@ $(function() {
     markReceived(dataKey) {
       if (typeof this.dataReceived[dataKey] === 'number') {
         this.dataReceived[dataKey]++;
-      } else if (this.dataReceived.hasOwnProperty(dataKey)) {
+      } else if (Object.hasOwn(this.dataReceived, dataKey)) {
         this.dataReceived[dataKey] = true;
       }
       this.checkIfReady();
