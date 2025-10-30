@@ -228,15 +228,16 @@ $(function() {
 
   // Check if game start time is missing or in the past (with caching)
   function isStartTimeMissingOrPast() {
-    var now = Date.now();
+    const now = Date.now();
     
+    // Return cached value if still valid
     if (appState.cache.startTimePast !== null && now < appState.cache.startTimeCacheExpiry) {
       return appState.cache.startTimePast;
     }
     
-    var state = WS.state;
-    var startDate = state['ScoreBoard.CurrentGame.EventInfo(Date)'];
-    var startTime = state['ScoreBoard.CurrentGame.EventInfo(StartTime)'];
+    const state = WS.state;
+    const startDate = state['ScoreBoard.CurrentGame.EventInfo(Date)'];
+    const startTime = state['ScoreBoard.CurrentGame.EventInfo(StartTime)'];
     
     // If no date or time is set, treat as if start time is missing/past
     if (!startDate || !startTime) {
@@ -246,12 +247,13 @@ $(function() {
     }
     
     try {
-      var startDateTime = new Date(startDate + 'T' + startTime);
+      const startDateTime = new Date(`${startDate}T${startTime}`);
       appState.cache.startTimePast = startDateTime < new Date();
       appState.cache.startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
       return appState.cache.startTimePast;
-    } catch {
+    } catch (error) {
       // If date parsing fails, treat as missing
+      console.warn('Failed to parse start date/time:', error);
       appState.cache.startTimePast = true;
       appState.cache.startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
       return true;
