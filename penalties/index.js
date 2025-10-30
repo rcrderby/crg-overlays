@@ -710,6 +710,25 @@ $(function() {
     }
   }
 
+  // Load custom logo if available
+  function loadCustomLogo() {
+    const logoImg = new Image();
+
+    // Attempt to load custom logo and add symmetrical padding
+    logoImg.onload = () => {
+      $elements.customLogoSpace.html(`<img src="${CONFIG.bannerLogoPath}" class="custom-logo" />`);
+      $elements.gameInfoWrapper.addClass(CSS_CLASSES.HAS_LOGO);
+    };
+
+    // Do not add symmetrical padding if logo fails to load
+    logoImg.onerror = () => {
+      $elements.customLogoSpace.empty();
+      $elements.gameInfoWrapper.removeClass(CSS_CLASSES.HAS_LOGO);
+    };
+
+    logoImg.src = CONFIG.bannerLogoPath;
+  }
+
   // Wait for WS to be loaded
   function waitForWS() {
     if (typeof WS === 'undefined') {
@@ -886,22 +905,6 @@ $(function() {
     // Fallback: update both teams if we can't determine which one
     updateRosterAndPenalties(1);
     updateRosterAndPenalties(2);
-  }
-
-  // Load custom logo if available
-  function loadCustomLogo() {
-    var logoImg = new Image();
-    var $wrapper = $('.game-info-wrapper');
-    
-    logoImg.onload = function() {
-      $elements.customLogoSpace.html('<img src="' + DISPLAY_TEXT.bannerLogoPath + '" class="custom-logo" />');
-      $wrapper.addClass(CSS_CLASSES.HAS_LOGO);
-    };
-    logoImg.onerror = function() {
-      $elements.customLogoSpace.empty();
-      $wrapper.removeClass(CSS_CLASSES.HAS_LOGO);
-    };
-    logoImg.src = DISPLAY_TEXT.bannerLogoPath;
   }
 
   // Initialize display
