@@ -23,10 +23,11 @@ $(function() {
 
   // Halt if PenaltiesOverlayConfig appears invalid
   if (
-      !PenaltiesOverlayConfig.timing ||
-      !PenaltiesOverlayConfig.display ||
-      !PenaltiesOverlayConfig.labels ||
-      !PenaltiesOverlayConfig.rules
+      !PenaltiesOverlayConfig.timing || 
+      !PenaltiesOverlayConfig.display || 
+      !PenaltiesOverlayConfig.labels || 
+      !PenaltiesOverlayConfig.rules || 
+      !PenaltiesOverlayConfig.penalties
   ) {
     console.error('ERROR: data imported from config.js is invalid.');
     console.error('Required structures: timing, display, labels, rules, and penalties');
