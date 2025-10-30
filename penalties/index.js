@@ -945,7 +945,7 @@ $(function() {
     }
   }
 
-  // Wait for WS to be loaded
+  // Wait for WebSocket to finish loading
   function waitForWS() {
     if (typeof WS === 'undefined') {
       setTimeout(waitForWS, TIMING.wsWaitMs);
@@ -954,8 +954,6 @@ $(function() {
     init();
   }
 
-  // Debounced clock update
-  var debouncedClockUpdate = debounce(updateClock, TIMING.debounceClockMs);
-
+  // Start the application
   waitForWS();
 });
