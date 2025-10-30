@@ -757,6 +757,47 @@ $(function() {
     init();
   }
 
+  // Unified team update handler
+  function handleTeamUpdate(key, value) {
+    const match = key.match(REGEX_PATTERNS.teamNumber);
+    if (!match) return;
+
+    const teamNum = parseInt(match[1]);
+    const team = $elements[`team${teamNum}`];
+
+    // Check for a team name in the "whiteboard" custom name
+    if (key.includes('.AlternateName(whiteboard)') || 
+        (REGEX_PATTERNS.teamName.test(key) && !key.includes('AlternateName') && !key.includes('.Skater('))) {
+
+      const altName = trimValue(WS.state[`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`]);
+      const name = altName || trimValue(value);
+      
+      // Use the IGRF team name or a default value if the "whiteboard" custom name is empty/default
+      const currentText = team.name.text();
+      if (name || !currentText || currentText === DISPLAY_TEXT.defaultTeamNamePrefix + teamNum) {
+        team.name.text(name || '');
+        updateQueue.schedule(equalizeTeamBoxWidths);
+      }
+
+    // If a player name temporarily attempts to populate the team score, display a 0
+    } else if (REGEX_PATTERNS.teamScore.test(key) && !key.includes('Skater')) {
+      team.score.text(value || '0');
+
+    // Check for and display team logos
+    } else if (REGEX_PATTERNS.teamLogo.test(key)) {
+      appState.teams[teamNum].logo = value || '';
+      checkAndDisplayLogos();
+
+    // Update team roster colors
+    } else if (REGEX_PATTERNS.teamColor.test(key)) {
+      updateQueue.schedule(() => updateTeamColors(teamNum));
+
+    // Set the team penalty total values
+    } else if (REGEX_PATTERNS.teamPenalties.test(key)) {
+      team.total.text(value || '0');
+    }
+  }
+
   // Initialize WebSocket listeners
   function init() {
     try {
@@ -800,36 +841,6 @@ $(function() {
 
   // Debounced clock update
   var debouncedClockUpdate = debounce(updateClock, TIMING.debounceClockMs);
-
-  // Unified team update handler
-  function handleTeamUpdate(key, value) {
-    var match = key.match(REGEX_PATTERNS.teamNumber);
-    if (!match) return;
-    
-    var teamNum = parseInt(match[1]);
-    var team = $elements['team' + teamNum];
-    
-    if (key.includes('.AlternateName(whiteboard)') || (REGEX_PATTERNS.teamName.test(key) && !key.includes('AlternateName') && !key.includes('.Skater('))) {
-      var altName = trimValue(WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').AlternateName(whiteboard)']);
-      var name = altName || trimValue(value);
-      
-      // Only update if we have a name, or if current display is empty/default
-      var currentText = team.name.text();
-      if (name || !currentText || currentText === DISPLAY_TEXT.defaultTeamNamePrefix + teamNum) {
-        team.name.text(name || '');
-        updateQueue.schedule(equalizeTeamBoxWidths);
-      }
-    } else if (REGEX_PATTERNS.teamScore.test(key) && !key.includes('Skater')) {
-      team.score.text(value || '0');
-    } else if (REGEX_PATTERNS.teamLogo.test(key)) {
-      teams[teamNum].logo = value || '';
-      checkAndDisplayLogos();
-    } else if (REGEX_PATTERNS.teamColor.test(key)) {
-      updateQueue.schedule(function() { updateTeamColors(teamNum); });
-    } else if (REGEX_PATTERNS.teamPenalties.test(key)) {
-      team.total.text(value || '0');
-    }
-  }
 
   // Unified skater update handler
   function handleSkaterUpdate(key, value) {
