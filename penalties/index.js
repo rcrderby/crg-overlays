@@ -95,7 +95,8 @@ $(function() {
     },
     flags: {
       bothTeamsHaveLogos: false,
-      initialLoadComplete: false
+      initialLoadComplete: false,
+      teamNameSet: { 1: false, 2: false }
     },
     dom: {
       root: document.documentElement
@@ -966,6 +967,9 @@ $(function() {
       const currentText = team.name.text();
       if (name || !currentText || currentText === DISPLAY_TEXT.defaultTeamNamePrefix + teamNum) {
         team.name.text(name || '');
+        if (name) {
+          appState.flags.teamNameSet[teamNum] = true;
+        }
         updateQueue.schedule(equalizeTeamBoxWidths);
       }
       
@@ -1140,13 +1144,14 @@ $(function() {
         // Set team name, or default name after delay
         if (altName || name) {
           $elements[`team${teamNum}`].name.text(altName || name);
+          appState.flags.teamNameSet[teamNum] = true;
         } else {
           setTimeout(() => {
             const currentText = $elements[`team${teamNum}`].name.text();
             const checkAltName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`));
             const checkName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Name`));
             
-            if ((!currentText || currentText.trim() === '') && !checkAltName && !checkName) {
+            if ((!currentText || currentText.trim() === '') && !checkAltName && !checkName && !appState.flags.teamNameSet[teamNum]) {
               $elements[`team${teamNum}`].name.text(DISPLAY_TEXT.defaultTeamNamePrefix + teamNum);
               updateQueue.schedule(equalizeTeamBoxWidths);
             }
