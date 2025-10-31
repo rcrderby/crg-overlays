@@ -59,17 +59,20 @@ window.AppConfig.PenaltiesOverlayConfig = {
     initDelayMs: 200
   },
 
-  /*********************
-  ** Display Settings **
-  *********************/
+  /***************************
+  ** Configuration Settings **
+  ***************************/
 
-  display: {
+  config: {
     // Path to an optional custom logo in the game information section
     // Set to null or empty string to disable
     bannerLogoPath: 'logos/banner-logo.png',
 
     // Skater flags to filter from roster display (Not Skating, Bench Alt Captain, Bench Staff)
     filteredSkaterFlags: ['ALT', 'B', 'BA'],
+
+    // Default roster shadow properties
+    defaultRosterShadowProperties: '1px 1px 2px',
 
     // Buffer pixels to prevent team name overflow
     teamNameOverflowBufferPixels: 1
