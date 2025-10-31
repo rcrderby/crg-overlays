@@ -91,7 +91,8 @@ $(function() {
       expulsionIdsValid: false,
       expulsionIdsExpiry: 0,
       startTimePast: null,
-      startTimeCacheExpiry: 0
+      startTimeCacheExpiry: 0,
+      penaltyIdToSkater: {}
     },
     flags: {
       bothTeamsHaveLogos: false,
@@ -601,6 +602,9 @@ $(function() {
             skaterObj.penalties.push(penalty.code);
             skaterObj.penaltyIds.push(penalty.id);
             skaterObj.penaltyDetails.push({ code: penalty.code, id: penalty.id });
+            
+            // Build reverse lookup map for efficient expulsion handling
+            appState.cache.penaltyIdToSkater[penalty.id] = { teamNum, skaterId: skaterKey };
           }
         }
       }
@@ -1041,19 +1045,11 @@ $(function() {
     if (expulsionIdMatch && expulsionIdMatch[1]) {
       const id = expulsionIdMatch[1];
       
-      // Find which team has this unique expulsion penalty ID      
-      for (let teamNum = 1; teamNum <= RULES.numTeams; teamNum++) {
-        const skaters = appState.teams[teamNum].skaters;
-
-        for (const skaterId in skaters) {
-          if (Object.prototype.hasOwnProperty.call(skaters, skaterId)) {
-            const skater = skaters[skaterId];
-            if (skater.penaltyIds && skater.penaltyIds.includes(id)) {
-              updateRosterAndPenalties(teamNum);
-              return;
-            }
-          }
-        }
+      // Use reverse lookup map to find which team has this expulsion penalty ID
+      const skaterInfo = appState.cache.penaltyIdToSkater[id];
+      if (skaterInfo) {
+        updateRosterAndPenalties(skaterInfo.teamNum);
+        return;
       }
     }
 
