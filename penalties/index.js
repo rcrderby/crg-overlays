@@ -583,6 +583,13 @@ $(function() {
       }
     }
     
+    // Clear stale entries from penalty ID reverse lookup map
+    for (const penaltyId in appState.cache.penaltyIdToSkater) {
+      if (appState.cache.penaltyIdToSkater[penaltyId].teamNum === teamNum) {
+        delete appState.cache.penaltyIdToSkater[penaltyId];
+      }
+    }
+    
     // Single-pass penalty collection
     const penaltyData = {};
     
@@ -1146,6 +1153,18 @@ $(function() {
   ** Initialization **
   *******************/
 
+  // Set a default team name if none is provided after delay
+  function setDefaultTeamNameIfNeeded(teamNum) {
+    const currentText = $elements[`team${teamNum}`].name.text();
+    const checkAltName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`));
+    const checkName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Name`));
+    
+    if ((!currentText || currentText.trim() === '') && !checkAltName && !checkName && !appState.flags.teamNameSet[teamNum]) {
+      $elements[`team${teamNum}`].name.text(`${DISPLAY_TEXT.defaultTeamNamePrefix}${teamNum}`);
+      updateQueue.schedule(equalizeTeamBoxWidths);
+    }
+  }
+
   // Initialize display with initial data
   function initializeDisplay() {
     if (!isWSReady()) {
@@ -1169,16 +1188,7 @@ $(function() {
           $elements[`team${teamNum}`].name.text(altName || name);
           appState.flags.teamNameSet[teamNum] = true;
         } else {
-          setTimeout(() => {
-            const currentText = $elements[`team${teamNum}`].name.text();
-            const checkAltName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`));
-            const checkName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Name`));
-            
-            if ((!currentText || currentText.trim() === '') && !checkAltName && !checkName && !appState.flags.teamNameSet[teamNum]) {
-              $elements[`team${teamNum}`].name.text(`${DISPLAY_TEXT.defaultTeamNamePrefix}${teamNum}`);
-              updateQueue.schedule(equalizeTeamBoxWidths);
-            }
-          }, TIMING.defaultNameDelayMs);
+          setTimeout(() => setDefaultTeamNameIfNeeded(teamNum), TIMING.defaultNameDelayMs);
         }
         
         $elements[`team${teamNum}`].score.text(score);
@@ -1186,11 +1196,10 @@ $(function() {
         
         updateTeamColors(teamNum);
         updatePenalties(teamNum);
+        
+        // Mark basic team data as received for this team
+        loadingTracker.markReceived('teamsBasicData');
       }
-
-      // Mark basic team data as received
-      loadingTracker.markReceived('teamsBasicData');
-      loadingTracker.markReceived('teamsBasicData');
 
       updateTournamentName();
       updateClock();
