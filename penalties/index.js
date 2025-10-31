@@ -319,6 +319,13 @@ $(function() {
     };
   }
 
+  // Apply team colors to CSS variables
+  function applyTeamColors(teamNum, fgColor, bgColor) {
+    appState.dom.root.style.setProperty(`--team${teamNum}-fg`, fgColor);
+    appState.dom.root.style.setProperty(`--team${teamNum}-bg`, bgColor);
+    appState.dom.root.style.setProperty(`--team${teamNum}-border`, fgColor);
+  }
+
   /*********************************
   ** Batch update queue functions **
   *********************************/
@@ -728,9 +735,7 @@ $(function() {
     const finalFg = fgColor || 'white';
     const finalBg = bgColor || 'black';
     
-    appState.dom.root.style.setProperty(`--team${teamNum}-fg`, finalFg);
-    appState.dom.root.style.setProperty(`--team${teamNum}-bg`, finalBg);
-    appState.dom.root.style.setProperty(`--team${teamNum}-border`, finalFg);
+    applyTeamColors(teamNum, finalFg, finalBg);
     
     if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
   }
