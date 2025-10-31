@@ -73,7 +73,10 @@ $(function() {
     skaterFlags: /\.Flags$/,
     skaterPattern: /Team\((\d+)\)\.Skater\(([^)]+)\)/,
     penaltyPattern: /ScoreBoard\.CurrentGame\.Team\((\d+)\)\.Skater\(([^)]+)\)\.Penalty\(([^)]+)\)\.(Code|Id)/,
-    expulsionId: /ScoreBoard\.CurrentGame\.Expulsion\(([^)]+)\)\.Id/
+    expulsionId: /ScoreBoard\.CurrentGame\.Expulsion\(([^)]+)\)\.Id/,
+    alternateName: /\.AlternateName\(whiteboard\)/,
+    hasAlternateName: /AlternateName/,
+    hasSkater: /\.Skater\(/
   };
 
   /**************************************
@@ -967,8 +970,8 @@ $(function() {
     const team = $elements[`team${teamNum}`];
 
     // Check for a team name in the "whiteboard" custom name
-    if (key.includes('.AlternateName(whiteboard)') || 
-        (REGEX_PATTERNS.teamName.test(key) && !key.includes('AlternateName') && !key.includes('.Skater('))) {
+    if (REGEX_PATTERNS.alternateName.test(key) || 
+        (REGEX_PATTERNS.teamName.test(key) && !REGEX_PATTERNS.hasAlternateName.test(key) && !REGEX_PATTERNS.hasSkater.test(key))) {
 
       const altName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`));
       const name = altName || trimValue(value);
@@ -985,7 +988,7 @@ $(function() {
       
       if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
 
-    } else if (REGEX_PATTERNS.teamScore.test(key) && !key.includes('Skater')) {
+    } else if (REGEX_PATTERNS.teamScore.test(key) && !REGEX_PATTERNS.hasSkater.test(key)) {
       team.score.text(value || '0');
       if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
 
