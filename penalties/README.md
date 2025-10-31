@@ -32,10 +32,12 @@ The overlay gets the information and settings it needs from CRG, so you can just
 - Displays team logos, if logos are configured for *both* teams.
   - Logos automatically resize to fit 180 x 180px containers.
 - Displays rosters for each team that include player numbers, names, assigned penalty codes, and total penalty count for each player.
-  - Indicates team captains with a "C".
-  - Hides roster names that don't include a roster name *and* number.
-  - Uses each team's custom "whiteboard" background and text colors if set.
-    - Defaults to black backgrounds with white text if not set.
+  - Indicates team captains with a "C" and alternate captains with an "A".
+  - Hides roster names that:
+    - Are marked as "Not Skating", "Bench Alt Captain", or "Bench Staff".
+    - Don't include a roster name *and* number.
+  - Uses each team's custom "whiteboard" background, text, and glow colors if set.
+    - Defaults to black backgrounds with white text black shadows if not set.
 - Highlights player penalty counts with different color backgrounds at specific thresholds.
   - 5 penalties in yellow :yellow_square:
   - 6 penalties in orange :orange_square:
