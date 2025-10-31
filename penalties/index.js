@@ -26,8 +26,8 @@ $(function() {
 
   // Halt if PenaltiesOverlayConfig appears invalid
   if (
-      !PenaltiesOverlayConfig.timing || 
       !PenaltiesOverlayConfig.config || 
+      !PenaltiesOverlayConfig.timing || 
       !PenaltiesOverlayConfig.labels || 
       !PenaltiesOverlayConfig.rules || 
       !PenaltiesOverlayConfig.penalties
@@ -53,9 +53,9 @@ $(function() {
   // Data from config.js
   const CONFIG = PenaltiesOverlayConfig.config;
   const TIMING = PenaltiesOverlayConfig.timing;
-  const DISPLAY_TEXT = PenaltiesOverlayConfig.labels;
+  const LABELS = PenaltiesOverlayConfig.labels;
   const RULES = PenaltiesOverlayConfig.rules;
-  const PENALTY_CONFIG = PenaltiesOverlayConfig.penalties;
+  const PENALTIES = PenaltiesOverlayConfig.penalties;
 
   // CSS classes
   const CSS_CLASSES = {
@@ -470,7 +470,7 @@ $(function() {
     
     // Fouled out if FO code present
     return skater.penalties.some(penalty => 
-      String(penalty || '').trim().toUpperCase() === DISPLAY_TEXT.fouloutDisplay
+      String(penalty || '').trim().toUpperCase() === LABELS.fouloutDisplay
     );
   }
 
@@ -545,7 +545,7 @@ $(function() {
       const codeUpper = String(penalty.code || '').trim().toUpperCase();
       
       // Filter out FO codes
-      if (PENALTY_CONFIG.filteredCodes.includes(codeUpper)) {
+      if (PENALTIES.filteredCodes.includes(codeUpper)) {
         return false;
       }
       
@@ -643,10 +643,10 @@ $(function() {
   // Build roster HTML for a player
   function buildRosterHTML(skater) {
     const flags = skater.flags.split(',');
-    const isCaptain = skater.flags === DISPLAY_TEXT.captainFlag || 
-                      flags.includes(DISPLAY_TEXT.captainFlag);
-    const isAltCaptain = skater.flags === DISPLAY_TEXT.altCaptainFlag || 
-                         flags.includes(DISPLAY_TEXT.altCaptainFlag);
+    const isCaptain = skater.flags === LABELS.captainFlag || 
+                      flags.includes(LABELS.captainFlag);
+    const isAltCaptain = skater.flags === LABELS.altCaptainFlag || 
+                         flags.includes(LABELS.altCaptainFlag);
     
     const captainIndicator = isCaptain ? ' <span class="captain-indicator">C</span>' : 
                              isAltCaptain ? ' <span class="captain-indicator">A</span>' : '';
@@ -675,9 +675,9 @@ $(function() {
     // Determine the display value for the player's total penalties (EXP, FO, or count)
     let displayValue;
     if (isSkaterExpelled(teamNum, skater.id)) {
-      displayValue = DISPLAY_TEXT.expelledDisplay;
+      displayValue = LABELS.expelledDisplay;
     } else if (isSkaterFouledOut(skater)) {
-      displayValue = DISPLAY_TEXT.fouloutDisplay;
+      displayValue = LABELS.fouloutDisplay;
     } else {
       displayValue = displayCount;
     }
@@ -877,10 +877,10 @@ $(function() {
 
       // Get intermission labels from settings with fallback to defaults
       const labels = {
-        preGame: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)', DISPLAY_TEXT.intermission.preGame),
-        intermission: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)', DISPLAY_TEXT.intermission.intermission),
-        unofficial: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)', DISPLAY_TEXT.intermission.unofficial),
-        official: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)', DISPLAY_TEXT.intermission.official)
+        preGame: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)', LABELS.intermission.preGame),
+        intermission: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)', LABELS.intermission.intermission),
+        unofficial: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)', LABELS.intermission.unofficial),
+        official: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)', LABELS.intermission.official)
       };
 
       // Determine if the game is over
@@ -895,18 +895,18 @@ $(function() {
       } else if (gameOver) {
         text = labels.unofficial;
       } else if (inOvertime) {
-        text = DISPLAY_TEXT.intermission.overtime;
+        text = LABELS.intermission.overtime;
       } else if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionRunning && !periodRunning) {
         text = labels.intermission;
       } else if (currentPeriod > 0 && currentPeriod <= numPeriods) {
         text = `Period ${currentPeriod}`;
-      // If start time is missing or in past, show DISPLAY_TEXT.preFirstPeriodLabel for the upcoming period
+      // If start time is missing or in past, show LABELS.preFirstPeriodLabel for the upcoming period
       } else if (currentPeriod === 0 && isStartTimeMissingOrPast()) {
-        text = DISPLAY_TEXT.preFirstPeriodLabel;
+        text = LABELS.preFirstPeriodLabel;
       } else if (currentPeriod === 0 && intermissionTime > 0) {
         text = labels.preGame;
       } else {
-        text = DISPLAY_TEXT.intermission.comingUp;
+        text = LABELS.intermission.comingUp;
       }
       
       $elements.periodInfo.text(text);
@@ -1019,7 +1019,7 @@ $(function() {
 
       // Use the IGRF team name or a default value if the "whiteboard" custom name is empty/default
       const currentText = team.name.text();
-      if (name || !currentText || currentText === `${DISPLAY_TEXT.defaultTeamNamePrefix}${teamNum}`) {
+      if (name || !currentText || currentText === `${LABELS.defaultTeamNamePrefix}${teamNum}`) {
         team.name.text(name || '');
         if (name) {
           appState.flags.teamNameSet[teamNum] = true;
@@ -1176,7 +1176,7 @@ $(function() {
     const checkName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Name`));
     
     if ((!currentText || currentText.trim() === '') && !checkAltName && !checkName && !appState.flags.teamNameSet[teamNum]) {
-      $elements[`team${teamNum}`].name.text(`${DISPLAY_TEXT.defaultTeamNamePrefix}${teamNum}`);
+      $elements[`team${teamNum}`].name.text(`${LABELS.defaultTeamNamePrefix}${teamNum}`);
       updateQueue.schedule(equalizeTeamBoxWidths);
     }
   }
