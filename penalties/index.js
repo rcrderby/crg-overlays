@@ -693,6 +693,14 @@ $(function() {
     ].join('');
   }
 
+  // Check if a player should be filtered from display based on their flags
+  function shouldFilterSkater(skater) {
+    if (!skater.flags) return false;
+    
+    const flags = skater.flags.split(',');
+    return CONFIG.filteredSkaterFlags.some(filteredFlag => flags.includes(filteredFlag));
+  }
+
   // Update rosters and penalties
   function updateRosterAndPenalties(teamNum) {
     const skaters = appState.teams[teamNum].skaters;
@@ -704,8 +712,8 @@ $(function() {
     const penaltyParts = [];
     
     for (const skater of sortedSkaters) {
-      // Skip skaters without number or name
-      if (!skater.number || !skater.name) continue;
+      // Skip skaters without number or name, or with filtered flags
+      if (!skater.number || !skater.name || shouldFilterSkater(skater)) continue;
       
       rosterParts.push(buildRosterHTML(skater));
       penaltyParts.push(buildPenaltyHTML(teamNum, skater, expulsionIds));
