@@ -58,7 +58,13 @@ $(function() {
     PENALTY_EXPELLED: 'penalty-count-expelled',
     HAS_LOGO: 'has-logo'
   };
-  
+
+  // Expected data counts for loading tracker
+  const EXPECTED_DATA_COUNTS = {
+    // Number of game info fields (clock, clockLabel, tournament, expulsions)
+    GAME_INFO_FIELDS: 4
+  };
+
   // Cached regex patterns
   const REGEX_PATTERNS = {
     teamNumber: /Team\((\d+)\)/,
@@ -113,11 +119,11 @@ $(function() {
     loadStartTime: null,
     safetyTimeoutId: null,
     dataReceived: {
-      teamsBasicData: 0,  // Counts to 2 (both teams' names, scores, totals, colors)
+      teamsBasicData: 0,  // Counts to RULES.numTeams (both teams' names, scores, totals, colors)
       teamLogos: false,
-      teamRosters: 0,     // Counts to 2 (both teams)
-      teamPenalties: 0,   // Counts to 2 (both teams)
-      gameInfo: 0         // Counts to 4 (clock, clockLabel, tournament, expulsions)
+      teamRosters: 0,     // Counts to RULES.numTeams (both teams)
+      teamPenalties: 0,   // Counts to RULES.numTeams (both teams)
+      gameInfo: 0         // Counts to EXPECTED_DATA_COUNTS.GAME_INFO_FIELDS (clock, clockLabel, tournament, expulsions)
     },
     
     // Mark a data item as received
@@ -132,11 +138,11 @@ $(function() {
     
     // Check if all data has been received
     isAllDataReceived() {
-      return this.dataReceived.teamsBasicData >= 2 &&
+      return this.dataReceived.teamsBasicData >= RULES.numTeams &&
              this.dataReceived.teamLogos &&
-             this.dataReceived.teamRosters >= 2 &&
-             this.dataReceived.teamPenalties >= 2 &&
-             this.dataReceived.gameInfo >= 4;
+             this.dataReceived.teamRosters >= RULES.numTeams &&
+             this.dataReceived.teamPenalties >= RULES.numTeams &&
+             this.dataReceived.gameInfo >= EXPECTED_DATA_COUNTS.GAME_INFO_FIELDS;
     },
     
     // Check if ready to display and show overlay
