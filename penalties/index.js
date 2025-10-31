@@ -642,10 +642,14 @@ $(function() {
 
   // Build roster HTML for a player
   function buildRosterHTML(skater) {
+    const flags = skater.flags.split(',');
     const isCaptain = skater.flags === DISPLAY_TEXT.captainFlag || 
-                      skater.flags.split(',').includes(DISPLAY_TEXT.captainFlag);
+                      flags.includes(DISPLAY_TEXT.captainFlag);
+    const isAltCaptain = skater.flags === DISPLAY_TEXT.altCaptainFlag || 
+                         flags.includes(DISPLAY_TEXT.altCaptainFlag);
     
-    const captainIndicator = isCaptain ? ' <span class="captain-indicator">C</span>' : '';
+    const captainIndicator = isCaptain ? ' <span class="captain-indicator">C</span>' : 
+                             isAltCaptain ? ' <span class="captain-indicator">A</span>' : '';
     
     // Sanitize roster user input
     const safeNumber = sanitizeHTML(skater.number);
