@@ -3,17 +3,8 @@
 $(function() {
   'use strict';
 
-  // Logging utility - set DEBUG to true for development logging
-  const DEBUG = false;
-  const logger = {
-    debug: DEBUG ? console.log.bind(console) : () => {},
-    warn: console.warn.bind(console),
-    error: console.error.bind(console)
-  };
-
   // Import configuration data from global namespace
   const PenaltiesOverlayConfig = window.AppConfig.PenaltiesOverlayConfig;
-  logger.debug('Loaded config.js:');
 
   /********************************
   ** Verify that config.js loads **
@@ -21,10 +12,10 @@ $(function() {
 
   // Halt if config.js does not load correctly
   if (typeof PenaltiesOverlayConfig === 'undefined') {
-    logger.error('ERROR: config.js did not load.');
-    logger.error('Make sure config.js is in the same directory as index.js');
-    logger.error('and that index.html includes: <script src="config.js"></script>');
-    logger.error('before <script> tags that import index.js and core.js.');
+    console.error('ERROR: config.js did not load.');
+    console.error('Make sure config.js is in the same directory as index.js');
+    console.error('and that index.html includes: <script src="config.js"></script>');
+    console.error('before <script> tags that import index.js and core.js.');
     alert('Configuration Error: config.js is missing or did not load properly. Check browser console for details.');
     return;
   }
@@ -41,11 +32,19 @@ $(function() {
       !PenaltiesOverlayConfig.rules || 
       !PenaltiesOverlayConfig.penalties
   ) {
-    logger.error('ERROR: data imported from config.js is invalid.');
-    logger.error('Required structures: timing, display, labels, rules, and penalties');
+    console.error('ERROR: data imported from config.js is invalid.');
+    console.error('Required structures: timing, display, labels, rules, and penalties');
     alert('Configuration Error: config.js is invalid. Check browser console for details.');
     return;
   }
+
+  // Logging utility - read debug setting from config.js
+  const DEBUG = PenaltiesOverlayConfig.debug?.enabled || false;
+  const logger = {
+    debug: DEBUG ? console.log.bind(console) : () => {},
+    warn: console.warn.bind(console),
+    error: console.error.bind(console)
+  };
 
   /**************
   ** Constants **
