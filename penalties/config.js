@@ -68,6 +68,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Set to null or empty string to disable
     bannerLogoPath: 'logos/banner-logo.png',
 
+    // Skater flags to filter from roster display (Not Skating, Bench Alt Captain, Bench Staff)
+    filteredSkaterFlags: ['ALT', 'B', 'BA'],
+
     // Buffer pixels to prevent team name overflow
     teamNameOverflowBufferPixels: 1
   },
