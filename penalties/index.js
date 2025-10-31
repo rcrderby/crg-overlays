@@ -583,6 +583,13 @@ $(function() {
       }
     }
     
+    // Clear stale entries from penalty ID reverse lookup map
+    for (const penaltyId in appState.cache.penaltyIdToSkater) {
+      if (appState.cache.penaltyIdToSkater[penaltyId].teamNum === teamNum) {
+        delete appState.cache.penaltyIdToSkater[penaltyId];
+      }
+    }
+    
     // Single-pass penalty collection
     const penaltyData = {};
     
