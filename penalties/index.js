@@ -3,9 +3,17 @@
 $(function() {
   'use strict';
 
+  // Logging utility - set DEBUG to true for development logging
+  const DEBUG = false;
+  const logger = {
+    debug: DEBUG ? console.log.bind(console) : () => {},
+    warn: console.warn.bind(console),
+    error: console.error.bind(console)
+  };
+
   // Import configuration data from global namespace
   const PenaltiesOverlayConfig = window.AppConfig.PenaltiesOverlayConfig;
-  console.log('Loaded config.js:');
+  logger.debug('Loaded config.js:');
 
   /********************************
   ** Verify that config.js loads **
@@ -13,10 +21,10 @@ $(function() {
 
   // Halt if config.js does not load correctly
   if (typeof PenaltiesOverlayConfig === 'undefined') {
-    console.error('ERROR: config.js did not load.');
-    console.error('Make sure config.js is in the same directory as index.js');
-    console.error('and that index.html includes: <script src="config.js"></script>');
-    console.error('before <script> tags that import index.js and core.js.');
+    logger.error('ERROR: config.js did not load.');
+    logger.error('Make sure config.js is in the same directory as index.js');
+    logger.error('and that index.html includes: <script src="config.js"></script>');
+    logger.error('before <script> tags that import index.js and core.js.');
     alert('Configuration Error: config.js is missing or did not load properly. Check browser console for details.');
     return;
   }
@@ -33,8 +41,8 @@ $(function() {
       !PenaltiesOverlayConfig.rules || 
       !PenaltiesOverlayConfig.penalties
   ) {
-    console.error('ERROR: data imported from config.js is invalid.');
-    console.error('Required structures: timing, display, labels, rules, and penalties');
+    logger.error('ERROR: data imported from config.js is invalid.');
+    logger.error('Required structures: timing, display, labels, rules, and penalties');
     alert('Configuration Error: config.js is invalid. Check browser console for details.');
     return;
   }
@@ -152,7 +160,7 @@ $(function() {
       }
       
       if (this.isAllDataReceived()) {
-        console.log('All data received, preparing to display overlay...');
+        logger.debug('All data received, preparing to display overlay...');
         this.initialized = true;
         
         // Clear safety timeout after receiving all data
@@ -177,7 +185,7 @@ $(function() {
       const delay = Math.max(0, minDisplayTime - loadTime);
       
       setTimeout(() => {
-        console.log('Showing overlay (data load complete)');
+        logger.debug('Showing overlay (data load complete)');
         const $loadingOverlay = $('#loading-overlay');
         const $overlay = $('#overlay');
         
@@ -204,8 +212,8 @@ $(function() {
         return;
       }
       
-      console.warn('Timeout reached - displaying overlay with available data');
-      console.warn('Missing data:', Object.keys(this.dataReceived).filter(k => !this.dataReceived[k]));
+      logger.warn('Timeout reached - displaying overlay with available data');
+      logger.warn('Missing data:', Object.keys(this.dataReceived).filter(k => !this.dataReceived[k]));
       
       this.initialized = true;
       this.showOverlay();
@@ -214,7 +222,7 @@ $(function() {
     // Start loading data
     startLoading() {
       this.loadStartTime = Date.now();
-      console.log('Started loading data...');
+      logger.debug('Started loading data...');
       
       // Set timeout to force displaying the overlay after the maximum wait time
       this.safetyTimeoutId = setTimeout(() => {
@@ -423,7 +431,7 @@ $(function() {
       return appState.cache.startTimePast;
     } catch (error) {
       // If date parsing fails, treat as missing
-      console.warn('Failed to parse start date/time:', error);
+      logger.warn('Failed to parse start date/time:', error);
       appState.cache.startTimePast = true;
       appState.cache.startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
       return true;
@@ -559,7 +567,7 @@ $(function() {
 
     // Prevent function from throwing an error if a team is undefined
     if (!appState.teams[teamNum]) {
-      console.warn(`Team ${teamNum} data not initialized`);
+      logger.warn(`Team ${teamNum} data not initialized`);
       return;
     }
 
@@ -828,7 +836,7 @@ $(function() {
       if (!loadingTracker.initialized) loadingTracker.markReceived('gameInfo');
       
     } catch(error) {
-      console.error('Error updating clock:', error);
+      logger.error('Error updating clock:', error);
     }
   }
 
@@ -885,7 +893,7 @@ $(function() {
       if (!loadingTracker.initialized) loadingTracker.markReceived('gameInfo');
       
     } catch(error) {
-      console.error('Error updating game state:', error);
+      logger.error('Error updating game state:', error);
     }
   }
 
@@ -1083,7 +1091,7 @@ $(function() {
   // Register a WebSocket handler with automatic cleanup tracking
   function registerHandler(paths, handler) {
     if (!isWSReady()) {
-      console.warn('Attempted to register handler before WebSocket ready');
+      logger.warn('Attempted to register handler before WebSocket ready');
       return;
     }
 
@@ -1093,7 +1101,7 @@ $(function() {
 
   // Clean up all registered handlers and timers
   function cleanup() {
-    console.log('Cleaning up overlay resources...');
+    logger.debug('Cleaning up overlay resources...');
 
     // Unregister WebSocket handlers
     registeredHandlers.forEach(({ paths, handler }) => {
@@ -1101,7 +1109,7 @@ $(function() {
         try {
           WS.Unregister(paths, handler);
         } catch (error) {
-          console.warn('Error unregistering handler:', error);
+          logger.warn('Error unregistering handler:', error);
         }
       }
     });
@@ -1116,7 +1124,7 @@ $(function() {
       updateQueue.pending = false;
     }
 
-    console.log('Cleanup complete');
+    logger.debug('Cleanup complete');
   }
 
   // Register cleanup handler ( once during initialization)
@@ -1142,7 +1150,7 @@ $(function() {
   // Initialize display with initial data
   function initializeDisplay() {
     if (!isWSReady()) {
-      console.warn('WebSocket not ready during initialization, retrying...');
+      logger.warn('WebSocket not ready during initialization, retrying...');
       setTimeout(initializeDisplay, TIMING.wsWaitMs);
       return;
     }
@@ -1192,7 +1200,7 @@ $(function() {
       equalizeTeamBoxWidths();
 
     } catch(error) {
-      console.error('Error during initialization:', error);
+      logger.error('Error during initialization:', error);
       setTimeout(initializeDisplay, TIMING.wsWaitMs * 2);
     }
   }
@@ -1200,7 +1208,7 @@ $(function() {
   // Initialize WebSocket listeners
   function init() {
     if (!isWSReady()) {
-      console.log('Waiting for WebSocket...');
+      logger.debug('Waiting for WebSocket...');
       setTimeout(init, TIMING.wsWaitMs);
       return;
     }
@@ -1242,10 +1250,10 @@ $(function() {
       loadCustomLogo();
       setTimeout(initializeDisplay, TIMING.initDelayMs);
       
-      console.log('Penalties overlay initialization started');
+      logger.debug('Penalties overlay initialization started');
       
     } catch(error) {
-      console.error('Failed to initialize overlay:', error);
+      logger.error('Failed to initialize overlay:', error);
       // Retry after delay
       setTimeout(init, TIMING.wsWaitMs * 5);
     }
