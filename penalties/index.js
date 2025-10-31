@@ -27,7 +27,7 @@ $(function() {
   // Halt if PenaltiesOverlayConfig appears invalid
   if (
       !PenaltiesOverlayConfig.timing || 
-      !PenaltiesOverlayConfig.display || 
+      !PenaltiesOverlayConfig.config || 
       !PenaltiesOverlayConfig.labels || 
       !PenaltiesOverlayConfig.rules || 
       !PenaltiesOverlayConfig.penalties
@@ -51,7 +51,7 @@ $(function() {
   **************/
 
   // Data from config.js
-  const CONFIG = PenaltiesOverlayConfig.display;
+  const CONFIG = PenaltiesOverlayConfig.config;
   const TIMING = PenaltiesOverlayConfig.timing;
   const DISPLAY_TEXT = PenaltiesOverlayConfig.labels;
   const RULES = PenaltiesOverlayConfig.rules;
