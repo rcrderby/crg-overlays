@@ -547,6 +547,12 @@ $(function() {
       return;
     }
 
+    // Prevent function from throwing an error if a team is undefined
+    if (!appState.teams[teamNum]) {
+      console.warn(`Team ${teamNum} data not initialized`);
+      return;
+    }
+
     const skaters = appState.teams[teamNum].skaters;
     const state = WS.state;
     
