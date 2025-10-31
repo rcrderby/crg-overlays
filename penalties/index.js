@@ -642,10 +642,14 @@ $(function() {
 
   // Build roster HTML for a player
   function buildRosterHTML(skater) {
+    const flags = skater.flags.split(',');
     const isCaptain = skater.flags === DISPLAY_TEXT.captainFlag || 
-                      skater.flags.split(',').includes(DISPLAY_TEXT.captainFlag);
+                      flags.includes(DISPLAY_TEXT.captainFlag);
+    const isAltCaptain = skater.flags === DISPLAY_TEXT.altCaptainFlag || 
+                         flags.includes(DISPLAY_TEXT.altCaptainFlag);
     
-    const captainIndicator = isCaptain ? ' <span class="captain-indicator">C</span>' : '';
+    const captainIndicator = isCaptain ? ' <span class="captain-indicator">C</span>' : 
+                             isAltCaptain ? ' <span class="captain-indicator">A</span>' : '';
     
     // Sanitize roster user input
     const safeNumber = sanitizeHTML(skater.number);
@@ -689,6 +693,14 @@ $(function() {
     ].join('');
   }
 
+  // Check if a player should be filtered from display based on their flags
+  function shouldFilterSkater(skater) {
+    if (!skater.flags) return false;
+    
+    const flags = skater.flags.split(',');
+    return CONFIG.filteredSkaterFlags.some(filteredFlag => flags.includes(filteredFlag));
+  }
+
   // Update rosters and penalties
   function updateRosterAndPenalties(teamNum) {
     const skaters = appState.teams[teamNum].skaters;
@@ -700,8 +712,8 @@ $(function() {
     const penaltyParts = [];
     
     for (const skater of sortedSkaters) {
-      // Skip skaters without number or name
-      if (!skater.number || !skater.name) continue;
+      // Skip skaters without number or name, or with filtered flags
+      if (!skater.number || !skater.name || shouldFilterSkater(skater)) continue;
       
       rosterParts.push(buildRosterHTML(skater));
       penaltyParts.push(buildPenaltyHTML(teamNum, skater, expulsionIds));
