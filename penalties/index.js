@@ -984,7 +984,7 @@ $(function() {
 
       // Use the IGRF team name or a default value if the "whiteboard" custom name is empty/default
       const currentText = team.name.text();
-      if (name || !currentText || currentText === DISPLAY_TEXT.defaultTeamNamePrefix + teamNum) {
+      if (name || !currentText || currentText === `${DISPLAY_TEXT.defaultTeamNamePrefix}${teamNum}`) {
         team.name.text(name || '');
         if (name) {
           appState.flags.teamNameSet[teamNum] = true;
@@ -1163,7 +1163,7 @@ $(function() {
             const checkName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Name`));
             
             if ((!currentText || currentText.trim() === '') && !checkAltName && !checkName && !appState.flags.teamNameSet[teamNum]) {
-              $elements[`team${teamNum}`].name.text(DISPLAY_TEXT.defaultTeamNamePrefix + teamNum);
+              $elements[`team${teamNum}`].name.text(`${DISPLAY_TEXT.defaultTeamNamePrefix}${teamNum}`);
               updateQueue.schedule(equalizeTeamBoxWidths);
             }
           }, TIMING.defaultNameDelayMs);
