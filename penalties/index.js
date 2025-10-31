@@ -99,8 +99,8 @@ $(function() {
   // Application state for roster and penalty data
   const appState = {
     teams: {
-      1: { skaters: {}, logo: '', colors: { fg: null, bg: null } },
-      2: { skaters: {}, logo: '', colors: { fg: null, bg: null } }
+      1: { skaters: {}, logo: '', colors: { fg: null, bg: null, glow: null } },
+      2: { skaters: {}, logo: '', colors: { fg: null, bg: null, glow: null } }
     },
     cache: {
       expulsionIds: [],
@@ -733,10 +733,11 @@ $(function() {
   **************************/
 
   // Team color-specific helper function to colors to CSS variables
-  function applyTeamColors(teamNum, fgColor, bgColor) {
+  function applyTeamColors(teamNum, fgColor, bgColor, glowColor) {
     appState.dom.root.style.setProperty(`--team${teamNum}-fg`, fgColor);
     appState.dom.root.style.setProperty(`--team${teamNum}-bg`, bgColor);
     appState.dom.root.style.setProperty(`--team${teamNum}-border`, fgColor);
+    appState.dom.root.style.setProperty(`--team${teamNum}-text-shadow`, glowColor);
   }
 
   // Update team colors
@@ -745,10 +746,11 @@ $(function() {
     
     const fgColor = safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Color(whiteboard.fg)`);
     const bgColor = safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Color(whiteboard.bg)`);
+    const glowColor = safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Color(whiteboard.glow)`);
     const colors = appState.teams[teamNum].colors;
     
     // Skip update if colors haven't changed
-    if (colors.fg === fgColor && colors.bg === bgColor) {
+    if (colors.fg === fgColor && colors.bg === bgColor && colors.glow === glowColor) {
       if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
       return;
     }
@@ -756,12 +758,14 @@ $(function() {
     // Set team colors
     colors.fg = fgColor;
     colors.bg = bgColor;
+    colors.glow = glowColor;
 
-    // Use default colors if none ar set
-    const finalFg = fgColor || 'white';
-    const finalBg = bgColor || 'black';
+    // Use default colors if none are set
+    const finalFg = fgColor || 'var(--team-penalties-default-fg-color)';
+    const finalBg = bgColor || 'var(--team-penalties-default-bg-color)';
+    const finalGlow = glowColor ? `${CONFIG.defaultRosterShadowProperties} ${glowColor}` : 'var(--team-penalties-default-text-shadow)';
     
-    applyTeamColors(teamNum, finalFg, finalBg);
+    applyTeamColors(teamNum, finalFg, finalBg, finalGlow);
     
     if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
   }
