@@ -319,13 +319,6 @@ $(function() {
     };
   }
 
-  // Apply team colors to CSS variables
-  function applyTeamColors(teamNum, fgColor, bgColor) {
-    appState.dom.root.style.setProperty(`--team${teamNum}-fg`, fgColor);
-    appState.dom.root.style.setProperty(`--team${teamNum}-bg`, bgColor);
-    appState.dom.root.style.setProperty(`--team${teamNum}-border`, fgColor);
-  }
-
   /*********************************
   ** Batch update queue functions **
   *********************************/
@@ -712,6 +705,13 @@ $(function() {
   /**************************
   ** Team update functions **
   **************************/
+
+  // Team color-specific helper function to colors to CSS variables
+  function applyTeamColors(teamNum, fgColor, bgColor) {
+    appState.dom.root.style.setProperty(`--team${teamNum}-fg`, fgColor);
+    appState.dom.root.style.setProperty(`--team${teamNum}-bg`, bgColor);
+    appState.dom.root.style.setProperty(`--team${teamNum}-border`, fgColor);
+  }
 
   // Update team colors
   function updateTeamColors(teamNum) {
