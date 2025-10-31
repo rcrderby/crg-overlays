@@ -14,6 +14,15 @@ window.AppConfig = window.AppConfig || {};
 
 window.AppConfig.PenaltiesOverlayConfig = {
   /********************
+  ** Debug Settings **
+  ********************/
+
+  debug: {
+    // Enable debug logging to browser console (set to "true" for troubleshooting)
+    enabled: false
+  },
+
+  /********************
   ** Timing Settings **
   ********************/
 

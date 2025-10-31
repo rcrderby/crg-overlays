@@ -5,7 +5,6 @@ $(function() {
 
   // Import configuration data from global namespace
   const PenaltiesOverlayConfig = window.AppConfig.PenaltiesOverlayConfig;
-  console.log('Loaded config.js:');
 
   /********************************
   ** Verify that config.js loads **
@@ -39,6 +38,14 @@ $(function() {
     return;
   }
 
+  // Logging utility - read debug setting from config.js
+  const DEBUG = PenaltiesOverlayConfig.debug?.enabled || false;
+  const logger = {
+    debug: DEBUG ? console.log.bind(console) : () => {},
+    warn: console.warn.bind(console),
+    error: console.error.bind(console)
+  };
+
   /**************
   ** Constants **
   **************/
@@ -58,7 +65,13 @@ $(function() {
     PENALTY_EXPELLED: 'penalty-count-expelled',
     HAS_LOGO: 'has-logo'
   };
-  
+
+  // Expected data counts for loading tracker
+  const EXPECTED_DATA_COUNTS = {
+    // Number of game info fields (clock, clockLabel, tournament, expulsions)
+    GAME_INFO_FIELDS: 4
+  };
+
   // Cached regex patterns
   const REGEX_PATTERNS = {
     teamNumber: /Team\((\d+)\)/,
@@ -73,7 +86,10 @@ $(function() {
     skaterFlags: /\.Flags$/,
     skaterPattern: /Team\((\d+)\)\.Skater\(([^)]+)\)/,
     penaltyPattern: /ScoreBoard\.CurrentGame\.Team\((\d+)\)\.Skater\(([^)]+)\)\.Penalty\(([^)]+)\)\.(Code|Id)/,
-    expulsionId: /ScoreBoard\.CurrentGame\.Expulsion\(([^)]+)\)\.Id/
+    expulsionId: /ScoreBoard\.CurrentGame\.Expulsion\(([^)]+)\)\.Id/,
+    alternateName: /\.AlternateName\(whiteboard\)/,
+    hasAlternateName: /AlternateName/,
+    hasSkater: /\.Skater\(/
   };
 
   /**************************************
@@ -91,11 +107,13 @@ $(function() {
       expulsionIdsValid: false,
       expulsionIdsExpiry: 0,
       startTimePast: null,
-      startTimeCacheExpiry: 0
+      startTimeCacheExpiry: 0,
+      penaltyIdToSkater: {}
     },
     flags: {
       bothTeamsHaveLogos: false,
-      initialLoadComplete: false
+      initialLoadComplete: false,
+      teamNameSet: { 1: false, 2: false }
     },
     dom: {
       root: document.documentElement
@@ -108,11 +126,11 @@ $(function() {
     loadStartTime: null,
     safetyTimeoutId: null,
     dataReceived: {
-      teamsBasicData: 0,  // Counts to 2 (both teams' names, scores, totals, colors)
+      teamsBasicData: 0,  // Counts to RULES.numTeams (both teams' names, scores, totals, colors)
       teamLogos: false,
-      teamRosters: 0,     // Counts to 2 (both teams)
-      teamPenalties: 0,   // Counts to 2 (both teams)
-      gameInfo: 0         // Counts to 4 (clock, clockLabel, tournament, expulsions)
+      teamRosters: 0,     // Counts to RULES.numTeams (both teams)
+      teamPenalties: 0,   // Counts to RULES.numTeams (both teams)
+      gameInfo: 0         // Counts to EXPECTED_DATA_COUNTS.GAME_INFO_FIELDS (clock, clockLabel, tournament, expulsions)
     },
     
     // Mark a data item as received
@@ -127,11 +145,11 @@ $(function() {
     
     // Check if all data has been received
     isAllDataReceived() {
-      return this.dataReceived.teamsBasicData >= 2 &&
+      return this.dataReceived.teamsBasicData >= RULES.numTeams &&
              this.dataReceived.teamLogos &&
-             this.dataReceived.teamRosters >= 2 &&
-             this.dataReceived.teamPenalties >= 2 &&
-             this.dataReceived.gameInfo >= 4;
+             this.dataReceived.teamRosters >= RULES.numTeams &&
+             this.dataReceived.teamPenalties >= RULES.numTeams &&
+             this.dataReceived.gameInfo >= EXPECTED_DATA_COUNTS.GAME_INFO_FIELDS;
     },
     
     // Check if ready to display and show overlay
@@ -141,7 +159,7 @@ $(function() {
       }
       
       if (this.isAllDataReceived()) {
-        console.log('All data received, preparing to display overlay...');
+        logger.debug('All data received, preparing to display overlay...');
         this.initialized = true;
         
         // Clear safety timeout after receiving all data
@@ -166,7 +184,7 @@ $(function() {
       const delay = Math.max(0, minDisplayTime - loadTime);
       
       setTimeout(() => {
-        console.log('Showing overlay (data load complete)');
+        logger.debug('Showing overlay (data load complete)');
         const $loadingOverlay = $('#loading-overlay');
         const $overlay = $('#overlay');
         
@@ -193,8 +211,8 @@ $(function() {
         return;
       }
       
-      console.warn('Timeout reached - displaying overlay with available data');
-      console.warn('Missing data:', Object.keys(this.dataReceived).filter(k => !this.dataReceived[k]));
+      logger.warn('Timeout reached - displaying overlay with available data');
+      logger.warn('Missing data:', Object.keys(this.dataReceived).filter(k => !this.dataReceived[k]));
       
       this.initialized = true;
       this.showOverlay();
@@ -203,7 +221,7 @@ $(function() {
     // Start loading data
     startLoading() {
       this.loadStartTime = Date.now();
-      console.log('Started loading data...');
+      logger.debug('Started loading data...');
       
       // Set timeout to force displaying the overlay after the maximum wait time
       this.safetyTimeoutId = setTimeout(() => {
@@ -412,7 +430,7 @@ $(function() {
       return appState.cache.startTimePast;
     } catch (error) {
       // If date parsing fails, treat as missing
-      console.warn('Failed to parse start date/time:', error);
+      logger.warn('Failed to parse start date/time:', error);
       appState.cache.startTimePast = true;
       appState.cache.startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
       return true;
@@ -546,6 +564,12 @@ $(function() {
       return;
     }
 
+    // Prevent function from throwing an error if a team is undefined
+    if (!appState.teams[teamNum]) {
+      logger.warn(`Team ${teamNum} data not initialized`);
+      return;
+    }
+
     const skaters = appState.teams[teamNum].skaters;
     const state = WS.state;
     
@@ -594,6 +618,9 @@ $(function() {
             skaterObj.penalties.push(penalty.code);
             skaterObj.penaltyIds.push(penalty.id);
             skaterObj.penaltyDetails.push({ code: penalty.code, id: penalty.id });
+            
+            // Build reverse lookup map for efficient expulsion handling
+            appState.cache.penaltyIdToSkater[penalty.id] = { teamNum, skaterId: skaterKey };
           }
         }
       }
@@ -686,6 +713,13 @@ $(function() {
   ** Team update functions **
   **************************/
 
+  // Team color-specific helper function to colors to CSS variables
+  function applyTeamColors(teamNum, fgColor, bgColor) {
+    appState.dom.root.style.setProperty(`--team${teamNum}-fg`, fgColor);
+    appState.dom.root.style.setProperty(`--team${teamNum}-bg`, bgColor);
+    appState.dom.root.style.setProperty(`--team${teamNum}-border`, fgColor);
+  }
+
   // Update team colors
   function updateTeamColors(teamNum) {
     if (!isWSReady()) return;
@@ -708,9 +742,7 @@ $(function() {
     const finalFg = fgColor || 'white';
     const finalBg = bgColor || 'black';
     
-    appState.dom.root.style.setProperty(`--team${teamNum}-fg`, finalFg);
-    appState.dom.root.style.setProperty(`--team${teamNum}-bg`, finalBg);
-    appState.dom.root.style.setProperty(`--team${teamNum}-border`, finalFg);
+    applyTeamColors(teamNum, finalFg, finalBg);
     
     if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
   }
@@ -803,7 +835,7 @@ $(function() {
       if (!loadingTracker.initialized) loadingTracker.markReceived('gameInfo');
       
     } catch(error) {
-      console.error('Error updating clock:', error);
+      logger.error('Error updating clock:', error);
     }
   }
 
@@ -860,7 +892,7 @@ $(function() {
       if (!loadingTracker.initialized) loadingTracker.markReceived('gameInfo');
       
     } catch(error) {
-      console.error('Error updating game state:', error);
+      logger.error('Error updating game state:', error);
     }
   }
 
@@ -956,22 +988,25 @@ $(function() {
     const team = $elements[`team${teamNum}`];
 
     // Check for a team name in the "whiteboard" custom name
-    if (key.includes('.AlternateName(whiteboard)') || 
-        (REGEX_PATTERNS.teamName.test(key) && !key.includes('AlternateName') && !key.includes('.Skater('))) {
+    if (REGEX_PATTERNS.alternateName.test(key) || 
+        (REGEX_PATTERNS.teamName.test(key) && !REGEX_PATTERNS.hasAlternateName.test(key) && !REGEX_PATTERNS.hasSkater.test(key))) {
 
       const altName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`));
       const name = altName || trimValue(value);
 
       // Use the IGRF team name or a default value if the "whiteboard" custom name is empty/default
       const currentText = team.name.text();
-      if (name || !currentText || currentText === DISPLAY_TEXT.defaultTeamNamePrefix + teamNum) {
+      if (name || !currentText || currentText === `${DISPLAY_TEXT.defaultTeamNamePrefix}${teamNum}`) {
         team.name.text(name || '');
+        if (name) {
+          appState.flags.teamNameSet[teamNum] = true;
+        }
         updateQueue.schedule(equalizeTeamBoxWidths);
       }
       
       if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
 
-    } else if (REGEX_PATTERNS.teamScore.test(key) && !key.includes('Skater')) {
+    } else if (REGEX_PATTERNS.teamScore.test(key) && !REGEX_PATTERNS.hasSkater.test(key)) {
       team.score.text(value || '0');
       if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
 
@@ -1031,19 +1066,11 @@ $(function() {
     if (expulsionIdMatch && expulsionIdMatch[1]) {
       const id = expulsionIdMatch[1];
       
-      // Find which team has this unique expulsion penalty ID      
-      for (let teamNum = 1; teamNum <= RULES.numTeams; teamNum++) {
-        const skaters = appState.teams[teamNum].skaters;
-
-        for (const skaterId in skaters) {
-          if (Object.prototype.hasOwnProperty.call(skaters, skaterId)) {
-            const skater = skaters[skaterId];
-            if (skater.penaltyIds && skater.penaltyIds.includes(id)) {
-              updateRosterAndPenalties(teamNum);
-              return;
-            }
-          }
-        }
+      // Use reverse lookup map to find which team has this expulsion penalty ID
+      const skaterInfo = appState.cache.penaltyIdToSkater[id];
+      if (skaterInfo) {
+        updateRosterAndPenalties(skaterInfo.teamNum);
+        return;
       }
     }
 
@@ -1063,7 +1090,7 @@ $(function() {
   // Register a WebSocket handler with automatic cleanup tracking
   function registerHandler(paths, handler) {
     if (!isWSReady()) {
-      console.warn('Attempted to register handler before WebSocket ready');
+      logger.warn('Attempted to register handler before WebSocket ready');
       return;
     }
 
@@ -1073,7 +1100,7 @@ $(function() {
 
   // Clean up all registered handlers and timers
   function cleanup() {
-    console.log('Cleaning up overlay resources...');
+    logger.debug('Cleaning up overlay resources...');
 
     // Unregister WebSocket handlers
     registeredHandlers.forEach(({ paths, handler }) => {
@@ -1081,7 +1108,7 @@ $(function() {
         try {
           WS.Unregister(paths, handler);
         } catch (error) {
-          console.warn('Error unregistering handler:', error);
+          logger.warn('Error unregistering handler:', error);
         }
       }
     });
@@ -1096,7 +1123,7 @@ $(function() {
       updateQueue.pending = false;
     }
 
-    console.log('Cleanup complete');
+    logger.debug('Cleanup complete');
   }
 
   // Register cleanup handler ( once during initialization)
@@ -1122,7 +1149,7 @@ $(function() {
   // Initialize display with initial data
   function initializeDisplay() {
     if (!isWSReady()) {
-      console.warn('WebSocket not ready during initialization, retrying...');
+      logger.warn('WebSocket not ready during initialization, retrying...');
       setTimeout(initializeDisplay, TIMING.wsWaitMs);
       return;
     }
@@ -1140,14 +1167,15 @@ $(function() {
         // Set team name, or default name after delay
         if (altName || name) {
           $elements[`team${teamNum}`].name.text(altName || name);
+          appState.flags.teamNameSet[teamNum] = true;
         } else {
           setTimeout(() => {
             const currentText = $elements[`team${teamNum}`].name.text();
             const checkAltName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`));
             const checkName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Name`));
             
-            if ((!currentText || currentText.trim() === '') && !checkAltName && !checkName) {
-              $elements[`team${teamNum}`].name.text(DISPLAY_TEXT.defaultTeamNamePrefix + teamNum);
+            if ((!currentText || currentText.trim() === '') && !checkAltName && !checkName && !appState.flags.teamNameSet[teamNum]) {
+              $elements[`team${teamNum}`].name.text(`${DISPLAY_TEXT.defaultTeamNamePrefix}${teamNum}`);
               updateQueue.schedule(equalizeTeamBoxWidths);
             }
           }, TIMING.defaultNameDelayMs);
@@ -1171,7 +1199,7 @@ $(function() {
       equalizeTeamBoxWidths();
 
     } catch(error) {
-      console.error('Error during initialization:', error);
+      logger.error('Error during initialization:', error);
       setTimeout(initializeDisplay, TIMING.wsWaitMs * 2);
     }
   }
@@ -1179,7 +1207,7 @@ $(function() {
   // Initialize WebSocket listeners
   function init() {
     if (!isWSReady()) {
-      console.log('Waiting for WebSocket...');
+      logger.debug('Waiting for WebSocket...');
       setTimeout(init, TIMING.wsWaitMs);
       return;
     }
@@ -1221,10 +1249,10 @@ $(function() {
       loadCustomLogo();
       setTimeout(initializeDisplay, TIMING.initDelayMs);
       
-      console.log('Penalties overlay initialization started');
+      logger.debug('Penalties overlay initialization started');
       
     } catch(error) {
-      console.error('Failed to initialize overlay:', error);
+      logger.error('Failed to initialize overlay:', error);
       // Retry after delay
       setTimeout(init, TIMING.wsWaitMs * 5);
     }
