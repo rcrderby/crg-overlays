@@ -1186,11 +1186,10 @@ $(function() {
         
         updateTeamColors(teamNum);
         updatePenalties(teamNum);
+        
+        // Mark basic team data as received for this team
+        loadingTracker.markReceived('teamsBasicData');
       }
-
-      // Mark basic team data as received
-      loadingTracker.markReceived('teamsBasicData');
-      loadingTracker.markReceived('teamsBasicData');
 
       updateTournamentName();
       updateClock();
