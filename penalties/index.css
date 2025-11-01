@@ -100,16 +100,17 @@
 
   /* Row dimensions and properties */
   --flex-penalties-column: 0.85;
+  --height-game-details-min: 140px;
+  --height-logo-container: 180px;
   --height-roster-row: 40px;
   --height-roster-penalties-line: 1.5;
-  --height-logo-container: 180px;
-  --height-game-details-min: 140px;
   --radius-border-penalty-count: 3px;
   --width-border-rosters-penalties: 1px;
   --width-roster-number: 60px;
   --width-penalty-count: 60px;
-  --width-vs-clock-container: 280px;
+  --width-penalties-title-max: 40%;
   --width-team-score-min: 150px;
+  --width-vs-clock-container: 280px;
 
   /* Spacing */
   --gap-between-teams: 40px;
@@ -223,6 +224,7 @@ body {
   width: var(--content-width);
   margin: 0 auto;
   margin-bottom: var(--margin-logo-container-bottom);
+  position: relative;
 }
 
 .team-container {
@@ -257,7 +259,12 @@ body {
 ****************************/
 
 #penalties-title {
-  flex: 0 0 auto;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  max-width: var(--width-penalties-title-max);
+  min-width: 0;
   text-align: center;
 }
 
@@ -265,8 +272,11 @@ body {
   color: var(--penalties-fg);
   font-size: var(--font-penalties-title-size);
   font-weight: bold;
-  margin: 0;
   text-shadow: var(--shadow-text-title);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /*********************************************
