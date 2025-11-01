@@ -74,6 +74,12 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Default roster shadow properties
     defaultRosterShadowProperties: '1px 1px 2px',
 
+    // Loading overlay text
+    loadingOverlayText: 'Loading game data...',
+
+    // Penalties title text
+    penaltiesTitleText: 'PENALTIES',
+
     // Buffer pixels to prevent team name overflow
     teamNameOverflowBufferPixels: 1
   },
