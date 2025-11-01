@@ -111,6 +111,7 @@ $(function() {
       penaltyIdToSkater: {}
     },
     flags: {
+      displayedLogos: { 1: '', 2: '' },
       bothTeamsHaveLogos: false,
       initialLoadComplete: false,
       teamNameSet: { 1: false, 2: false }
@@ -772,20 +773,49 @@ $(function() {
 
   // Check for and display logos if present
   function checkAndDisplayLogos() {
-    const shouldShow = appState.teams[1].logo && appState.teams[2].logo;
+    const team1Logo = appState.teams[1].logo;
+    const team2Logo = appState.teams[2].logo;
+    const shouldShow = team1Logo && team2Logo;
     
-    if (shouldShow !== appState.flags.bothTeamsHaveLogos) {
-      appState.flags.bothTeamsHaveLogos = shouldShow;
-      
-      if (shouldShow) {
-        $elements.team1.logo.attr('src', appState.teams[1].logo).show();
-        $elements.team2.logo.attr('src', appState.teams[2].logo).show();
-        $elements.logoContainers.show();
-      } else {
-        $elements.team1.logo.hide();
-        $elements.team2.logo.hide();
-        $elements.logoContainers.hide();
+    // Check for logo changes
+    const visibilityChanged = shouldShow !== appState.flags.bothTeamsHaveLogos;
+    const team1LogoChanged = team1Logo !== appState.flags.displayedLogos[1];
+    const team2LogoChanged = team2Logo !== appState.flags.displayedLogos[2];
+    
+    // Return immediately if nothing changed
+    if (!visibilityChanged && !team1LogoChanged && !team2LogoChanged) {
+      if (!loadingTracker.initialized) loadingTracker.markReceived('teamLogos');
+      return;
+    }
+    
+    // Update visibility flag
+    appState.flags.bothTeamsHaveLogos = shouldShow;
+    
+    if (shouldShow) {
+      // Update each team's logo if changed
+      if (team1LogoChanged) {
+        $elements.team1.logo.attr('src', team1Logo);
+        appState.flags.displayedLogos[1] = team1Logo;
       }
+      
+      if (team2LogoChanged) {
+        $elements.team2.logo.attr('src', team2Logo);
+        appState.flags.displayedLogos[2] = team2Logo;
+      }
+      
+      // Show logos if they weren't already visible
+      if (visibilityChanged) {
+        $elements.team1.logo.show();
+        $elements.team2.logo.show();
+        $elements.logoContainers.show();
+      }
+    } else {
+      // Hide logos and clear tracked URLs
+      $elements.team1.logo.hide();
+      $elements.team2.logo.hide();
+      $elements.logoContainers.hide();
+      appState.flags.displayedLogos[1] = '';
+      appState.flags.displayedLogos[2] = '';
     }
     
     if (!loadingTracker.initialized) loadingTracker.markReceived('teamLogos');
