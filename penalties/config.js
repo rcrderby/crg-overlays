@@ -23,42 +23,6 @@ window.AppConfig.PenaltiesOverlayConfig = {
     enabled: false
   },
 
-  /********************
-  ** Timing Settings **
-  ********************/
-
-  timing: {
-    // Cache expiration time in milliseconds (30 seconds)
-    cacheExpiryMs: 30000,
-
-    // Debounce delay for clock updates in milliseconds
-    debounceClockMs: 50,
-
-    // Debounce delay for penalty updates during initialization
-    debouncePenaltyInitMs: 300,
-
-    // Debounce delay for penalty updates during normal operation
-    debouncePenaltyNormalMs: 50,
-
-    // Maximum time to wait for initial data before displaying overlay (timeout)
-    maxLoadWaitMs: 10000,
-
-    // Minimum time to show loading screen
-    minLoadDisplayMs: 1000,
-
-    // Time to wait after all data received before showing overlay
-    dataCompleteDelayMs: 200,
-
-    // Delay before setting default team names if no names provided
-    defaultNameDelayMs: 500,
-
-    // Polling interval to wait for WebSocket connection
-    wsWaitMs: 100,
-
-    // Delay before initializing display after WebSocket connects
-    initDelayMs: 200
-  },
-
   /***************************
   ** Configuration Settings **
   ***************************/
@@ -144,6 +108,42 @@ window.AppConfig.PenaltiesOverlayConfig = {
   penalties: {
     // Penalty codes to filter from each players' list of penalties
     filteredCodes: ['FO']
-  }
+  },
+
+  /********************
+  ** Timing Settings **
+  ********************/
+
+  timing: {
+    // Cache expiration time in milliseconds (30 seconds)
+    cacheExpiryMs: 30000,
+
+    // Debounce delay for clock updates in milliseconds
+    debounceClockMs: 50,
+
+    // Debounce delay for penalty updates during initialization
+    debouncePenaltyInitMs: 300,
+
+    // Debounce delay for penalty updates during normal operation
+    debouncePenaltyNormalMs: 50,
+
+    // Maximum time to wait for initial data before displaying overlay (timeout)
+    maxLoadWaitMs: 10000,
+
+    // Minimum time to show loading screen
+    minLoadDisplayMs: 1000,
+
+    // Time to wait after all data received before showing overlay
+    dataCompleteDelayMs: 200,
+
+    // Delay before setting default team names if no names provided
+    defaultNameDelayMs: 500,
+
+    // Polling interval to wait for WebSocket connection
+    wsWaitMs: 100,
+
+    // Delay before initializing display after WebSocket connects
+    initDelayMs: 200
+  },
 
 };
