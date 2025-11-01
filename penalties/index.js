@@ -1322,6 +1322,16 @@ $(function() {
     init();
   }
 
-  // Start the application
+  // Set configurable HTML text values from config variables
+  function setConfigurableText() {
+    // Set the loading overlay text
+    $('.loading-text').text(CONFIG.loadingOverlayText);
+    
+    // Set the penalties title text
+    $('#penalties-title h1').text(CONFIG.penaltiesTitleText);
+  }
+
+  // Initialize configurable HTML text and start the application
+  setConfigurableText();
   waitForWS();
 });
