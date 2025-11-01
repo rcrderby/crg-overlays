@@ -72,6 +72,7 @@
   --font-loading-size: 32px;
 
   /* Logo sizes */
+  --offset-team-logo-horizontal: -200px;
   --size-team-logo-max: 180px;
   --size-custom-logo: 100px;
 
@@ -233,6 +234,14 @@ body {
   flex-direction: column;
 }
 
+#team1-container {
+  align-items: flex-start;
+}
+
+#team2-container {
+  align-items: flex-end;
+}
+
 .team-logo-container {
   height: var(--height-logo-container);
   margin-bottom: var(--margin-logo-container-bottom);
@@ -249,9 +258,14 @@ body {
   display: none;
 }
 
-#team1-logo,
+#team1-logo {
+  display: none;
+  margin-left: calc(-1 * var(--offset-team-logo-horizontal));
+}
+
 #team2-logo {
   display: none;
+  margin-right: calc(-1 * var(--offset-team-logo-horizontal));
 }
 
 /****************************
