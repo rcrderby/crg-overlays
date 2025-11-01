@@ -234,20 +234,20 @@ body {
   flex-direction: column;
 }
 
-#team1-container {
-  align-items: flex-start;
-}
-
-#team2-container {
-  align-items: flex-end;
-}
-
 .team-logo-container {
   height: var(--height-logo-container);
   margin-bottom: var(--margin-logo-container-bottom);
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+#team1-container .team-logo-container {
+  margin-left: calc(-1 * var(--offset-logo-horizontal));
+}
+
+#team2-container .team-logo-container {
+  margin-right: calc(-1 * var(--offset-logo-horizontal));
 }
 
 .team-logo {
@@ -258,14 +258,9 @@ body {
   display: none;
 }
 
-#team1-logo {
-  display: none;
-  margin-left: calc(-1 * var(--offset-team-logo-horizontal));
-}
-
+#team1-logo,
 #team2-logo {
   display: none;
-  margin-right: calc(-1 * var(--offset-team-logo-horizontal));
 }
 
 /****************************
