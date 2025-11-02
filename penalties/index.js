@@ -197,7 +197,7 @@ $(function() {
         // Remove loading screen after fade completes
         setTimeout(() => {
           $loadingOverlay.remove();
-        }, 500);
+        }, TIMING.maxLoadDisplayRemoveMs);
         
         // Mark initialization as complete
         appState.flags.initialLoadComplete = true;
