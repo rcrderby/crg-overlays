@@ -147,5 +147,5 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
     // Polling interval to wait for WebSocket connection
     wsWaitMs: 100
-  },
+  }
 };
