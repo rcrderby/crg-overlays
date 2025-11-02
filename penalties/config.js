@@ -115,37 +115,37 @@ window.AppConfig.PenaltiesOverlayConfig = {
   ********************/
 
   timing: {
-    // Cache expiration time in milliseconds (30 seconds)
+    // Cache expiration time (ms)
     cacheExpiryMs: 30000,
 
-    // Time to wait after all data received before showing overlay
+    // Time to wait after all data received before showing overlay (ms)
     dataCompleteDelayMs: 200,
 
-    // Debounce delay for clock updates in milliseconds
+    // Debounce delay for clock updates (ms)
     debounceClockMs: 50,
 
-    // Debounce delay for penalty updates during initialization
+    // Debounce delay for penalty updates during initialization (ms)
     debouncePenaltyInitMs: 300,
 
-    // Debounce delay for penalty updates during normal operation
+    // Debounce delay for penalty updates during normal operation (ms)
     debouncePenaltyNormalMs: 50,
 
-    // Delay before setting default team names if no names provided
+    // Delay before setting default team names if no names provided (ms)
     defaultNameDelayMs: 500,
 
-    // Delay before initializing display after WebSocket connects
+    // Delay before initializing display after WebSocket connects (ms)
     initDelayMs: 200,
 
-    // Maximum time to wait for initial data before displaying overlay (timeout)
+    // Maximum time to wait (timeout) for initial data before displaying overlay (ms)
     maxLoadWaitMs: 10000,
 
     // Maximum time to wait after load completes before removing loading screen (ms)
     manLoadDisplayRemoveMs: 500,
 
-    // Minimum time to show loading screen
+    // Minimum time to show loading screen (ms)
     minLoadDisplayMs: 1000,
 
-    // Polling interval to wait for WebSocket connection
+    // Polling interval to wait for WebSocket connection (ms)
     wsWaitMs: 100
   }
 };
