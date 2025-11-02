@@ -153,8 +153,13 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Minimum time to show loading screen (ms)
     minLoadDisplayMs: 1000,
 
-    // Polling interval to wait for WebSocket connection (ms)
-    wsWaitMs: 100,
+    // Timeout banner slide in/out animation duration (ms)
+    timeoutBannerSlideMs: 400,
 
+      // Timeout banner slide in/out animation duration when changing timeout types (ms)
+    timeoutBannerTransitionMs: 300,
+
+    // Polling interval to wait for WebSocket connection (ms)
+    wsWaitMs: 100
   }
 };
