@@ -57,6 +57,11 @@
   --loading-fg: white;
   --loading-spinner-color: #ff69b4;
 
+  /* Timeout banner colors */
+  --timeout-banner-bg: #cc0000;
+  --timeout-banner-fg: white;
+  --timeout-banner-text-shadow: var(--shadow-text);
+
   /* Fonts */
   --font-family: arial, sans-serif;
   --font-penalties-title-size: 48px;
@@ -70,6 +75,7 @@
   --font-penalties-size: 24px;
   --font-captain-size: 20px;
   --font-loading-size: 32px;
+  --font-timeout-banner-size: 24px;
 
   /* Logo sizes */
   --offset-logo-horizontal: 150px;
@@ -98,6 +104,8 @@
   --padding-penalty-count-vertical: 2px;
   --padding-penalty-count-horizontal: 6px;
   --padding-row-bottom: 2px;
+  --padding-timeout-banner-vertical: 8px;
+  --padding-timeout-banner-horizontal: 20px;
 
   /* Row dimensions and properties */
   --flex-penalties-column: 0.85;
@@ -105,6 +113,7 @@
   --height-logo-container: 180px;
   --height-roster-row: 40px;
   --height-roster-penalties-line: 1.5;
+  --height-timeout-banner: 40px;
   --radius-border-penalty-count: 3px;
   --width-border-rosters-penalties: 1px;
   --width-roster-number: 60px;
@@ -124,6 +133,8 @@
   --transition-background: 0.3s ease;
   --transition-width: 0.3s ease;
   --transition-fade: 0.5s ease;
+  --transition-timeout-hide: 0.3s ease-in-out;
+  --transition-timeout-slide: 0.4s ease-in-out;
 }
 
 /***********************
@@ -487,6 +498,7 @@ body {
   display: flex;
   flex-direction: column;
   width: auto;
+  position: relative;
   transition: width var(--transition-width);
 }
 
