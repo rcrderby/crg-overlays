@@ -80,6 +80,14 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
     // Label shown before P1 when IGRF start time is missing or in the past
     preFirstPeriodLabel: 'Period 1',
+
+    // Timeout indicator labels
+    timeout: {
+      untyped: 'Timeout',
+      official: 'Official Timeout',
+      team: 'Team Timeout',
+      review: 'Official Review'
+    }
   },
 
   /*******************
@@ -146,6 +154,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
     minLoadDisplayMs: 1000,
 
     // Polling interval to wait for WebSocket connection (ms)
-    wsWaitMs: 100
+    wsWaitMs: 100,
+
   }
 };
