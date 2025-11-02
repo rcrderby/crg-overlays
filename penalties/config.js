@@ -68,9 +68,6 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Text displayed for fouled out skaters
     fouloutDisplay: 'FO',
 
-    // Label shown before P1 when IGRF start time is missing or in the past
-    preFirstPeriodLabel: 'Period 1',
-
     // Default/fallback intermission labels
     intermission: {
       preGame: 'Time to Derby',
@@ -79,7 +76,10 @@ window.AppConfig.PenaltiesOverlayConfig = {
       official: 'Final Score',
       overtime: 'Overtime',
       comingUp: 'Coming Up'
-    }
+    },
+
+    // Label shown before P1 when IGRF start time is missing or in the past
+    preFirstPeriodLabel: 'Period 1',
   },
 
   /*******************
@@ -118,6 +118,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Cache expiration time in milliseconds (30 seconds)
     cacheExpiryMs: 30000,
 
+    // Time to wait after all data received before showing overlay
+    dataCompleteDelayMs: 200,
+
     // Debounce delay for clock updates in milliseconds
     debounceClockMs: 50,
 
@@ -127,23 +130,19 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Debounce delay for penalty updates during normal operation
     debouncePenaltyNormalMs: 50,
 
+    // Delay before setting default team names if no names provided
+    defaultNameDelayMs: 500,
+
+    // Delay before initializing display after WebSocket connects
+    initDelayMs: 200,
+
     // Maximum time to wait for initial data before displaying overlay (timeout)
     maxLoadWaitMs: 10000,
 
     // Minimum time to show loading screen
     minLoadDisplayMs: 1000,
 
-    // Time to wait after all data received before showing overlay
-    dataCompleteDelayMs: 200,
-
-    // Delay before setting default team names if no names provided
-    defaultNameDelayMs: 500,
-
     // Polling interval to wait for WebSocket connection
-    wsWaitMs: 100,
-
-    // Delay before initializing display after WebSocket connects
-    initDelayMs: 200
+    wsWaitMs: 100
   },
-
 };
