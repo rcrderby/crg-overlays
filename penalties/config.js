@@ -139,6 +139,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Maximum time to wait for initial data before displaying overlay (timeout)
     maxLoadWaitMs: 10000,
 
+    // Maximum time to wait after load completes before removing loading screen (ms)
+    manLoadDisplayRemoveMs: 500,
+
     // Minimum time to show loading screen
     minLoadDisplayMs: 1000,
 
