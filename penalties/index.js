@@ -1000,96 +1000,58 @@ $(function() {
     logoImg.src = CONFIG.bannerLogoPath;
   }
 
-  /*****************************
+  /******************************
   ** Timeout Banner Functions **
   ******************************/
 
-  // Get the current timeout information
-  function getTimeoutInfo() {
+  // Get timeout information and display details
+  function getTimeoutDisplayInfo() {
     if (!isWSReady()) return null;
 
     const timeoutRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Timeout).Running'));
+    if (!timeoutRunning) return null;
     
-    // Check which team is in timeout or official review
+    // Check team timeout status
     const team1InTimeout = isTrue(safeGetState('ScoreBoard.CurrentGame.Team(1).InTimeout'));
     const team2InTimeout = isTrue(safeGetState('ScoreBoard.CurrentGame.Team(2).InTimeout'));
     const team1InReview = isTrue(safeGetState('ScoreBoard.CurrentGame.Team(1).InOfficialReview'));
     const team2InReview = isTrue(safeGetState('ScoreBoard.CurrentGame.Team(2).InOfficialReview'));
     
-    // Determine the timeout owner
+    // Determine timeout owner and type
     let owner = null;
     let isOfficialReview = false;
+    let position = 'center';
+    let text = LABELS.timeout.untyped;
     
     if (team1InTimeout) {
       owner = '1';
-      isOfficialReview = false;
+      position = 'team1';
+      text = LABELS.timeout.team;
     } else if (team2InTimeout) {
       owner = '2';
-      isOfficialReview = false;
+      position = 'team2';
+      text = LABELS.timeout.team;
     } else if (team1InReview) {
       owner = '1';
       isOfficialReview = true;
+      position = 'team1';
+      text = LABELS.timeout.review;
     } else if (team2InReview) {
       owner = '2';
       isOfficialReview = true;
+      position = 'team2';
+      text = LABELS.timeout.review;
     } else {
-      // Check TimeoutOwner for official timeouts
       const timeoutOwner = trimValue(safeGetState('ScoreBoard.CurrentGame.TimeoutOwner'));
       if (timeoutOwner === 'O') {
         owner = 'O';
+        text = LABELS.timeout.official;
       }
     }
 
-    logger.debug('Timeout info:', { 
-      timeoutRunning, 
-      owner, 
-      isOfficialReview,
-      team1InTimeout,
-      team2InTimeout,
-      team1InReview,
-      team2InReview
-    });
+    logger.debug('Timeout display info:', { timeoutRunning, owner, isOfficialReview, position, text });
 
-    return {
-      isRunning: timeoutRunning,
-      owner: owner,
-      isOfficialReview: isOfficialReview
-    };
-  }
-
-  // Determine the position and text for the timeout banner
-  function getTimeoutDisplay(timeoutInfo) {
-    if (!timeoutInfo || !timeoutInfo.isRunning) {
-      return null;
-    }
-
-    const owner = timeoutInfo.owner;
-    const isOfficialReview = timeoutInfo.isOfficialReview;
-
-    logger.debug('Getting timeout display for:', { owner, isOfficialReview });
-
-    // Team timeout or official review - centered under team name/score
-    // Check this first to ensure team timeouts are detected
-    if (owner === '1' || owner === '2') {
-      return {
-        position: `team${owner}`,
-        text: isOfficialReview ? LABELS.timeout.review : LABELS.timeout.team
-      };
-    }
-
-    // Official timeout - centered
-    if (owner === 'O') {
-      return {
-        position: 'center',
-        text: LABELS.timeout.official
-      };
-    }
-
-    // Untyped timeout - centered
-    return {
-      position: 'center',
-      text: LABELS.timeout.untyped
-    };
+    return { owner, isOfficialReview, position, text };
   }
 
   // Update the timeout banner display
@@ -1097,10 +1059,9 @@ $(function() {
     if (!isWSReady()) return;
 
     try {
-      const timeoutInfo = getTimeoutInfo();
-      const displayInfo = getTimeoutDisplay(timeoutInfo);
+      const displayInfo = getTimeoutDisplayInfo();
 
-      logger.debug('Update timeout banner:', { timeoutInfo, displayInfo });
+      logger.debug('Update timeout banner:', displayInfo);
 
       // Clear any pending transition timeout
       if (appState.timeout.transitionTimeout) {
@@ -1125,10 +1086,10 @@ $(function() {
 
       // Check if the timeout type or position changed
       const typeChanged = 
-        appState.timeout.owner !== timeoutInfo.owner ||
-        appState.timeout.isOfficialReview !== timeoutInfo.isOfficialReview;
+        appState.timeout.owner !== displayInfo.owner ||
+        appState.timeout.isOfficialReview !== displayInfo.isOfficialReview;
 
-      logger.debug('Type changed:', typeChanged, 'Was:', { owner: appState.timeout.owner, isOfficialReview: appState.timeout.isOfficialReview }, 'Now:', { owner: timeoutInfo.owner, isOfficialReview: timeoutInfo.isOfficialReview });
+      logger.debug('Type changed:', typeChanged, 'Was:', { owner: appState.timeout.owner, isOfficialReview: appState.timeout.isOfficialReview }, 'Now:', { owner: displayInfo.owner, isOfficialReview: displayInfo.isOfficialReview });
 
       // If timeout type changed, hide the timeout banner before showing a new banner
       if (typeChanged && appState.timeout.isRunning) {
@@ -1137,8 +1098,8 @@ $(function() {
           showTimeoutBanner(displayInfo.position, displayInfo.text);
           // Update state after animation completes
           appState.timeout.isRunning = true;
-          appState.timeout.owner = timeoutInfo.owner;
-          appState.timeout.isOfficialReview = timeoutInfo.isOfficialReview;
+          appState.timeout.owner = displayInfo.owner;
+          appState.timeout.isOfficialReview = displayInfo.isOfficialReview;
           appState.timeout.currentPosition = displayInfo.position;
         });
       } else {
@@ -1146,8 +1107,8 @@ $(function() {
         showTimeoutBanner(displayInfo.position, displayInfo.text);
         // Update state immediately
         appState.timeout.isRunning = true;
-        appState.timeout.owner = timeoutInfo.owner;
-        appState.timeout.isOfficialReview = timeoutInfo.isOfficialReview;
+        appState.timeout.owner = displayInfo.owner;
+        appState.timeout.isOfficialReview = displayInfo.isOfficialReview;
         appState.timeout.currentPosition = displayInfo.position;
       }
 
