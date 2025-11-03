@@ -654,6 +654,7 @@ body {
 .timeout-banner {
   position: absolute;
   top: 100%;
+  left: 50%;
   width: var(--width-timeout-banner);
   height: var(--height-timeout-banner);
   background-color: var(--timeout-banner-bg);
@@ -671,9 +672,10 @@ body {
   text-overflow: ellipsis;
   z-index: -1;
   /* Start hidden behind the game-info section */
-  transform: translateY(-100%);
+  /* Include translateX(-50%) so changing position classes doesn't cause horizontal/diagonal animation */
+  transform: translateX(-50%) translateY(-100%);
   opacity: 0;
-  /* Smooth transitions - only animate vertical movement and opacity */
+  /* Only animate vertical movement and opacity */
   transition: 
     transform var(--transition-timeout-slide),
     opacity var(--transition-timeout-slide);
@@ -693,31 +695,19 @@ body {
 
 /* Position classes for different timeout types */
 /* Centered position - for untyped and official timeouts */
-.timeout-banner.position-center {
-  left: 50%;
-  transform: translateX(-50%) translateY(-100%);
-}
-
+/* Left position is translateX(-50%) from the base transform */
 .timeout-banner.position-center.visible {
   transform: translateX(-50%) translateY(0);
 }
 
 /* Team 1 position - centered on team name (left side) */
-.timeout-banner.position-team1 {
-  /* Left position set by JavaScript to center on team name */
-  transform: translateX(-50%) translateY(-100%);
-}
-
+/* Left position set by JavaScript to center on team name */
 .timeout-banner.position-team1.visible {
   transform: translateX(-50%) translateY(0);
 }
 
 /* Team 2 position - centered on team name (right side) */
-.timeout-banner.position-team2 {
-  /* Left position set by JavaScript to center on team name */
-  transform: translateX(-50%) translateY(-100%);
-}
-
+/* Left position set by JavaScript to center on team name */
 .timeout-banner.position-team2.visible {
   transform: translateX(-50%) translateY(0);
 }
