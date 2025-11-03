@@ -15,12 +15,13 @@
 Video streaming teams often display an overlay with penalty data during timeouts, although it isn't always easy for viewers to understand what all of the data means.  This is especially true when a penalty overlay might only be visible for a few seconds.  The intent of this overlay is to provide a simple view of penalty and game status information in a format that makes it easy to see:
 
 - Which teams are playing each other.
-- The score, period, and game clock.
+- The score, period number, game clock.
 - Which team is on which side of the screen.
 - Which players have penalties, and how many they have.
 - Which players have high penalty counts, have fouled out, or have been expelled.
 - How many penalties each team has.
 - Tournament information, if applicable.
+- The status of any active timeout.
 - Optionally, the host league, tournament, or sanctioning body logo.
 
 ## Features
