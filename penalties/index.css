@@ -671,10 +671,13 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   z-index: -1;
-  /* Start hidden behind the game-info section */
+
+  /** Timeout banner hiding behind the game information section **/
+
   /* Include translateX(-50%) so changing position classes doesn't cause horizontal/diagonal animation */
   transform: translateX(-50%) translateY(-100%);
   opacity: 0;
+
   /* Only animate vertical movement and opacity */
   transition: 
     transform var(--transition-timeout-slide),
@@ -693,21 +696,17 @@ body {
   transition: opacity var(--transition-timeout-hide);
 }
 
-/* Position classes for different timeout types */
-/* Centered position - for untyped and official timeouts */
-/* Left position is translateX(-50%) from the base transform */
+/* Untyped and OTO - Left position is translateX(-50%) from the base transform */
 .timeout-banner.position-center.visible {
   transform: translateX(-50%) translateY(0);
 }
 
-/* Team 1 position - centered on team name (left side) */
-/* Left position set by JavaScript to center on team name */
+/* Team 1 TTO/OR - left position set by JavaScript to center on team name */
 .timeout-banner.position-team1.visible {
   transform: translateX(-50%) translateY(0);
 }
 
-/* Team 2 position - centered on team name (right side) */
-/* Left position set by JavaScript to center on team name */
+/* Team 2 TTO/OR - left position set by JavaScript to center on team name */
 .timeout-banner.position-team2.visible {
   transform: translateX(-50%) translateY(0);
 }
