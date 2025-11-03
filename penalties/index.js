@@ -118,10 +118,9 @@ $(function() {
       teamNameSet: { 1: false, 2: false }
     },
     timeout: {
-      currentPosition: null,    // 'center', 'team1', or 'team2'
-      owner: null,              // null (untyped), 'O' (official), '<uid>_1' (team1), or '<uid>_2' (team2)
-      isOfficialReview: false,  // true if official review
-      isRunning: false,
+      owner: null,              // null (untyped), 'O' (official), '1' (team1), or '2' (team2) - tracks current display
+      isOfficialReview: false,  // true if official review - tracks current display
+      isRunning: false,         // true if banner is currently visible
       transitionTimeout: null   // timeout ID for hiding animation
     },
     dom: {
@@ -1004,20 +1003,81 @@ $(function() {
   ** Timeout Banner Functions **
   ******************************/
 
+  // Get timeout details from the CurrentTimeout WebSocket ID
+  function getTimeoutDetailsFromId() {
+    if (!isWSReady()) return null;
+
+    const currentTimeoutId = trimValue(safeGetState('ScoreBoard.CurrentGame.CurrentTimeout'));
+    if (!currentTimeoutId) return null;
+
+    const currentPeriod = trimValue(safeGetState('ScoreBoard.CurrentGame.CurrentPeriodNumber')) || '1';
+    
+    // Look up timeout details in the period data
+    const rawOwner = trimValue(safeGetState(`ScoreBoard.CurrentGame.Period(${currentPeriod}).Timeout(${currentTimeoutId}).Owner`));
+    const isReview = isTrue(safeGetState(`ScoreBoard.CurrentGame.Period(${currentPeriod}).Timeout(${currentTimeoutId}).Review`));
+    
+    if (!rawOwner) return null;
+
+    logger.debug('Timeout details from ID:', { currentTimeoutId, currentPeriod, owner: rawOwner, isReview });
+
+    // Determine the banner position and text based on timeout uowner
+    let owner = null;
+    let position = 'center';
+    let text = LABELS.timeout.untyped;
+    let isOfficialReview = false;
+
+    if (rawOwner === 'O') {
+      // Official timeout
+      owner = 'O';
+      text = LABELS.timeout.official;
+    } else if (rawOwner.endsWith('_1')) {
+      // Team 1 timeout or official review
+      owner = '1';
+      position = 'team1';
+      if (isReview) {
+        isOfficialReview = true;
+        text = LABELS.timeout.review;
+      } else {
+        text = LABELS.timeout.team;
+      }
+    } else if (rawOwner.endsWith('_2')) {
+      // Team 2 timeout or official review
+      owner = '2';
+      position = 'team2';
+      if (isReview) {
+        isOfficialReview = true;
+        text = LABELS.timeout.review;
+      } else {
+        text = LABELS.timeout.team;
+      }
+    }
+
+    return { owner, isOfficialReview, position, text };
+  }
+
   // Get timeout information and display details
   function getTimeoutDisplayInfo() {
     if (!isWSReady()) return null;
 
     const timeoutRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Timeout).Running'));
-    if (!timeoutRunning) return null;
+    const lineupRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Lineup).Running'));
     
-    // Check team timeout status
+    // If neither timeout nor lineup clock is running, hide the banner
+    if (!timeoutRunning && !lineupRunning) return null;
+    
+    // Primary: Get timeout details from CurrentTimeout ID
+    const timeoutFromId = getTimeoutDetailsFromId();
+    if (timeoutFromId) {
+      logger.debug('Got timeout info from CurrentTimeout ID:', timeoutFromId);
+      return timeoutFromId;
+    }
+    
+    // Fallback: Use real-time flags (for edge cases where CurrentTimeout might not be set yet)
     const team1InTimeout = isTrue(safeGetState('ScoreBoard.CurrentGame.Team(1).InTimeout'));
     const team2InTimeout = isTrue(safeGetState('ScoreBoard.CurrentGame.Team(2).InTimeout'));
     const team1InReview = isTrue(safeGetState('ScoreBoard.CurrentGame.Team(1).InOfficialReview'));
     const team2InReview = isTrue(safeGetState('ScoreBoard.CurrentGame.Team(2).InOfficialReview'));
     
-    // Determine timeout owner and type
     let owner = null;
     let isOfficialReview = false;
     let position = 'center';
@@ -1049,7 +1109,13 @@ $(function() {
       }
     }
 
-    logger.debug('Timeout display info:', { timeoutRunning, owner, isOfficialReview, position, text });
+    logger.debug('Got timeout info from real-time flags:', { timeoutRunning, lineupRunning, owner, isOfficialReview, position, text });
+
+    // If the timeout type is unknown/couldn't be determined, do not show the banner
+    if (lineupRunning && owner === null) {
+      logger.debug('Lineup running with undetermined timeout type, hiding banner');
+      return null;
+    }
 
     return { owner, isOfficialReview, position, text };
   }
@@ -1069,7 +1135,7 @@ $(function() {
         appState.timeout.transitionTimeout = null;
       }
 
-      // Hide banner if no timeout is running
+      // Hide banner if no timeout info available
       if (!displayInfo) {
         if (appState.timeout.isRunning) {
           hideTimeoutBanner();
@@ -1077,7 +1143,6 @@ $(function() {
         appState.timeout.isRunning = false;
         appState.timeout.owner = null;
         appState.timeout.isOfficialReview = false;
-        appState.timeout.currentPosition = null;
         
         // Mark as received even if no timeout
         if (!loadingTracker.initialized) loadingTracker.markReceived('timeoutBanner');
@@ -1100,7 +1165,6 @@ $(function() {
           appState.timeout.isRunning = true;
           appState.timeout.owner = displayInfo.owner;
           appState.timeout.isOfficialReview = displayInfo.isOfficialReview;
-          appState.timeout.currentPosition = displayInfo.position;
         });
       } else {
         // Show banner
@@ -1109,7 +1173,6 @@ $(function() {
         appState.timeout.isRunning = true;
         appState.timeout.owner = displayInfo.owner;
         appState.timeout.isOfficialReview = displayInfo.isOfficialReview;
-        appState.timeout.currentPosition = displayInfo.position;
       }
 
       // Mark as received during initialization
@@ -1130,13 +1193,7 @@ $(function() {
     // Remove all position classes
     $elements.timeoutBanner.removeClass('position-center position-team1 position-team2');
     
-    // Force a reflow to ensure browser processes the removals
-    $elements.timeoutBanner[0].offsetHeight;
-    
-    // Add the new position class
-    $elements.timeoutBanner.addClass(`position-${position}`);
-    
-    // Calculate and set left position for team banners
+    // Calculate and set left position before adding position class
     if (position === 'team1' || position === 'team2') {
       const teamNum = position === 'team1' ? '1' : '2';
       const $teamName = $elements[`team${teamNum}`].name;
@@ -1151,7 +1208,7 @@ $(function() {
         const relativeLeft = teamNameOffset.left - wrapperOffset.left;
         const centerPosition = relativeLeft + (teamNameWidth / 2);
         
-        // Set the left position (translateX(-50%) will center the banner on this point)
+        // Set the left position before adding the position class
         $elements.timeoutBanner.css('left', `${centerPosition}px`);
         
         logger.debug('Team banner position:', { 
@@ -1162,14 +1219,20 @@ $(function() {
         });
       }
     } else {
-      // For center position, ensure left is set to 50%
+      // For center position, set left to 50% before adding the position class
       $elements.timeoutBanner.css('left', '50%');
     }
+    
+    // Force a reflow to ensure left position is set before adding classes
+    $elements.timeoutBanner[0].offsetHeight;
+    
+    // Add the position class
+    $elements.timeoutBanner.addClass(`position-${position}`);
     
     // Set the text
     $elements.timeoutText.text(text);
     
-    // Force another reflow to ensure position and text changes are applied
+    // Force a reflow to ensure position class and text changes are applied
     $elements.timeoutBanner[0].offsetHeight;
     
     // Use requestAnimationFrame to ensure browser is ready for animation
@@ -1529,6 +1592,8 @@ $(function() {
 
       // Timeout banner updates
       registerHandler(['ScoreBoard.CurrentGame.Clock(Timeout).Running'], updateTimeoutBanner);
+      registerHandler(['ScoreBoard.CurrentGame.Clock(Lineup).Running'], updateTimeoutBanner);
+      registerHandler(['ScoreBoard.CurrentGame.CurrentTimeout'], updateTimeoutBanner);
       registerHandler(['ScoreBoard.CurrentGame.TimeoutOwner'], updateTimeoutBanner);
       registerHandler(['ScoreBoard.CurrentGame.OfficialReview'], updateTimeoutBanner);
       registerHandler(['ScoreBoard.CurrentGame.Team(1).InTimeout'], updateTimeoutBanner);
