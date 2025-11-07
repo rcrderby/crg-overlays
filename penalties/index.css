@@ -237,6 +237,7 @@ body {
   width: var(--content-width);
   margin: 0 auto;
   margin-bottom: var(--margin-logo-container-bottom);
+  min-height: 50px;
   position: relative;
 }
 
