@@ -375,7 +375,7 @@ $(function() {
       updateQueue.schedule(equalizeTeamBoxWidths);
     }
     
-    if (!loadingTracker.initialized) loadingTracker.mark('teamsBasicData');
+    if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
   }
 
   // Parse team-related WebSocket key info into components
@@ -1409,7 +1409,7 @@ $(function() {
         
       case 'Score':
         team.score.text(value || '0');
-        if (!loadingTracker.initialized) loadingTracker.mark('teamsBasicData');
+        if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
         break;
         
       case 'Logo':
@@ -1425,12 +1425,12 @@ $(function() {
         
       case 'TotalPenalties':
         team.total.text(value || '0');
-        if (!loadingTracker.initialized) loadingTracker.mark('teamsBasicData');
+        if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
         break;
         
       default:
-        // Unhandled team property
-        logger.debug(`Unhandled team property: ${property}`, { key, value });
+        // Unhandled team property handling for troubleshooting
+        // logger.debug(`Unhandled team property: ${property}`, { key, value });
         break;
     }
   }
@@ -1461,8 +1461,8 @@ $(function() {
         break;
         
       default:
-        // Unhandled player property
-        logger.debug(`Unhandled skater property: ${property}`, { key, value });
+        // Unhandled player property handling for troubleshooting
+        // logger.debug(`Unhandled skater property: ${property}`, { key, value });
         break;
     }
   }
