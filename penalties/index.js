@@ -683,30 +683,20 @@ $(function() {
   // Build penalty HTML for a player
   function buildPenaltyHTML(teamNum, skater, expulsionIds) {
     const displayPenalties = getDisplayPenalties(skater.penaltyDetails, expulsionIds);
+    const displayCount = displayPenalties.length;
     
     // Sanitize penalty codes
     const codes = displayPenalties.map(p => sanitizeHTML(p.code)).join(' ');
-    const displayCount = displayPenalties.length;
     
-    // Determine the display value for the player's total penalties (EXP, FO, or count)
-    let displayValue;
-    if (isSkaterExpelled(teamNum, skater.id)) {
-      displayValue = LABELS.expelledDisplay;
-    } else if (isSkaterFouledOut(skater)) {
-      displayValue = LABELS.fouloutDisplay;
-    } else {
-      displayValue = displayCount;
-    }
-
-    // Set the CSS class (bg color) for the total count
-    const countClass = getPenaltyCountClass(teamNum, skater.id, displayCount);
+    // Get player status
+    const { statusClass, displayValue } = getSkaterStatus(teamNum, skater.id, displayCount);
     
-    return [
-      '<div class="penalty-line">',
-      `<div class="penalty-codes">${codes}</div>`,
-      `<div class="penalty-count ${countClass}">${displayValue}</div>`,
-      '</div>'
-    ].join('');
+    return `
+      <div class="penalty-line">
+        <div class="penalty-codes">${codes}</div>
+        <div class="penalty-count ${statusClass}">${displayValue}</div>
+      </div>
+    `.trim();
   }
 
   // Check if a player should be filtered from display based on their flags
