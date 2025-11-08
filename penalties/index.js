@@ -130,16 +130,17 @@ $(function() {
 
   // Loading tracker - monitors which data has been received during initialization
   const loadingTracker = {
+    // State during initialization
     initialized: false,
     loadStartTime: null,
     safetyTimeoutId: null,
-    dataReceived: {
-      teamsBasicData: 0,     // Counts to RULES.numTeams (both teams' names, scores, totals, colors)
-      teamLogos: false,
-      teamRosters: 0,        // Counts to RULES.numTeams (both teams)
-      teamPenalties: 0,      // Counts to RULES.numTeams (both teams)
-      timeoutBanner: false,  // Timeout banner initialized
-      gameInfo: 0            // Counts to EXPECTED_DATA_COUNTS.GAME_INFO_FIELDS (clock, clockLabel, tournament, expulsions)
+    counters: {
+      teamsBasicData: { received: 0, required: RULES.numTeams },
+      teamLogos: { received: 0, required: 1 },
+      teamRosters: { received: 0, required: RULES.numTeams },
+      teamPenalties: { received: 0, required: RULES.numTeams },
+      timeoutBanner: { received: 0, required: 1 },
+      gameInfo: { received: 0, required: EXPECTED_DATA_COUNTS.GAME_INFO_FIELDS }
     },
     
     // Mark a data item as received
