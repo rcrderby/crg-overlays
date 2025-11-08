@@ -153,14 +153,15 @@ $(function() {
       }
     },
     
-    // Check if all data has been received
+    // Check if all required data has been received
     isAllDataReceived() {
-      return this.dataReceived.gameInfo >= EXPECTED_DATA_COUNTS.GAME_INFO_FIELDS &&
-             this.dataReceived.teamsBasicData >= RULES.numTeams &&
-             this.dataReceived.teamLogos &&
-             this.dataReceived.teamRosters >= RULES.numTeams &&
-             this.dataReceived.teamPenalties >= RULES.numTeams &&
-             this.dataReceived.timeoutBanner;
+      return Object.entries(this.counters).every(([key, counter]) => {
+        const isComplete = counter.received >= counter.required;
+        if (!isComplete) {
+          logger.debug(`Waiting for ${key}: ${counter.received}/${counter.required}`);
+        }
+        return isComplete;
+      });
     },
     
     // Check if ready to display and show overlay
