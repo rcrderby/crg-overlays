@@ -1003,6 +1003,50 @@ $(function() {
   ** Timeout Banner Functions **
   ******************************/
 
+  // Parse timeout owner string and determine banner display properties
+  function parseTimeoutOwner(rawOwner, isReview = false) {
+
+    // Set default properties
+    let owner = null;
+    let position = 'center';
+    let text = LABELS.timeout.untyped;
+    let isOfficialReview = false;
+
+    if (!rawOwner) {
+      return { owner, isOfficialReview, position, text };
+    }
+
+    // Official timeout
+    if (rawOwner === 'O') {
+      owner = rawOwner;
+      text = LABELS.timeout.official;
+
+    // Team 1 timeout or official review
+    } else if (rawOwner.endsWith('_1') || rawOwner === '1') {
+      owner = '1';
+      position = 'team1';
+      if (isReview) {
+        isOfficialReview = true;
+        text = LABELS.timeout.review;
+      } else {
+        text = LABELS.timeout.team;
+      }
+
+    // Team 2 timeout or official review
+    } else if (rawOwner.endsWith('_2') || rawOwner === '2') {
+      owner = '2';
+      position = 'team2';
+      if (isReview) {
+        isOfficialReview = true;
+        text = LABELS.timeout.review;
+      } else {
+        text = LABELS.timeout.team;
+      }
+    }
+
+    return { owner, isOfficialReview, position, text };
+  }
+
   // Get timeout details from the CurrentTimeout WebSocket ID
   function getTimeoutDetailsFromId() {
     if (!isWSReady()) return null;
