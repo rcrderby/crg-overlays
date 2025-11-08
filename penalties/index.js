@@ -164,7 +164,7 @@ $(function() {
       });
     },
     
-    // Check if ready to display and show overlay
+    // Check if ready to display and show overlay if complete
     checkIfReady() {
       if (this.initialized || !this.loadStartTime) {
         return;
