@@ -1550,7 +1550,7 @@ $(function() {
         const name = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Name`));
         const total = safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).TotalPenalties`, '0');
         const score = safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Score`, '0');
-        
+
         // Set team name, or default name after delay
         if (altName || name) {
           $elements[`team${teamNum}`].name.text(altName || name);
