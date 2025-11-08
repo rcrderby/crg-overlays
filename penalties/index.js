@@ -223,8 +223,13 @@ $(function() {
         return;
       }
       
+      // Log any missing data
+      const missing = Object.entries(this.counters)
+        .filter(([_, counter]) => counter.received < counter.required)
+        .map(([key, counter]) => `${key} (${counter.received}/${counter.required})`);
+      
       logger.warn('Timeout reached - displaying overlay with available data');
-      logger.warn('Missing data:', Object.keys(this.dataReceived).filter(k => !this.dataReceived[k]));
+      logger.warn('Missing data:', missing);
       
       this.initialized = true;
       this.showOverlay();
