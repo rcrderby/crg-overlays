@@ -1064,39 +1064,7 @@ $(function() {
 
     logger.debug('Timeout details from ID:', { currentTimeoutId, currentPeriod, owner: rawOwner, isReview });
 
-    // Determine the banner position and text based on timeout uowner
-    let owner = null;
-    let position = 'center';
-    let text = LABELS.timeout.untyped;
-    let isOfficialReview = false;
-
-    if (rawOwner === 'O') {
-      // Official timeout
-      owner = 'O';
-      text = LABELS.timeout.official;
-    } else if (rawOwner.endsWith('_1')) {
-      // Team 1 timeout or official review
-      owner = '1';
-      position = 'team1';
-      if (isReview) {
-        isOfficialReview = true;
-        text = LABELS.timeout.review;
-      } else {
-        text = LABELS.timeout.team;
-      }
-    } else if (rawOwner.endsWith('_2')) {
-      // Team 2 timeout or official review
-      owner = '2';
-      position = 'team2';
-      if (isReview) {
-        isOfficialReview = true;
-        text = LABELS.timeout.review;
-      } else {
-        text = LABELS.timeout.team;
-      }
-    }
-
-    return { owner, isOfficialReview, position, text };
+    return parseTimeoutOwner(rawOwner, isReview);
   }
 
   // Get timeout information and display details
