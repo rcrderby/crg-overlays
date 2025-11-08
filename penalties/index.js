@@ -145,12 +145,12 @@ $(function() {
     
     // Mark a data item as received
     markReceived(dataKey) {
-      if (typeof this.dataReceived[dataKey] === 'number') {
-        this.dataReceived[dataKey]++;
-      } else if (Object.hasOwn(this.dataReceived, dataKey)) {
-        this.dataReceived[dataKey] = true;
+      const counter = this.counters[dataKey];
+      if (counter && counter.received < counter.required) {
+        counter.received++;
+        logger.debug(`Loading tracker: ${dataKey} = ${counter.received}/${counter.required}`);
+        this.checkIfReady();
       }
-      this.checkIfReady();
     },
     
     // Check if all data has been received
