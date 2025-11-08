@@ -453,37 +453,67 @@ $(function() {
   ** Player management functions **
   ********************************/
 
-  // Check if a skater is expelled
-  function isSkaterExpelled(teamNum, skaterId) {
-    const skater = appState.teams[teamNum].skaters[skaterId];
-    if (!skater || !skater.penaltyIds || skater.penaltyIds.length === 0) {
-      return false;
-    }
+  // Get player information
+  function getSkaterStatus(teamNum, skaterId, displayCount = null) {
+    const skater = appState.teams?.[teamNum]?.skaters?.[skaterId];
     
-    const expulsionIds = getExpulsionPenaltyIds();
-    if (expulsionIds.length === 0) {
-      return false;
+    // Return default status if player is not found or has no penalties
+    if (!skater || !skater.penalties) {
+      return { 
+        isExpelled: false, 
+        isFouledOut: false, 
+        statusClass: '', 
+        displayValue: displayCount || 0 
+      };
     }
-    
-    // Check if any of the skater's penalties match expulsion IDs
-    return skater.penaltyIds.some(penaltyId => expulsionIds.includes(penaltyId));
-  }
 
-  // Check if a skater is fouled out
-  function isSkaterFouledOut(skater) {
-    if (!skater || !skater.penalties) return false;
-    
     const totalPenalties = skater.penalties.length;
-    
-    // Fouled out if 7+ penalties
-    if (totalPenalties >= RULES.fouloutPenaltyCount) {
-      return true;
+    const actualDisplayCount = displayCount !== null ? displayCount : totalPenalties;
+
+    // Check for expelled status
+    const expulsionIds = getExpulsionPenaltyIds();
+    if (expulsionIds.length > 0 && skater.penaltyIds) {
+      const isExpelled = skater.penaltyIds.some(penaltyId => expulsionIds.includes(penaltyId));
+      
+      if (isExpelled) {
+        return {
+          isExpelled: true,
+          isFouledOut: false,
+          statusClass: CSS_CLASSES.PENALTY_EXPELLED,
+          displayValue: LABELS.expelledDisplay
+        };
+      }
     }
-    
-    // Fouled out if FO code present
-    return skater.penalties.some(penalty => 
+
+    // Check for fouled out status
+    const hasFOCode = skater.penalties.some(penalty => 
       String(penalty || '').trim().toUpperCase() === LABELS.fouloutDisplay
     );
+    const isFouledOut = totalPenalties >= RULES.fouloutPenaltyCount || hasFOCode;
+    
+    if (isFouledOut) {
+      return {
+        isExpelled: false,
+        isFouledOut: true,
+        statusClass: CSS_CLASSES.PENALTY_FOULOUT,
+        displayValue: LABELS.fouloutDisplay
+      };
+    }
+
+    // Determine warning color class based on penalty/display count
+    let statusClass = '';
+    if (actualDisplayCount === RULES.warningPenaltyCount6) {
+      statusClass = CSS_CLASSES.PENALTY_6;
+    } else if (actualDisplayCount === RULES.warningPenaltyCount5) {
+      statusClass = CSS_CLASSES.PENALTY_5;
+    }
+
+    return {
+      isExpelled: false,
+      isFouledOut: false,
+      statusClass,
+      displayValue: actualDisplayCount
+    };
   }
 
   // Sort skaters alphabetically by number (as text)
@@ -522,32 +552,6 @@ $(function() {
   /**********************
   ** Penalty functions **
   **********************/
-
-  // Determine penalty count CSS class based on penalty count
-  function getPenaltyCountClass(teamNum, skaterId, displayCount) {
-    // First, check for expelled status
-    if (isSkaterExpelled(teamNum, skaterId)) {
-      return CSS_CLASSES.PENALTY_EXPELLED;
-    }
-    
-    const skater = appState.teams[teamNum].skaters[skaterId];
-    if (!skater || !skater.penalties) return '';
-  
-    // Next, check for fouled out status
-    if (isSkaterFouledOut(skater)) {
-      return CSS_CLASSES.PENALTY_FOULOUT;
-    }
-
-    // Color code penalties based on display count (excluding FO)
-    if (displayCount === RULES.warningPenaltyCount6) {
-      return CSS_CLASSES.PENALTY_6;
-    }
-    if (displayCount === RULES.warningPenaltyCount5) {
-      return CSS_CLASSES.PENALTY_5;
-    }
-    
-    return '';
-  }
 
   // Filter penalties for display (exclude FO codes and expulsions)
   function getDisplayPenalties(penaltyDetails, expulsionIds) {
