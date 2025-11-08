@@ -260,6 +260,7 @@ $(function() {
         ? Math.round((totals.received / totals.required) * 100)
         : 0;
     },
+
     // Get the detailed loading status for troubleshooting
     getLoadingStatus() {
       return {
