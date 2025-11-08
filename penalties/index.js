@@ -910,7 +910,9 @@ $(function() {
       
       const vsClockWidth = $elements.vsClockContainer.outerWidth();
       const hasLogo = $elements.gameInfoWrapper.hasClass(CSS_CLASSES.HAS_LOGO);
-      const padding = hasLogo ? 280 : 40;
+      const padding = hasLogo 
+        ? CONFIG.gameInfoPaddingWithLogo 
+        : CONFIG.gameInfoPaddingWithoutLogo;
       
       const totalWidth = (maxWidth * 2) + vsClockWidth + padding;
       $elements.gameInfoWrapper.css('width', `${totalWidth}px`);
