@@ -144,6 +144,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Debounce delay for penalty updates during normal operation (ms)
     debouncePenaltyNormalMs: 50,
 
+    // Debounce delay for timeout banner updates during normal operation (ms)
+    debounceTimeoutBannerNormalMs: 50,
+
     // Delay before setting default team names if no names provided (ms)
     defaultNameDelayMs: 500,
 
