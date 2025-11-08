@@ -155,7 +155,9 @@ $(function() {
       if (this.initialized || !this.loadStartTime) {
         return;
       }
-      
+
+      logger.debug('Loading status:', this.getLoadingStatus());
+
       if (this.isAllDataReceived()) {
         logger.debug('All data received, preparing to display overlay...');
         this.initialized = true;
