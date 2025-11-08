@@ -1475,7 +1475,10 @@ $(function() {
   function handlePenaltyUpdate(key, _value) {
     const match = key.match(REGEX_PATTERNS.teamNumber);
     if (match) {
-      debouncedPenaltyUpdate.update(parseInt(match[1]));
+      const teamNum = parseInt(match[1]);
+      if (!isNaN(teamNum) && teamNum >= 1 && teamNum <= RULES.numTeams) {
+        debouncedPenaltyUpdate.update(teamNum);
+      }
     }
   }
 
