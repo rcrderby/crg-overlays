@@ -125,7 +125,6 @@ $(function() {
       teamLogos: { received: 0, required: 1 },
       teamRosters: { received: 0, required: RULES.numTeams },
       teamPenalties: { received: 0, required: RULES.numTeams },
-      timeoutBanner: { received: 0, required: 1 },
       gameInfo: { received: 0, required: EXPECTED_DATA_COUNTS.GAME_INFO_FIELDS }
     },
     
@@ -1215,9 +1214,7 @@ $(function() {
         appState.timeout.isRunning = false;
         appState.timeout.owner = null;
         appState.timeout.isOfficialReview = false;
-        
-        // Mark as received even if no timeout
-        if (!loadingTracker.initialized) loadingTracker.markReceived('timeoutBanner');
+
         return;
       }
 
@@ -1246,9 +1243,6 @@ $(function() {
         appState.timeout.owner = displayInfo.owner;
         appState.timeout.isOfficialReview = displayInfo.isOfficialReview;
       }
-
-      // Mark as received during initialization
-      if (!loadingTracker.initialized) loadingTracker.markReceived('timeoutBanner');
 
     } catch(error) {
       logger.error('Error updating timeout banner:', error);
