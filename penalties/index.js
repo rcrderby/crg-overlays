@@ -1251,7 +1251,7 @@ $(function() {
     } catch(error) {
       logger.error('Error updating timeout banner:', error);
     }
-  }, 150); // Debounce to wait for all fields to update
+  }, TIMING.debounceTimeoutBannerNormalMs); // Debounce to wait for all fields to update
 
   // Show the timeout banner with the specified position and text
   function showTimeoutBanner(position, text) {
