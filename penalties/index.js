@@ -1055,7 +1055,7 @@ $(function() {
     if (!currentTimeoutId) return null;
 
     const currentPeriod = trimValue(safeGetState('ScoreBoard.CurrentGame.CurrentPeriodNumber')) || '1';
-    
+
     // Look up timeout details in the period data
     const rawOwner = trimValue(safeGetState(`ScoreBoard.CurrentGame.Period(${currentPeriod}).Timeout(${currentTimeoutId}).Owner`));
     const isReview = isTrue(safeGetState(`ScoreBoard.CurrentGame.Period(${currentPeriod}).Timeout(${currentTimeoutId}).Review`));
@@ -1073,64 +1073,57 @@ $(function() {
 
     const timeoutRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Timeout).Running'));
     const lineupRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Lineup).Running'));
-    
-    // If neither timeout nor lineup clock is running, hide the banner
+
+    // If neither timeout nor lineup clock is running
     if (!timeoutRunning && !lineupRunning) return null;
     
-    // Primary: Get timeout details from CurrentTimeout ID
+    // Get timeout details from CurrentTimeout ID
     const timeoutFromId = getTimeoutDetailsFromId();
     if (timeoutFromId) {
-      logger.debug('Got timeout info from CurrentTimeout ID:', timeoutFromId);
-      return timeoutFromId;
+        logger.debug('Got timeout info from CurrentTimeout ID:', timeoutFromId);
+        return timeoutFromId;
     }
     
-    // Fallback: Use real-time flags (for edge cases where CurrentTimeout might not be set yet)
+    // Fallback - use WebSocket flags for edge cases where CurrentTimeout might not be set yet
     const team1InTimeout = isTrue(safeGetState('ScoreBoard.CurrentGame.Team(1).InTimeout'));
     const team2InTimeout = isTrue(safeGetState('ScoreBoard.CurrentGame.Team(2).InTimeout'));
     const team1InReview = isTrue(safeGetState('ScoreBoard.CurrentGame.Team(1).InOfficialReview'));
     const team2InReview = isTrue(safeGetState('ScoreBoard.CurrentGame.Team(2).InOfficialReview'));
     
-    let owner = null;
-    let isOfficialReview = false;
-    let position = 'center';
-    let text = LABELS.timeout.untyped;
-    
+    // Determine timeout type from flags
+    let rawOwner = null;
+    let isReview = false;
+
     if (team1InTimeout) {
-      owner = '1';
-      position = 'team1';
-      text = LABELS.timeout.team;
+        rawOwner = '1';
     } else if (team2InTimeout) {
-      owner = '2';
-      position = 'team2';
-      text = LABELS.timeout.team;
+        rawOwner = '2';
     } else if (team1InReview) {
-      owner = '1';
-      isOfficialReview = true;
-      position = 'team1';
-      text = LABELS.timeout.review;
+        rawOwner = '1';
+        isReview = true;
     } else if (team2InReview) {
-      owner = '2';
-      isOfficialReview = true;
-      position = 'team2';
-      text = LABELS.timeout.review;
+        rawOwner = '2';
+        isReview = true;
     } else {
-      const timeoutOwner = trimValue(safeGetState('ScoreBoard.CurrentGame.TimeoutOwner'));
-      if (timeoutOwner === 'O') {
-        owner = 'O';
-        text = LABELS.timeout.official;
-      }
+        rawOwner = trimValue(safeGetState('ScoreBoard.CurrentGame.TimeoutOwner'));
     }
 
-    logger.debug('Got timeout info from real-time flags:', { timeoutRunning, lineupRunning, owner, isOfficialReview, position, text });
+    const displayInfo = parseTimeoutOwner(rawOwner, isReview);
 
-    // If the timeout type is unknown/couldn't be determined, do not show the banner
-    if (lineupRunning && owner === null) {
-      logger.debug('Lineup running with undetermined timeout type, hiding banner');
-      return null;
+    logger.debug('Got timeout info from WebSocket flags:', { 
+        timeoutRunning, 
+        lineupRunning, 
+        ...displayInfo 
+    });
+
+    // Do not show the banner if the timeout type is unknown or can't be determined
+    if (lineupRunning && displayInfo.owner === null) {
+        logger.debug('Lineup running with undetermined timeout type, hiding banner');
+        return null;
     }
 
-    return { owner, isOfficialReview, position, text };
-  }
+    return displayInfo;
+    }
 
   // Update the timeout banner display
   const updateTimeoutBanner = debounce(function() {
