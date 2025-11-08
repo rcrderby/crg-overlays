@@ -1393,7 +1393,7 @@ $(function() {
     const parsed = parseTeamKey(key);
     if (!parsed) return;
     
-    const { teamNum, property, identifier, subProperty } = parsed;
+    const { teamNum, property, identifier } = parsed;
     const team = $elements[`team${teamNum}`];
 
     switch(property) {
