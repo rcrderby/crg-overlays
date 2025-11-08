@@ -244,6 +244,34 @@ $(function() {
       this.safetyTimeoutId = setTimeout(() => {
         this.forceShowOverlay();
       }, TIMING.maxLoadWaitMs);
+    },
+
+    // Get the loading progress as a percentage complete
+    getLoadingProgress() {
+      const totals = Object.values(this.counters).reduce(
+        (acc, counter) => ({
+          received: acc.received + counter.received,
+          required: acc.required + counter.required
+        }),
+        { received: 0, required: 0 }
+      );
+
+      return totals.required > 0 
+        ? Math.round((totals.received / totals.required) * 100)
+        : 0;
+    },
+    // Get the detailed loading status for troubleshooting
+    getLoadingStatus() {
+      return {
+        initialized: this.initialized,
+        progress: this.getLoadingProgress(),
+        counters: Object.entries(this.counters).map(([key, counter]) => ({
+          name: key,
+          received: counter.received,
+          required: counter.required,
+          complete: counter.received >= counter.required
+        }))
+      };
     }
   };
 
