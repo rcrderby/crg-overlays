@@ -155,9 +155,8 @@ $(function() {
         return;
       }
 
-      logger.debug('Loading status:', this.getLoadingStatus());
-
       if (this.isAllDataReceived()) {
+        logger.debug('Loading status:', this.getLoadingStatus());
         logger.debug('All data received, preparing to display overlay...');
         this.initialized = true;
         
@@ -1594,7 +1593,6 @@ $(function() {
     }
     
     try {
-      loadingTracker.startLoading();
       
       // Initialize team data
       for (let teamNum = 1; teamNum <= RULES.numTeams; teamNum++) {
@@ -1689,6 +1687,7 @@ $(function() {
 
       loadCustomLogo();
       setTimeout(initializeDisplay, TIMING.initDelayMs);
+      loadingTracker.startLoading();
       
       logger.debug('Penalties overlay initialization started');
       
