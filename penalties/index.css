@@ -378,8 +378,11 @@ body {
 }
 
 .roster-name {
-  text-align: left;
   flex: 1;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .captain-indicator {
