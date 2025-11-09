@@ -749,10 +749,10 @@ $(function() {
     const isCaptain = skater.flags === LABELS.captainFlag || 
                       flags.includes(LABELS.captainFlag);
     const isAltCaptain = skater.flags === LABELS.altCaptainFlag || 
-                         flags.includes(LABELS.altCaptainFlag);
+                      flags.includes(LABELS.altCaptainFlag);
     
-    const captainIndicator = isCaptain ? ' <span class="captain-indicator">C</span>' : 
-                             isAltCaptain ? ' <span class="captain-indicator">A</span>' : '';
+    const captainIndicator = isCaptain ? '<span class="captain-indicator">C</span>' : 
+                            isAltCaptain ? '<span class="captain-indicator">A</span>' : '';
     
     // Sanitize roster user input
     const safeNumber = sanitizeHTML(skater.number);
@@ -761,11 +761,12 @@ $(function() {
     return `
       <div class="roster-line">
         <div class="roster-number">${safeNumber}</div>
-        <div class="roster-name">${safeName}${captainIndicator}</div>
+        <div class="roster-name">
+          <span class="name-text">${safeName}</span>${captainIndicator}
+        </div>
       </div>
     `;
   }
-
 
   // Build penalty HTML for a player
   function buildPenaltyHTML(teamNum, skater, expulsionIds) {
