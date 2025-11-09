@@ -41,9 +41,9 @@
   --penalties-border: var(--team-penalties-default-border-color);
 
   /* Penalty highlight colors */
-  --penalty-warning-5: #b8860b;        /* Dark yellow */
-  --penalty-warning-6: #cc6600;        /* Dark orange */
-  --penalty-warning-fo-exp: #8b0000;   /* Dark red */
+  --penalty-warning-5: #b8860b;          /* Dark yellow */
+  --penalty-warning-6: #cc6600;          /* Dark orange */
+  --penalty-warning-exp-fo-re: #8b0000;  /* Dark red */
 
   /* Game information area colors */
   --tournament-bg: #333333;
@@ -461,9 +461,8 @@ body {
   background-color: var(--penalty-warning-6);
 }
 
-.penalty-count-foulout,
-.penalty-count-expelled {
-  background-color: var(--penalty-warning-fo-exp);
+.penalty-count-exp-fo-re {
+  background-color: var(--penalty-warning-exp-fo-re);
 }
 
 /************************

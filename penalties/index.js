@@ -62,8 +62,7 @@ $(function() {
   const CSS_CLASSES = {
     PENALTY_5: 'penalty-count-5',
     PENALTY_6: 'penalty-count-6',
-    PENALTY_FOULOUT: 'penalty-count-foulout',
-    PENALTY_EXPELLED: 'penalty-count-expelled',
+    PENALTY_EXP_FO_RE: 'penalty-count-exp-fo-re',
     HAS_LOGO: 'has-logo'
   };
 
@@ -550,7 +549,7 @@ $(function() {
           isExpelled: true,
           isFouledOut: false,
           isRemoved: false,
-          statusClass: CSS_CLASSES.PENALTY_EXPELLED,
+          statusClass: CSS_CLASSES.PENALTY_EXP_FO_RE,
           displayValue: LABELS.expelledDisplay
         };
       }
@@ -566,7 +565,7 @@ $(function() {
         isExpelled: false,
         isFouledOut: false,
         isRemoved: true,
-        statusClass: CSS_CLASSES.PENALTY_EXPELLED,
+        statusClass: CSS_CLASSES.PENALTY_EXP_FO_RE,
         displayValue: LABELS.removedDisplay
       };
     }
@@ -582,7 +581,7 @@ $(function() {
         isExpelled: false,
         isFouledOut: true,
         isRemoved: false,
-        statusClass: CSS_CLASSES.PENALTY_FOULOUT,
+        statusClass: CSS_CLASSES.PENALTY_EXP_FO_RE,
         displayValue: LABELS.fouloutDisplay
       };
     }
