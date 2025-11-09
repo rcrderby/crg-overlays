@@ -530,7 +530,8 @@ $(function() {
     if (!skater || !skater.penalties) {
       return { 
         isExpelled: false, 
-        isFouledOut: false, 
+        isFouledOut: false,
+        isRemoved: false,
         statusClass: '', 
         displayValue: displayCount || 0 
       };
@@ -539,7 +540,7 @@ $(function() {
     const totalPenalties = skater.penalties.length;
     const actualDisplayCount = displayCount !== null ? displayCount : totalPenalties;
 
-    // Check for expelled status
+    // Check 1: determine if a player is expelled (EXP)
     const expulsionIds = getExpulsionPenaltyIds();
     if (expulsionIds.length > 0 && skater.penaltyIds) {
       const isExpelled = skater.penaltyIds.some(penaltyId => expulsionIds.includes(penaltyId));
@@ -548,13 +549,29 @@ $(function() {
         return {
           isExpelled: true,
           isFouledOut: false,
+          isRemoved: false,
           statusClass: CSS_CLASSES.PENALTY_EXPELLED,
           displayValue: LABELS.expelledDisplay
         };
       }
     }
 
-    // Check for fouled out status
+    // Check 2: determine if a player is removed by the head referee (RE)
+    const hasRECode = skater.penalties.some(penalty => 
+      String(penalty || '').trim().toUpperCase() === PENALTIES.removedCode
+    );
+    
+    if (hasRECode) {
+      return {
+        isExpelled: false,
+        isFouledOut: false,
+        isRemoved: true,
+        statusClass: CSS_CLASSES.PENALTY_EXPELLED,
+        displayValue: LABELS.removedDisplay
+      };
+    }
+
+    // Check 3: determine if a player fouled out (FO)
     const hasFOCode = skater.penalties.some(penalty => 
       String(penalty || '').trim().toUpperCase() === LABELS.fouloutDisplay
     );
@@ -564,12 +581,13 @@ $(function() {
       return {
         isExpelled: false,
         isFouledOut: true,
+        isRemoved: false,
         statusClass: CSS_CLASSES.PENALTY_FOULOUT,
         displayValue: LABELS.fouloutDisplay
       };
     }
 
-    // Determine warning color class based on penalty/display count
+    // Check 4: determine the warning class (color) based on a player's penalty count
     let statusClass = '';
     if (actualDisplayCount === RULES.warningPenaltyCount6) {
       statusClass = CSS_CLASSES.PENALTY_6;
@@ -580,6 +598,7 @@ $(function() {
     return {
       isExpelled: false,
       isFouledOut: false,
+      isRemoved: false,
       statusClass,
       displayValue: actualDisplayCount
     };
