@@ -87,6 +87,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Label shown before P1 when IGRF start time is missing or in the past
     preFirstPeriodLabel: 'Period 1',
 
+    // Text displayed for removed skaters
+    removedDisplay: 'RE',
+
     // Timeout indicator labels
     timeout: {
       untyped: 'Timeout',
@@ -120,8 +123,8 @@ window.AppConfig.PenaltiesOverlayConfig = {
   ***********************/
 
   penalties: {
-    // Penalty codes to filter from each players' list of penalties
-    filteredCodes: ['FO']
+    // Penalty codes to filter from each player's list of penalties
+    filteredCodes: ['FO', 'RE']
   },
 
   /********************
