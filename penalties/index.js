@@ -283,6 +283,7 @@ $(function() {
     gameClock: $('#game-clock'),
     gameInfoWrapper: $('.game-info-wrapper'),
     logoContainers: $('.team-logo-container'),
+    teamsContainer: $('#teams-container'),
     periodInfo: $('#clock-label'),
     teamScoreBlocks: $('.team-score-block'),
     timeoutBanner: $('#timeout-banner'),
@@ -901,12 +902,14 @@ $(function() {
         $elements.team1.logo.show();
         $elements.team2.logo.show();
         $elements.logoContainers.show();
+        $elements.teamsContainer.addClass('logos-visible');
       }
     } else {
       // Hide logos and clear tracked URLs
       $elements.team1.logo.hide();
       $elements.team2.logo.hide();
       $elements.logoContainers.hide();
+      $elements.teamsContainer.removeClass('logos-visible');
       appState.flags.displayedLogos[1] = '';
       appState.flags.displayedLogos[2] = '';
     }
