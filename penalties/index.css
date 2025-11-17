@@ -71,8 +71,7 @@
   --font-team-name-size: 20px;
   --font-vs-text-size: 20px;
   --font-clock-label-size: 20px;
-  --font-roster-size: 18px;
-  --font-penalties-size: 18px;
+  --font-roster-penalties-size: 18px;
   --font-captain-size: 15px;
   --font-loading-size: 32px;
   --font-timeout-banner-size: 18px;
@@ -342,12 +341,12 @@ body {
 ********************/
 
 .roster {
-  font-size: var(--font-penalties-size);
-  line-height: var(--height-roster-penalties-line);
-  padding: var(--padding-roster);
-  overflow-y: auto;
-  flex: 1;
   box-shadow: var(--shadow-box);
+  flex: 1;
+  font-size: var(--font-roster-penalties-size);
+  line-height: var(--height-roster-penalties-line);
+  overflow-y: auto;
+  padding: var(--padding-roster);
 }
 
 #team1-roster {
