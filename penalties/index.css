@@ -426,7 +426,7 @@ body {
   box-shadow: var(--shadow-box);
   color: var(--penalties-fg);
   flex: 1;
-  font-size: var(--font-penalties-size);
+  font-size: var(--font-roster-penalties-size);
   line-height: 1.3;
   min-height: 0;
   overflow-y: auto;
