@@ -118,6 +118,7 @@
   --height-timeout-banner: 28px;
   --radius-border-penalty-count: 3px;
   --width-border-rosters-penalties: 1px;
+  --width-roster-column-max: 350px;
   --width-roster-number-min: 40px;
   --width-penalties-column-max: 250px;
   --width-penalty-count: 50px;
@@ -345,6 +346,7 @@ body {
   flex: 1;
   font-size: var(--font-roster-penalties-size);
   line-height: var(--height-roster-penalties-line);
+  max-width: var(--width-roster-column-max);
   overflow-y: auto;
   padding: var(--padding-roster);
 }
@@ -390,7 +392,7 @@ body {
 }
 
 .name-text {
-  flex: none;
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
