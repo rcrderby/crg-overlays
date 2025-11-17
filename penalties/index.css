@@ -524,18 +524,20 @@ body {
 }
 
 #tournament-info {
-  background-color: var(--tournament-bg);
-  color: var(--tournament-fg);
-  padding: var(--padding-tournament);
-  font-size: var(--font-tournament-size);
-  margin-bottom: var(--margin-tournament-bottom);
   align-items: center;
+  background-color: var(--tournament-bg);
+  box-shadow: var(--shadow-box);
+  color: var(--tournament-fg);
+  display: none;
+  font-size: var(--font-tournament-size);
   justify-content: center;
+  margin-bottom: var(--margin-tournament-bottom);
+  padding: var(--padding-tournament);
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
-  text-align: center;
-  box-shadow: var(--shadow-box);
-  display: none;
 }
 
 /* *************************
