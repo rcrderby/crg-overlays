@@ -20,7 +20,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
   debug: {
     // Enable debug logging to browser console (set to "true" for troubleshooting)
-    enabled: false
+    enabled: true
   },
 
   /***************************
@@ -42,7 +42,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
     gameInfoPaddingWithoutLogo: 90,
 
     // Default roster shadow properties
-    defaultRosterShadowProperties: '1px 1px 2px',
+    defaultRosterShadowProperties: '.5px .5px 1px',
 
     // Loading overlay text
     loadingOverlayText: 'Loading game data...',

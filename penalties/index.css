@@ -12,10 +12,10 @@
   --content-width: 65%;
 
   /* Shadows */
-  --shadow-box: 0 4px 12px rgb(0 0 0 / 60%);
-  --shadow-text: 1px 1px 2px rgb(0 0 0 / 80%);
-  --shadow-text-title: 3px 3px 5px rgb(0 0 0 / 40%);
-  --shadow-drop-logo: drop-shadow(0 0 8px rgb(0 0 0 / 40%));
+  --shadow-box: 0 2px 6px rgb(0 0 0 / 60%);
+  --shadow-text: .5px .5px 1px rgb(0 0 0 / 80%);
+  --shadow-text-title: 2px 2px 3px rgb(0 0 0 / 40%);
+  --shadow-drop-logo: drop-shadow(0 0 4px rgb(0 0 0 / 40%));
 
   /* Team and penalty default colors */
   --team-penalties-default-fg-color: white;
