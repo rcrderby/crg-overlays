@@ -377,10 +377,12 @@ body {
 }
 
 .roster-number {
-  text-align: right;
+  flex: 0;
+  font-weight: bold;
   min-width: var(--width-roster-number-min);
   margin-right: var(--margin-roster-number-right);
-  font-weight: bold;
+  overflow: hidden;
+  text-align: right;
 }
 
 .roster-name {
