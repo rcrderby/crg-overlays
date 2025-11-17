@@ -31,7 +31,7 @@ The overlay gets the information and settings it needs from CRG, so you can just
 ### Rosters & Penalties Area
 
 - Displays team logos, if logos are configured for *both* teams.
-  - Logos automatically resize to fit 180 x 180px containers.
+  - Logos automatically resize to fit 100px x 180px containers.
 - Displays rosters for each team that include player numbers, names, assigned penalty codes, and total penalty count for each player.
   - Indicates team captains with a "C" and alternate captains with an "A".
   - Hides roster names that:
@@ -68,7 +68,7 @@ The overlay gets the information and settings it needs from CRG, so you can just
     - "Period N" - during each period.
     - "Overtime" - during overtime jams.
 - Optionally displays a custom logo to provide league, tournament, or sanctioning body branding.
-  - Automatically resized to fit a 100 x 100px container.
+  - Automatically resized to fit a 70px x 70px container.
 
 ## Compatibility
 
