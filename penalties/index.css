@@ -492,7 +492,7 @@ body {
   background-color: var(--penalties-bg);
   border: var(--width-border-rosters-penalties) solid var(--penalties-border);
   color: var(--penalties-fg);
-  font-size: var(--font-penalties-size);
+  font-size: var(--font-roster-penalties-size);
   line-height: var(--height-roster-penalties-line);
   padding: var(--padding-penalties);
   display: flex;
