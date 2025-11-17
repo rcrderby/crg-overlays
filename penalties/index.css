@@ -149,14 +149,14 @@
 
 /* Reset */
 * {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
 }
 
 body {
-  font-family: var(--font-family);
   background-color: rgb(0 0 0 / 0%);
+  font-family: var(--font-family);
   overflow: hidden;
 }
 
@@ -165,17 +165,17 @@ body {
 ********************/
 
 #loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  align-items: center;
   background-color: var(--loading-bg);
   display: flex;
+  height: 100%;
   justify-content: center;
-  align-items: center;
-  z-index: 9999;
+  left: 0;
+  position: fixed;
+  top: 0;
   transition: opacity var(--transition-fade);
+  width: 100%;
+  z-index: 9999;
 }
 
 #loading-overlay.fade-out {
@@ -184,18 +184,18 @@ body {
 }
 
 .loading-content {
-  text-align: center;
   color: var(--loading-fg);
+  text-align: center;
 }
 
 .loading-spinner {
-  width: 60px;
-  height: 60px;
-  border: 6px solid rgb(255 255 255 / 30%);
-  border-top-color: var(--loading-spinner-color);
-  border-radius: 50%;
-  margin: 0 auto 20px;
   animation: spin 1s linear infinite;
+  border: 6px solid rgb(255 255 255 / 30%);
+  border-radius: 50%;
+  border-top-color: var(--loading-spinner-color);
+  height: 60px;
+  margin: 0 auto 20px;
+  width: 60px;
 }
 
 .loading-text {
@@ -215,12 +215,12 @@ body {
 *******************/
 
 #overlay {
-  width: var(--overlay-width);
-  height: var(--overlay-height);
   display: flex;
   flex-direction: column;
+  height: var(--overlay-height);
   padding: var(--overlay-padding);
   transition: opacity var(--transition-fade);
+  width: var(--overlay-width);
 }
 
 #overlay.hidden {
@@ -232,17 +232,17 @@ body {
 ****************************/
 
 #teams-container {
-  display: flex;
-  justify-content: space-between;
   align-items: flex-end;
+  display: flex;
   gap: var(--gap-between-teams);
-  width: var(--content-width);
+  justify-content: space-between;
   margin: 0 auto;
   margin-bottom: var(--margin-logo-container-bottom);
   min-height: 50px;
-  position: relative;
   padding-top: var(--padding-teams-container-top-default);
+  position: relative;
   transition: padding-top var(--transition-fade);
+  width: var(--content-width);
 }
 
 #teams-container.logos-visible {
@@ -250,17 +250,17 @@ body {
 }
 
 .team-container {
-  flex: 1;
   display: flex;
+  flex: 1;
   flex-direction: column;
 }
 
 .team-logo-container {
-  height: var(--height-logo-container);
-  margin-bottom: var(--margin-logo-container-bottom);
-  display: flex;
   align-items: center;
+  display: flex;
+  height: var(--height-logo-container);
   justify-content: center;
+  margin-bottom: var(--margin-logo-container-bottom);
 }
 
 #team1-container .team-logo-container {
@@ -272,11 +272,11 @@ body {
 }
 
 .team-logo {
+  display: none;
+  filter: var(--shadow-drop-logo);
   max-height: var(--size-team-logo-max);
   max-width: var(--size-team-logo-max);
   object-fit: contain;
-  filter: var(--shadow-drop-logo);
-  display: none;
 }
 
 /****************************
@@ -284,13 +284,13 @@ body {
 ****************************/
 
 #penalties-title {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
   bottom: 0;
+  left: 50%;
   max-width: var(--width-penalties-title-max);
   min-width: 0;
+  position: absolute;
   text-align: center;
+  transform: translateX(-50%);
 }
 
 #penalties-title h1 {
@@ -312,29 +312,29 @@ body {
   display: flex;
   gap: var(--gap-between-teams);
   flex: 0 1 auto;
-  width: var(--content-width);
   margin: 0 auto 15px auto;
+  width: var(--content-width);
 }
 
 #team1-rosters-penalties,
 #team2-rosters-penalties {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
   align-items: stretch;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
 }
 
 .roster-penalties-container {
   display: flex;
-  flex-direction: column;
   gap: var(--gap-roster-penalties);
   flex: 1;
+  flex-direction: column;
 }
 
 .roster-penalty-row {
   display: flex;
-  gap: var(--gap-roster-penalties);
   flex: 1;
+  gap: var(--gap-roster-penalties);
 }
 
 
@@ -354,25 +354,25 @@ body {
 
 #team1-roster {
   background-color: var(--team1-bg);
-  color: var(--team1-fg);
   border: var(--width-border-rosters-penalties) solid var(--team1-border);
+  color: var(--team1-fg);
   text-shadow: var(--team1-text-shadow);
 }
 
 #team2-roster {
   background-color: var(--team2-bg);
-  color: var(--team2-fg);
   border: var(--width-border-rosters-penalties) solid var(--team2-border);
+  color: var(--team2-fg);
   text-shadow: var(--team2-text-shadow);
 }
 
 .roster-line {
-  display: flex;
-  margin-bottom: var(--margin-bottom-row);
-  border-bottom: var(--width-border-rosters-penalties) solid;
-  padding-bottom: var(--padding-row-bottom);
-  height: var(--height-roster-row);
   align-items: center;
+  border-bottom: var(--width-border-rosters-penalties) solid;
+  display: flex;
+  height: var(--height-roster-row);
+  margin-bottom: var(--margin-bottom-row);
+  padding-bottom: var(--padding-row-bottom);
 }
 
 .roster-number {
@@ -414,8 +414,8 @@ body {
 **********************/
 
 .penalties-column {
-  flex: var(--flex-penalties-column);
   display: flex;
+  flex: var(--flex-penalties-column);
   flex-direction: column;
   gap: var(--gap-penalty-sections);
   max-width: var(--width-penalties-column-max);
@@ -494,14 +494,14 @@ body {
 #team2-total {
   background-color: var(--penalties-bg);
   border: var(--width-border-rosters-penalties) solid var(--penalties-border);
+  box-shadow: var(--shadow-box);
   color: var(--penalties-fg);
+  display: flex;
   font-size: var(--font-roster-penalties-size);
+  font-weight: bold;
+  justify-content: space-between;
   line-height: var(--height-roster-penalties-line);
   padding: var(--padding-penalties);
-  display: flex;
-  justify-content: space-between;
-  font-weight: bold;
-  box-shadow: var(--shadow-box);
 }
 
 /*****************************
@@ -509,10 +509,10 @@ body {
 *****************************/
 
 #game-info {
-  margin-top: var(--margin-game-info-top);
+  align-items: center;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  margin-top: var(--margin-game-info-top);
   width: 100%;
 }
 
@@ -564,23 +564,23 @@ body {
 ****************/
 
 #custom-logo-space {
-  width: var(--size-custom-logo);
-  height: var(--size-custom-logo);
+  align-items: center;
+  display: flex;
   flex-shrink: 0;
-  position: absolute;
+  height: var(--size-custom-logo);
+  justify-content: center;
   left: var(--padding-game-details);
+  position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: var(--size-custom-logo);
 }
 
 .custom-logo {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
   filter: var(--shadow-drop-logo);
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
 }
 
 /********************************
@@ -588,27 +588,27 @@ body {
 ********************************/
 
 #teams-scores {
+  align-items: flex-start;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
   width: 100%;
 }
 
 .team-score-block {
   flex: 0 0 auto;
-  width: auto;
   min-width: var(--width-team-score-min);
   text-align: center;
+  width: auto;
 }
 
 .team-name {
   font-size: var(--font-team-name-size);
   font-weight: bold;
   margin-bottom: var(--margin-team-name-bottom);
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   text-shadow: var(--shadow-text);
+  white-space: nowrap;
 }
 
 .score {
