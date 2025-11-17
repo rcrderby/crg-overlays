@@ -1052,9 +1052,9 @@ $(function() {
     
     if (tournament) {
       const displayText = gameNo ? `${tournament} - Game ${gameNo}` : tournament;
-      $elements.tournamentName.text(displayText).fadeIn(500);
+      $elements.tournamentName.text(displayText).slideDown(500);
     } else {
-      $elements.tournamentName.fadeOut(500);
+      $elements.tournamentName.slideUp(500);
     }
     
     if (!loadingTracker.initialized) loadingTracker.markReceived('gameInfo');
