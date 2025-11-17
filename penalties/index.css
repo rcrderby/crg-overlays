@@ -118,12 +118,13 @@
   --height-timeout-banner: 28px;
   --radius-border-penalty-count: 3px;
   --width-border-rosters-penalties: 1px;
+  --width-game-details-min: 600px;
   --width-roster-column-max: 350px;
   --width-roster-number-min: 40px;
   --width-penalties-column-max: 250px;
   --width-penalty-count: 50px;
   --width-penalties-title-max: 40%;
-  --width-team-score-min: 120px;
+  --width-team-score-min: 220px;
   --width-timeout-banner: 180px;
   --width-vs-clock-container: 140px;
 
@@ -518,9 +519,10 @@ body {
 .game-info-wrapper {
   display: flex;
   flex-direction: column;
-  width: auto;
+  min-width: var(--width-game-details-min);
   position: relative;
   transition: width var(--transition-width);
+  width: auto;
 }
 
 #tournament-info {
@@ -545,16 +547,18 @@ body {
 ***************************/
 
 #game-details {
-  background-color: var(--game-details-bg);
-  color: var(--game-details-fg);
-  padding: var(--padding-game-details);
-  display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
-  min-height: var(--height-game-details-min);
-  width: 100%;
+  background-color: var(--game-details-bg);
   box-shadow: var(--shadow-box);
+  color: var(--game-details-fg);
+  display: flex;
+  justify-content: center;
+  min-height: var(--height-game-details-min);
+  padding: var(--padding-game-details);
+  padding-left: var(--padding-game-details-with-logo);
+  padding-right: var(--padding-game-details-with-logo);
+  position: relative;
+  width: 100%;
 }
 
 /* **************
