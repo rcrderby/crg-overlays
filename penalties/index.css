@@ -135,10 +135,10 @@
 
   /* Transitions */
   --transition-background: 0.3s ease;
-  --transition-width: 0.3s ease;
   --transition-fade: 0.5s ease;
   --transition-timeout-hide: 0.3s ease-in-out;
   --transition-timeout-slide: 0.4s ease-in-out;
+  --transition-width: 0.3s ease;
 }
 
 /***********************
