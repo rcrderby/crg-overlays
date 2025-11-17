@@ -90,8 +90,6 @@
   --margin-logo-container-bottom: 10px;
   --margin-tournament-bottom: 4px;
   --margin-game-info-top: 5px;
-  --margin-teams-container-top-default: 5px;
-  --margin-teams-container-top-with-logos: 40px;
 
   /* Opacity */
   --opacity-captain-indicator: 0.85;
@@ -106,6 +104,8 @@
   --padding-penalty-count-vertical: 2px;
   --padding-penalty-count-horizontal: 6px;
   --padding-row-bottom: 4px;
+  --padding-teams-container-top-default: 5px;
+  --padding-teams-container-top-with-logos: 20px;
   --padding-timeout-banner-vertical: 8px;
   --padding-timeout-banner-horizontal: 20px;
 
@@ -241,12 +241,12 @@ body {
   margin-bottom: var(--margin-logo-container-bottom);
   min-height: 50px;
   position: relative;
-  padding-top: var(--margin-teams-container-top-default);
+  padding-top: var(--padding-teams-container-top-default);
   transition: padding-top var(--transition-fade);
 }
 
 #teams-container.logos-visible {
-  padding-top: var(--margin-teams-container-top-with-logos);
+  padding-top: var(--padding-teams-container-top-with-logos);
 }
 
 .team-container {
