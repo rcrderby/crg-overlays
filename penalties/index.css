@@ -622,21 +622,19 @@ body {
 ***********************************/
 
 #vs-clock-container {
+  align-items: center;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  flex-shrink: 0;
   justify-content: flex-start;
   width: var(--width-vs-clock-container);
-  gap: 0;
 }
 
 .vs-text {
   font-size: var(--font-vs-text-size);
   margin-bottom: var(--margin-team-name-bottom);
-  width: 100%;
   text-align: center;
   text-shadow: var(--shadow-text);
+  width: 100%;
 }
 
 #clock-container {
@@ -648,21 +646,21 @@ body {
   font-size: var(--font-clock-size);
   font-weight: bold;
   font-variant-numeric: tabular-nums;
-  width: 100%;
   text-align: center;
   text-shadow: var(--shadow-text);
+  width: 100%;
 }
 
 #clock-label {
+  color: var(--clock-label-fg);
   font-size: var(--font-clock-label-size);
   font-weight: bold;
-  color: var(--clock-label-fg);
   margin-top: var(--margin-clock-label-top);
-  width: 100%;
-  text-align: center;
   overflow: hidden;
+  text-align: center;
   text-overflow: ellipsis;
   text-shadow: var(--shadow-text);
+  width: 100%;
 }
 
 /***************************
