@@ -119,7 +119,7 @@
   --height-timeout-banner: 28px;
   --radius-border-penalty-count: 3px;
   --width-border-rosters-penalties: 1px;
-  --width-roster-number: 60px;
+  --width-roster-number-min: 40px;
   --width-penalties-column-max: 250px;
   --width-penalty-count: 50px;
   --width-penalties-title-max: 40%;
@@ -378,7 +378,7 @@ body {
 
 .roster-number {
   text-align: right;
-  min-width: var(--width-roster-number);
+  min-width: var(--width-roster-number-min);
   margin-right: var(--margin-roster-number-right);
   font-weight: bold;
 }
