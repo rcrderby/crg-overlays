@@ -15,14 +15,14 @@
 Video streaming teams often display an overlay with penalty data during timeouts, although it isn't always easy for viewers to understand what all of the data means.  This is especially true when a penalty overlay might only be visible for a few seconds.  The intent of this overlay is to provide a simple view of penalty and game status information in a format that makes it easy to see:
 
 - Which teams are playing each other.
-- The score, period number, game clock.
+- The score, period number, and game clock.
 - Which team is on which side of the screen.
 - Which players have penalties, and how many they have.
-- Which players have high penalty counts, have fouled out, or have been expelled.
+- Which players have high penalty counts, have fouled out, or have been expelled/removed.
 - How many penalties each team has.
 - Tournament information, if applicable.
 - The status of any active timeout.
-- Optionally, the host league, tournament, or sanctioning body logo.
+- Optionally, the host league, tournament, or sanctioning body's logo.
 
 ## Features
 
@@ -31,21 +31,23 @@ The overlay gets the information and settings it needs from CRG, so you can just
 ### Rosters & Penalties Area
 
 - Displays team logos, if logos are configured for *both* teams.
-  - Logos automatically resize to fit 180 x 180px containers.
+  - Logos automatically resize to fit 100px x 100px containers.
 - Displays rosters for each team that include player numbers, names, assigned penalty codes, and total penalty count for each player.
   - Indicates team captains with a "C" and alternate captains with an "A".
   - Hides roster names that:
     - Are marked as "Not Skating", "Bench Alt Captain", or "Bench Staff".
     - Don't include a roster name *and* number.
   - Uses each team's custom "whiteboard" background, text, and glow colors if set.
-    - Defaults to black backgrounds with white text black shadows if not set.
+    - Defaults to black backgrounds with white text if not set.
 - Highlights player penalty counts with different color backgrounds at specific thresholds.
   - 5 penalties in yellow :yellow_square:
   - 6 penalties in orange :orange_square:
-  - 7+ penalties, foul outs, and expulsions in red :red_square:
-- Changes player numeric penalty counts to "FO" or "EXP" for foul outs and expulsions, respectively.
-  - Displays "EXP" for players who are expelled and foul out.
-- Displays the total penalty count for each team.
+  - 7+ penalties, foul outs, expulsions, and removals in red :red_square:
+- Changes player numeric penalty counts to:
+  - "FO" for foul outs.
+  - "EXP" for expulsions.
+  - "RE" for head official removals.
+- Displays the total count of penalties for each team.
 
 ### Game Information Area
 
@@ -67,8 +69,9 @@ The overlay gets the information and settings it needs from CRG, so you can just
   - Uses default game clock labels for other game statuses:
     - "Period N" - during each period.
     - "Overtime" - during overtime jams.
+- Displays a timeout banner to indicate the type of timeout.
 - Optionally displays a custom logo to provide league, tournament, or sanctioning body branding.
-  - Automatically resized to fit a 100 x 100px container.
+  - Automatically resized to fit a 70px x 70px container.
 
 ## Compatibility
 
@@ -130,5 +133,5 @@ The logo will display in the game information area of the overlay once you refre
 <!-- Footnotes -->
 
 [^1]: Replace `<crg-ip-address>` with the IP address of your CRG instance.
-[^2]: The overlay will constrain your logo to a 100 x 100px container and apply a drop shadow.  
+[^2]: The overlay will constrain your logo to a 70px x 700px container and apply a drop shadow.  
 Logos with a 1:1 aspect ratio and a transparent background will produce the best appearance.

@@ -20,7 +20,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
   debug: {
     // Enable debug logging to browser console (set to "true" for troubleshooting)
-    enabled: false
+    enabled: true
   },
 
   /***************************
@@ -35,8 +35,14 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Skater flags to filter from roster display (Not Skating, Bench Alt Captain, Bench Staff)
     filteredSkaterFlags: ['ALT', 'B', 'BA'],
 
+    // Game info box side padding with optional banner logo
+    gameInfoPaddingWithLogo: 180,
+
+    // Game info box side padding without optional banner logo
+    gameInfoPaddingWithoutLogo: 90,
+
     // Default roster shadow properties
-    defaultRosterShadowProperties: '1px 1px 2px',
+    defaultRosterShadowProperties: '.5px .5px 1px',
 
     // Loading overlay text
     loadingOverlayText: 'Loading game data...',
@@ -81,6 +87,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Label shown before P1 when IGRF start time is missing or in the past
     preFirstPeriodLabel: 'Period 1',
 
+    // Text displayed for removed skaters
+    removedDisplay: 'RE',
+
     // Timeout indicator labels
     timeout: {
       untyped: 'Timeout',
@@ -114,8 +123,11 @@ window.AppConfig.PenaltiesOverlayConfig = {
   ***********************/
 
   penalties: {
-    // Penalty codes to filter from each players' list of penalties
-    filteredCodes: ['FO']
+    // Penalty codes to filter from each player's list of penalties
+    filteredCodes: ['FO', 'RE'],
+  
+    // Penalty code for player's removed by the head referee
+    removedCode: 'RE'
   },
 
   /********************
@@ -137,6 +149,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
     // Debounce delay for penalty updates during normal operation (ms)
     debouncePenaltyNormalMs: 50,
+
+    // Debounce delay for timeout banner updates during normal operation (ms)
+    debounceTimeoutBannerNormalMs: 50,
 
     // Delay before setting default team names if no names provided (ms)
     defaultNameDelayMs: 500,

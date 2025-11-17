@@ -62,8 +62,7 @@ $(function() {
   const CSS_CLASSES = {
     PENALTY_5: 'penalty-count-5',
     PENALTY_6: 'penalty-count-6',
-    PENALTY_FOULOUT: 'penalty-count-foulout',
-    PENALTY_EXPELLED: 'penalty-count-expelled',
+    PENALTY_EXP_FO_RE: 'penalty-count-exp-fo-re',
     HAS_LOGO: 'has-logo'
   };
 
@@ -75,22 +74,8 @@ $(function() {
 
   // Cached regex patterns
   const REGEX_PATTERNS = {
-    teamNumber: /Team\((\d+)\)/,
-    teamScore: /\.Score$/,
-    teamLogo: /\.Logo$/,
-    teamColor: /\.Color\(whiteboard\./,
-    teamPenalties: /\.TotalPenalties/,
-    teamName: /\.Name$/,
-    skaterNumber: /\.RosterNumber/,
-    skaterName: /\.Name/,
-    skaterNameExclude: /Pronoun/,
-    skaterFlags: /\.Flags$/,
-    skaterPattern: /Team\((\d+)\)\.Skater\(([^)]+)\)/,
     penaltyPattern: /ScoreBoard\.CurrentGame\.Team\((\d+)\)\.Skater\(([^)]+)\)\.Penalty\(([^)]+)\)\.(Code|Id)/,
     expulsionId: /ScoreBoard\.CurrentGame\.Expulsion\(([^)]+)\)\.Id/,
-    alternateName: /\.AlternateName\(whiteboard\)/,
-    hasAlternateName: /AlternateName/,
-    hasSkater: /\.Skater\(/
   };
 
   /**************************************
@@ -130,45 +115,47 @@ $(function() {
 
   // Loading tracker - monitors which data has been received during initialization
   const loadingTracker = {
+    // State during initialization
     initialized: false,
     loadStartTime: null,
     safetyTimeoutId: null,
-    dataReceived: {
-      teamsBasicData: 0,     // Counts to RULES.numTeams (both teams' names, scores, totals, colors)
-      teamLogos: false,
-      teamRosters: 0,        // Counts to RULES.numTeams (both teams)
-      teamPenalties: 0,      // Counts to RULES.numTeams (both teams)
-      timeoutBanner: false,  // Timeout banner initialized
-      gameInfo: 0            // Counts to EXPECTED_DATA_COUNTS.GAME_INFO_FIELDS (clock, clockLabel, tournament, expulsions)
+    counters: {
+      teamsBasicData: { received: 0, required: RULES.numTeams },
+      teamLogos: { received: 0, required: 1 },
+      teamRosters: { received: 0, required: RULES.numTeams },
+      teamPenalties: { received: 0, required: RULES.numTeams },
+      gameInfo: { received: 0, required: EXPECTED_DATA_COUNTS.GAME_INFO_FIELDS }
     },
     
     // Mark a data item as received
     markReceived(dataKey) {
-      if (typeof this.dataReceived[dataKey] === 'number') {
-        this.dataReceived[dataKey]++;
-      } else if (Object.hasOwn(this.dataReceived, dataKey)) {
-        this.dataReceived[dataKey] = true;
+      const counter = this.counters[dataKey];
+      if (counter && counter.received < counter.required) {
+        counter.received++;
+        logger.debug(`Loading tracker: ${dataKey} = ${counter.received}/${counter.required}`);
+        this.checkIfReady();
       }
-      this.checkIfReady();
     },
     
-    // Check if all data has been received
+    // Check if all required data has been received
     isAllDataReceived() {
-      return this.dataReceived.gameInfo >= EXPECTED_DATA_COUNTS.GAME_INFO_FIELDS &&
-             this.dataReceived.teamsBasicData >= RULES.numTeams &&
-             this.dataReceived.teamLogos &&
-             this.dataReceived.teamRosters >= RULES.numTeams &&
-             this.dataReceived.teamPenalties >= RULES.numTeams &&
-             this.dataReceived.timeoutBanner;
+      return Object.entries(this.counters).every(([key, counter]) => {
+        const isComplete = counter.received >= counter.required;
+        if (!isComplete) {
+          logger.debug(`Waiting for ${key}: ${counter.received}/${counter.required}`);
+        }
+        return isComplete;
+      });
     },
     
-    // Check if ready to display and show overlay
+    // Check if ready to display and show overlay if complete
     checkIfReady() {
       if (this.initialized || !this.loadStartTime) {
         return;
       }
-      
+
       if (this.isAllDataReceived()) {
+        logger.debug('Loading status:', this.getLoadingStatus());
         logger.debug('All data received, preparing to display overlay...');
         this.initialized = true;
         
@@ -221,8 +208,13 @@ $(function() {
         return;
       }
       
+      // Log any missing data
+      const missing = Object.entries(this.counters)
+        .filter(([_, counter]) => counter.received < counter.required)
+        .map(([key, counter]) => `${key} (${counter.received}/${counter.required})`);
+      
       logger.warn('Timeout reached - displaying overlay with available data');
-      logger.warn('Missing data:', Object.keys(this.dataReceived).filter(k => !this.dataReceived[k]));
+      logger.warn('Missing data:', missing);
       
       this.initialized = true;
       this.showOverlay();
@@ -237,6 +229,35 @@ $(function() {
       this.safetyTimeoutId = setTimeout(() => {
         this.forceShowOverlay();
       }, TIMING.maxLoadWaitMs);
+    },
+
+    // Get the loading progress as a percentage complete
+    getLoadingProgress() {
+      const totals = Object.values(this.counters).reduce(
+        (acc, counter) => ({
+          received: acc.received + counter.received,
+          required: acc.required + counter.required
+        }),
+        { received: 0, required: 0 }
+      );
+
+      return totals.required > 0 
+        ? Math.round((totals.received / totals.required) * 100)
+        : 0;
+    },
+
+    // Get the detailed loading status for troubleshooting
+    getLoadingStatus() {
+      return {
+        initialized: this.initialized,
+        progress: this.getLoadingProgress(),
+        counters: Object.entries(this.counters).map(([key, counter]) => ({
+          name: key,
+          received: counter.received,
+          required: counter.required,
+          complete: counter.received >= counter.required
+        }))
+      };
     }
   };
 
@@ -262,6 +283,7 @@ $(function() {
     gameClock: $('#game-clock'),
     gameInfoWrapper: $('.game-info-wrapper'),
     logoContainers: $('.team-logo-container'),
+    teamsContainer: $('#teams-container'),
     periodInfo: $('#clock-label'),
     teamScoreBlocks: $('.team-score-block'),
     timeoutBanner: $('#timeout-banner'),
@@ -335,6 +357,53 @@ $(function() {
       const args = arguments;
       clearTimeout(timeout);
       timeout = setTimeout(() => func.apply(context, args), wait);
+    };
+  }
+
+  // Handle team name updates
+  function handleTeamNameUpdate(teamNum, team, value) {
+    const altName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`));
+    const name = altName || trimValue(value);
+    
+    // Use the IGRF team name or a default value if the "whiteboard" custom name is empty/default
+    const currentText = team.name.text();
+    if (name || !currentText || currentText === `${LABELS.defaultTeamNamePrefix}${teamNum}`) {
+      team.name.text(name || '');
+      if (name) {
+        appState.flags.teamNameSet[teamNum] = true;
+      }
+      updateQueue.schedule(equalizeTeamBoxWidths);
+    }
+    
+    if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
+  }
+
+  // Parse team-related WebSocket key info into components
+  function parseTeamKey(key) {
+
+    // Match: Team(N).Property or Team(N).Property.SubProperty
+    const match = key.match(/Team\((\d+)\)\.([^.(]+)(?:\(([^)]+)\))?(?:\.(.+))?/);
+    if (!match) return null;
+    
+    return {
+      teamNum: parseInt(match[1]),
+      property: match[2],            // e.g., 'Name', 'Score', 'Color', 'AlternateName'
+      identifier: match[3] || null,  // e.g., 'whiteboard' from AlternateName(whiteboard)
+      subProperty: match[4] || null  // e.g., 'fg' from Color(whiteboard.fg)
+    };
+  }
+
+  // Parse player-related WebSocket key info into components
+  function parseSkaterKey(key) {
+
+    // Match: Team(N).Skater(ID).Property
+    const match = key.match(/Team\((\d+)\)\.Skater\(([^)]+)\)\.(.+)/);
+    if (!match) return null;
+    
+    return {
+      teamNum: parseInt(match[1]),
+      skaterId: match[2],
+      property: match[3]  // e.g., 'Name', 'RosterNumber', 'Flags'
     };
   }
 
@@ -453,37 +522,86 @@ $(function() {
   ** Player management functions **
   ********************************/
 
-  // Check if a skater is expelled
-  function isSkaterExpelled(teamNum, skaterId) {
-    const skater = appState.teams[teamNum].skaters[skaterId];
-    if (!skater || !skater.penaltyIds || skater.penaltyIds.length === 0) {
-      return false;
-    }
+  // Get player information
+  function getSkaterStatus(teamNum, skaterId, displayCount = null) {
+    const skater = appState.teams?.[teamNum]?.skaters?.[skaterId];
     
-    const expulsionIds = getExpulsionPenaltyIds();
-    if (expulsionIds.length === 0) {
-      return false;
+    // Return default status if player is not found or has no penalties
+    if (!skater || !skater.penalties) {
+      return { 
+        isExpelled: false, 
+        isFouledOut: false,
+        isRemoved: false,
+        statusClass: '', 
+        displayValue: displayCount || 0 
+      };
     }
-    
-    // Check if any of the skater's penalties match expulsion IDs
-    return skater.penaltyIds.some(penaltyId => expulsionIds.includes(penaltyId));
-  }
 
-  // Check if a skater is fouled out
-  function isSkaterFouledOut(skater) {
-    if (!skater || !skater.penalties) return false;
-    
     const totalPenalties = skater.penalties.length;
-    
-    // Fouled out if 7+ penalties
-    if (totalPenalties >= RULES.fouloutPenaltyCount) {
-      return true;
+    const actualDisplayCount = displayCount !== null ? displayCount : totalPenalties;
+
+    // Check 1: determine if a player is expelled (EXP)
+    const expulsionIds = getExpulsionPenaltyIds();
+    if (expulsionIds.length > 0 && skater.penaltyIds) {
+      const isExpelled = skater.penaltyIds.some(penaltyId => expulsionIds.includes(penaltyId));
+      
+      if (isExpelled) {
+        return {
+          isExpelled: true,
+          isFouledOut: false,
+          isRemoved: false,
+          statusClass: CSS_CLASSES.PENALTY_EXP_FO_RE,
+          displayValue: LABELS.expelledDisplay
+        };
+      }
     }
+
+    // Check 2: determine if a player is removed by the head referee (RE)
+    const hasRECode = skater.penalties.some(penalty => 
+      String(penalty || '').trim().toUpperCase() === PENALTIES.removedCode
+    );
     
-    // Fouled out if FO code present
-    return skater.penalties.some(penalty => 
+    if (hasRECode) {
+      return {
+        isExpelled: false,
+        isFouledOut: false,
+        isRemoved: true,
+        statusClass: CSS_CLASSES.PENALTY_EXP_FO_RE,
+        displayValue: LABELS.removedDisplay
+      };
+    }
+
+    // Check 3: determine if a player fouled out (FO)
+    const hasFOCode = skater.penalties.some(penalty => 
       String(penalty || '').trim().toUpperCase() === LABELS.fouloutDisplay
     );
+    const isFouledOut = totalPenalties >= RULES.fouloutPenaltyCount || hasFOCode;
+    
+    if (isFouledOut) {
+      return {
+        isExpelled: false,
+        isFouledOut: true,
+        isRemoved: false,
+        statusClass: CSS_CLASSES.PENALTY_EXP_FO_RE,
+        displayValue: LABELS.fouloutDisplay
+      };
+    }
+
+    // Check 4: determine the warning class (color) based on a player's penalty count
+    let statusClass = '';
+    if (actualDisplayCount === RULES.warningPenaltyCount6) {
+      statusClass = CSS_CLASSES.PENALTY_6;
+    } else if (actualDisplayCount === RULES.warningPenaltyCount5) {
+      statusClass = CSS_CLASSES.PENALTY_5;
+    }
+
+    return {
+      isExpelled: false,
+      isFouledOut: false,
+      isRemoved: false,
+      statusClass,
+      displayValue: actualDisplayCount
+    };
   }
 
   // Sort skaters alphabetically by number (as text)
@@ -522,32 +640,6 @@ $(function() {
   /**********************
   ** Penalty functions **
   **********************/
-
-  // Determine penalty count CSS class based on penalty count
-  function getPenaltyCountClass(teamNum, skaterId, displayCount) {
-    // First, check for expelled status
-    if (isSkaterExpelled(teamNum, skaterId)) {
-      return CSS_CLASSES.PENALTY_EXPELLED;
-    }
-    
-    const skater = appState.teams[teamNum].skaters[skaterId];
-    if (!skater || !skater.penalties) return '';
-  
-    // Next, check for fouled out status
-    if (isSkaterFouledOut(skater)) {
-      return CSS_CLASSES.PENALTY_FOULOUT;
-    }
-
-    // Color code penalties based on display count (excluding FO)
-    if (displayCount === RULES.warningPenaltyCount6) {
-      return CSS_CLASSES.PENALTY_6;
-    }
-    if (displayCount === RULES.warningPenaltyCount5) {
-      return CSS_CLASSES.PENALTY_5;
-    }
-    
-    return '';
-  }
 
   // Filter penalties for display (exclude FO codes and expulsions)
   function getDisplayPenalties(penaltyDetails, expulsionIds) {
@@ -658,10 +750,10 @@ $(function() {
     const isCaptain = skater.flags === LABELS.captainFlag || 
                       flags.includes(LABELS.captainFlag);
     const isAltCaptain = skater.flags === LABELS.altCaptainFlag || 
-                         flags.includes(LABELS.altCaptainFlag);
+                      flags.includes(LABELS.altCaptainFlag);
     
-    const captainIndicator = isCaptain ? ' <span class="captain-indicator">C</span>' : 
-                             isAltCaptain ? ' <span class="captain-indicator">A</span>' : '';
+    const captainIndicator = isCaptain ? '<span class="captain-indicator">C</span>' : 
+                            isAltCaptain ? '<span class="captain-indicator">A</span>' : '';
     
     // Sanitize roster user input
     const safeNumber = sanitizeHTML(skater.number);
@@ -670,39 +762,30 @@ $(function() {
     return `
       <div class="roster-line">
         <div class="roster-number">${safeNumber}</div>
-        <div class="roster-name">${safeName}${captainIndicator}</div>
+        <div class="roster-name">
+          <span class="name-text">${safeName}</span>${captainIndicator}
+        </div>
       </div>
     `;
   }
 
-
   // Build penalty HTML for a player
   function buildPenaltyHTML(teamNum, skater, expulsionIds) {
     const displayPenalties = getDisplayPenalties(skater.penaltyDetails, expulsionIds);
+    const displayCount = displayPenalties.length;
     
     // Sanitize penalty codes
     const codes = displayPenalties.map(p => sanitizeHTML(p.code)).join(' ');
-    const displayCount = displayPenalties.length;
     
-    // Determine the display value for the player's total penalties (EXP, FO, or count)
-    let displayValue;
-    if (isSkaterExpelled(teamNum, skater.id)) {
-      displayValue = LABELS.expelledDisplay;
-    } else if (isSkaterFouledOut(skater)) {
-      displayValue = LABELS.fouloutDisplay;
-    } else {
-      displayValue = displayCount;
-    }
-
-    // Set the CSS class (bg color) for the total count
-    const countClass = getPenaltyCountClass(teamNum, skater.id, displayCount);
+    // Get player status
+    const { statusClass, displayValue } = getSkaterStatus(teamNum, skater.id, displayCount);
     
-    return [
-      '<div class="penalty-line">',
-      `<div class="penalty-codes">${codes}</div>`,
-      `<div class="penalty-count ${countClass}">${displayValue}</div>`,
-      '</div>'
-    ].join('');
+    return `
+      <div class="penalty-line">
+        <div class="penalty-codes">${codes}</div>
+        <div class="penalty-count ${statusClass}">${displayValue}</div>
+      </div>
+    `.trim();
   }
 
   // Check if a player should be filtered from display based on their flags
@@ -816,15 +899,15 @@ $(function() {
       
       // Show logos if they weren't already visible
       if (visibilityChanged) {
-        $elements.team1.logo.show();
-        $elements.team2.logo.show();
-        $elements.logoContainers.show();
+        $elements.team1.logo.fadeIn(500);
+        $elements.team2.logo.fadeIn(500);
+        $elements.teamsContainer.addClass('logos-visible');
       }
     } else {
       // Hide logos and clear tracked URLs
-      $elements.team1.logo.hide();
-      $elements.team2.logo.hide();
-      $elements.logoContainers.hide();
+      $elements.team1.logo.fadeOut(500);
+      $elements.team2.logo.fadeOut(500);
+      $elements.teamsContainer.removeClass('logos-visible');
       appState.flags.displayedLogos[1] = '';
       appState.flags.displayedLogos[2] = '';
     }
@@ -847,7 +930,9 @@ $(function() {
       
       const vsClockWidth = $elements.vsClockContainer.outerWidth();
       const hasLogo = $elements.gameInfoWrapper.hasClass(CSS_CLASSES.HAS_LOGO);
-      const padding = hasLogo ? 280 : 40;
+      const padding = hasLogo 
+        ? CONFIG.gameInfoPaddingWithLogo 
+        : CONFIG.gameInfoPaddingWithoutLogo;
       
       const totalWidth = (maxWidth * 2) + vsClockWidth + padding;
       $elements.gameInfoWrapper.css('width', `${totalWidth}px`);
@@ -967,9 +1052,9 @@ $(function() {
     
     if (tournament) {
       const displayText = gameNo ? `${tournament} - Game ${gameNo}` : tournament;
-      $elements.tournamentName.text(displayText).show();
+      $elements.tournamentName.text(displayText).slideDown(500);
     } else {
-      $elements.tournamentName.hide();
+      $elements.tournamentName.slideUp(500);
     }
     
     if (!loadingTracker.initialized) loadingTracker.markReceived('gameInfo');
@@ -1003,6 +1088,50 @@ $(function() {
   ** Timeout Banner Functions **
   ******************************/
 
+  // Parse timeout owner string and determine banner display properties
+  function parseTimeoutOwner(rawOwner, isReview = false) {
+
+    // Set default properties
+    let owner = null;
+    let position = 'center';
+    let text = LABELS.timeout.untyped;
+    let isOfficialReview = false;
+
+    if (!rawOwner) {
+      return { owner, isOfficialReview, position, text };
+    }
+
+    // Official timeout
+    if (rawOwner === 'O') {
+      owner = rawOwner;
+      text = LABELS.timeout.official;
+
+    // Team 1 timeout or official review
+    } else if (rawOwner.endsWith('_1') || rawOwner === '1') {
+      owner = '1';
+      position = 'team1';
+      if (isReview) {
+        isOfficialReview = true;
+        text = LABELS.timeout.review;
+      } else {
+        text = LABELS.timeout.team;
+      }
+
+    // Team 2 timeout or official review
+    } else if (rawOwner.endsWith('_2') || rawOwner === '2') {
+      owner = '2';
+      position = 'team2';
+      if (isReview) {
+        isOfficialReview = true;
+        text = LABELS.timeout.review;
+      } else {
+        text = LABELS.timeout.team;
+      }
+    }
+
+    return { owner, isOfficialReview, position, text };
+  }
+
   // Get timeout details from the CurrentTimeout WebSocket ID
   function getTimeoutDetailsFromId() {
     if (!isWSReady()) return null;
@@ -1011,7 +1140,7 @@ $(function() {
     if (!currentTimeoutId) return null;
 
     const currentPeriod = trimValue(safeGetState('ScoreBoard.CurrentGame.CurrentPeriodNumber')) || '1';
-    
+
     // Look up timeout details in the period data
     const rawOwner = trimValue(safeGetState(`ScoreBoard.CurrentGame.Period(${currentPeriod}).Timeout(${currentTimeoutId}).Owner`));
     const isReview = isTrue(safeGetState(`ScoreBoard.CurrentGame.Period(${currentPeriod}).Timeout(${currentTimeoutId}).Review`));
@@ -1020,39 +1149,7 @@ $(function() {
 
     logger.debug('Timeout details from ID:', { currentTimeoutId, currentPeriod, owner: rawOwner, isReview });
 
-    // Determine the banner position and text based on timeout uowner
-    let owner = null;
-    let position = 'center';
-    let text = LABELS.timeout.untyped;
-    let isOfficialReview = false;
-
-    if (rawOwner === 'O') {
-      // Official timeout
-      owner = 'O';
-      text = LABELS.timeout.official;
-    } else if (rawOwner.endsWith('_1')) {
-      // Team 1 timeout or official review
-      owner = '1';
-      position = 'team1';
-      if (isReview) {
-        isOfficialReview = true;
-        text = LABELS.timeout.review;
-      } else {
-        text = LABELS.timeout.team;
-      }
-    } else if (rawOwner.endsWith('_2')) {
-      // Team 2 timeout or official review
-      owner = '2';
-      position = 'team2';
-      if (isReview) {
-        isOfficialReview = true;
-        text = LABELS.timeout.review;
-      } else {
-        text = LABELS.timeout.team;
-      }
-    }
-
-    return { owner, isOfficialReview, position, text };
+    return parseTimeoutOwner(rawOwner, isReview);
   }
 
   // Get timeout information and display details
@@ -1061,64 +1158,57 @@ $(function() {
 
     const timeoutRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Timeout).Running'));
     const lineupRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Lineup).Running'));
-    
-    // If neither timeout nor lineup clock is running, hide the banner
+
+    // If neither timeout nor lineup clock is running
     if (!timeoutRunning && !lineupRunning) return null;
     
-    // Primary: Get timeout details from CurrentTimeout ID
+    // Get timeout details from CurrentTimeout ID
     const timeoutFromId = getTimeoutDetailsFromId();
     if (timeoutFromId) {
-      logger.debug('Got timeout info from CurrentTimeout ID:', timeoutFromId);
-      return timeoutFromId;
+        logger.debug('Got timeout info from CurrentTimeout ID:', timeoutFromId);
+        return timeoutFromId;
     }
     
-    // Fallback: Use real-time flags (for edge cases where CurrentTimeout might not be set yet)
+    // Fallback - use WebSocket flags for edge cases where CurrentTimeout might not be set yet
     const team1InTimeout = isTrue(safeGetState('ScoreBoard.CurrentGame.Team(1).InTimeout'));
     const team2InTimeout = isTrue(safeGetState('ScoreBoard.CurrentGame.Team(2).InTimeout'));
     const team1InReview = isTrue(safeGetState('ScoreBoard.CurrentGame.Team(1).InOfficialReview'));
     const team2InReview = isTrue(safeGetState('ScoreBoard.CurrentGame.Team(2).InOfficialReview'));
     
-    let owner = null;
-    let isOfficialReview = false;
-    let position = 'center';
-    let text = LABELS.timeout.untyped;
-    
+    // Determine timeout type from flags
+    let rawOwner = null;
+    let isReview = false;
+
     if (team1InTimeout) {
-      owner = '1';
-      position = 'team1';
-      text = LABELS.timeout.team;
+        rawOwner = '1';
     } else if (team2InTimeout) {
-      owner = '2';
-      position = 'team2';
-      text = LABELS.timeout.team;
+        rawOwner = '2';
     } else if (team1InReview) {
-      owner = '1';
-      isOfficialReview = true;
-      position = 'team1';
-      text = LABELS.timeout.review;
+        rawOwner = '1';
+        isReview = true;
     } else if (team2InReview) {
-      owner = '2';
-      isOfficialReview = true;
-      position = 'team2';
-      text = LABELS.timeout.review;
+        rawOwner = '2';
+        isReview = true;
     } else {
-      const timeoutOwner = trimValue(safeGetState('ScoreBoard.CurrentGame.TimeoutOwner'));
-      if (timeoutOwner === 'O') {
-        owner = 'O';
-        text = LABELS.timeout.official;
-      }
+        rawOwner = trimValue(safeGetState('ScoreBoard.CurrentGame.TimeoutOwner'));
     }
 
-    logger.debug('Got timeout info from real-time flags:', { timeoutRunning, lineupRunning, owner, isOfficialReview, position, text });
+    const displayInfo = parseTimeoutOwner(rawOwner, isReview);
 
-    // If the timeout type is unknown/couldn't be determined, do not show the banner
-    if (lineupRunning && owner === null) {
-      logger.debug('Lineup running with undetermined timeout type, hiding banner');
-      return null;
+    logger.debug('Got timeout info from WebSocket flags:', { 
+        timeoutRunning, 
+        lineupRunning, 
+        ...displayInfo 
+    });
+
+    // Do not show the banner if the timeout type is unknown or can't be determined
+    if (lineupRunning && displayInfo.owner === null) {
+        logger.debug('Lineup running with undetermined timeout type, hiding banner');
+        return null;
     }
 
-    return { owner, isOfficialReview, position, text };
-  }
+    return displayInfo;
+    }
 
   // Update the timeout banner display
   const updateTimeoutBanner = debounce(function() {
@@ -1143,9 +1233,7 @@ $(function() {
         appState.timeout.isRunning = false;
         appState.timeout.owner = null;
         appState.timeout.isOfficialReview = false;
-        
-        // Mark as received even if no timeout
-        if (!loadingTracker.initialized) loadingTracker.markReceived('timeoutBanner');
+
         return;
       }
 
@@ -1175,13 +1263,10 @@ $(function() {
         appState.timeout.isOfficialReview = displayInfo.isOfficialReview;
       }
 
-      // Mark as received during initialization
-      if (!loadingTracker.initialized) loadingTracker.markReceived('timeoutBanner');
-
     } catch(error) {
       logger.error('Error updating timeout banner:', error);
     }
-  }, 150); // Debounce to wait for all fields to update
+  }, TIMING.debounceTimeoutBannerNormalMs); // Debounce to wait for all fields to update
 
   // Show the timeout banner with the specified position and text
   function showTimeoutBanner(position, text) {
@@ -1316,77 +1401,97 @@ $(function() {
 
   // Unified team update handler
   function handleTeamUpdate(key, value) {
-    const match = key.match(REGEX_PATTERNS.teamNumber);
-    if (!match) return;
 
-    const teamNum = parseInt(match[1]);
+    // Skip player-related keys (handled by handleSkaterUpdate)
+    if (key.includes('.Skater(')) return;
+    
+    const parsed = parseTeamKey(key);
+    if (!parsed) return;
+    
+    const { teamNum, property, identifier } = parsed;
     const team = $elements[`team${teamNum}`];
 
-    // Check for a team name in the "whiteboard" custom name
-    if (REGEX_PATTERNS.alternateName.test(key) || 
-        (REGEX_PATTERNS.teamName.test(key) && !REGEX_PATTERNS.hasAlternateName.test(key) && !REGEX_PATTERNS.hasSkater.test(key))) {
-
-      const altName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`));
-      const name = altName || trimValue(value);
-
-      // Use the IGRF team name or a default value if the "whiteboard" custom name is empty/default
-      const currentText = team.name.text();
-      if (name || !currentText || currentText === `${LABELS.defaultTeamNamePrefix}${teamNum}`) {
-        team.name.text(name || '');
-        if (name) {
-          appState.flags.teamNameSet[teamNum] = true;
+    switch(property) {
+      case 'AlternateName':
+        if (identifier === 'whiteboard') {
+          handleTeamNameUpdate(teamNum, team, value);
         }
-        updateQueue.schedule(equalizeTeamBoxWidths);
-      }
-      
-      if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
+        break;
+        
+      case 'Name':
 
-    } else if (REGEX_PATTERNS.teamScore.test(key) && !REGEX_PATTERNS.hasSkater.test(key)) {
-      team.score.text(value || '0');
-      if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
-
-    // Check for and display team logos
-    } else if (REGEX_PATTERNS.teamLogo.test(key)) {
-      appState.teams[teamNum].logo = value || '';
-      checkAndDisplayLogos();
-
-    // Update team roster colors
-    } else if (REGEX_PATTERNS.teamColor.test(key)) {
-      updateQueue.schedule(() => updateTeamColors(teamNum));
-
-    // Set the team penalty total values
-    } else if (REGEX_PATTERNS.teamPenalties.test(key)) {
-      team.total.text(value || '0');
-      if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
+        // Only handle if not an alternate name and not a skater name
+        handleTeamNameUpdate(teamNum, team, value);
+        break;
+        
+      case 'Score':
+        team.score.text(value || '0');
+        if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
+        break;
+        
+      case 'Logo':
+        appState.teams[teamNum].logo = value || '';
+        checkAndDisplayLogos();
+        break;
+        
+      case 'Color':
+        if (identifier === 'whiteboard') {
+          updateQueue.schedule(() => updateTeamColors(teamNum));
+        }
+        break;
+        
+      case 'TotalPenalties':
+        team.total.text(value || '0');
+        if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
+        break;
+        
+      default:
+        // Unhandled team property handling for troubleshooting
+        // logger.debug(`Unhandled team property: ${property}`, { key, value });
+        break;
     }
   }
 
   // Unified player update handler
   function handleSkaterUpdate(key, value) {
-    const match = key.match(REGEX_PATTERNS.skaterPattern);
-    if (!match) return;
+    const parsed = parseSkaterKey(key);
+    if (!parsed) return;
     
-    const teamNum = parseInt(match[1]);
-    const skaterId = match[2];
+    const { teamNum, skaterId, property } = parsed;
     const skater = getOrCreateSkater(teamNum, skaterId);
     
-    if (REGEX_PATTERNS.skaterNumber.test(key)) {
-      skater.number = trimValue(value);
-      updateRosterAndPenalties(teamNum);
-    } else if (REGEX_PATTERNS.skaterName.test(key) && !REGEX_PATTERNS.skaterNameExclude.test(key)) {
-      skater.name = trimValue(value);
-      updateRosterAndPenalties(teamNum);
-    } else if (REGEX_PATTERNS.skaterFlags.test(key)) {
-      skater.flags = trimValue(value);
-      updateRosterAndPenalties(teamNum);
+    switch(property) {
+      case 'RosterNumber':
+        skater.number = trimValue(value);
+        updateRosterAndPenalties(teamNum);
+        break;
+        
+      case 'Name':
+      case 'LegalName':  // Handle both Name and LegalName
+        skater.name = trimValue(value);
+        updateRosterAndPenalties(teamNum);
+        break;
+        
+      case 'Flags':
+        skater.flags = trimValue(value);
+        updateRosterAndPenalties(teamNum);
+        break;
+        
+      default:
+        // Unhandled player property handling for troubleshooting
+        // logger.debug(`Unhandled skater property: ${property}`, { key, value });
+        break;
     }
   }
 
   // Handle penalty updates
   function handlePenaltyUpdate(key, _value) {
-    const match = key.match(REGEX_PATTERNS.teamNumber);
+    const match = key.match(REGEX_PATTERNS.penaltyPattern);
     if (match) {
-      debouncedPenaltyUpdate.update(parseInt(match[1]));
+      const teamNum = parseInt(match[1]);
+      if (!isNaN(teamNum) && teamNum >= 1 && teamNum <= RULES.numTeams) {
+        debouncedPenaltyUpdate.update(teamNum);
+      }
     }
   }
 
@@ -1508,7 +1613,6 @@ $(function() {
     }
     
     try {
-      loadingTracker.startLoading();
       
       // Initialize team data
       for (let teamNum = 1; teamNum <= RULES.numTeams; teamNum++) {
@@ -1516,7 +1620,7 @@ $(function() {
         const name = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Name`));
         const total = safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).TotalPenalties`, '0');
         const score = safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Score`, '0');
-        
+
         // Set team name, or default name after delay
         if (altName || name) {
           $elements[`team${teamNum}`].name.text(altName || name);
@@ -1603,6 +1707,7 @@ $(function() {
 
       loadCustomLogo();
       setTimeout(initializeDisplay, TIMING.initDelayMs);
+      loadingTracker.startLoading();
       
       logger.debug('Penalties overlay initialization started');
       
