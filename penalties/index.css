@@ -8,8 +8,8 @@
   /* Overlay values */
   --overlay-width: 1920px;
   --overlay-height: 1080px;
-  --overlay-padding: 20px;
-  --content-width: 80%;
+  --overlay-padding: 8px;
+  --content-width: 65%;
 
   /* Shadows */
   --shadow-box: 0 4px 12px rgb(0 0 0 / 60%);
@@ -64,23 +64,23 @@
 
   /* Fonts */
   --font-family: arial, sans-serif;
-  --font-penalties-title-size: 48px;
-  --font-score-size: 48px;
-  --font-clock-size: 42px;
-  --font-tournament-size: 32px;
-  --font-team-name-size: 28px;
-  --font-vs-text-size: 28px;
-  --font-clock-label-size: 28px;
-  --font-roster-size: 24px;
-  --font-penalties-size: 24px;
-  --font-captain-size: 20px;
+  --font-penalties-title-size: 40px;
+  --font-score-size: 34px;
+  --font-clock-size: 30px;
+  --font-tournament-size: 20px;
+  --font-team-name-size: 20px;
+  --font-vs-text-size: 20px;
+  --font-clock-label-size: 20px;
+  --font-roster-size: 18px;
+  --font-penalties-size: 18px;
+  --font-captain-size: 15px;
   --font-loading-size: 32px;
-  --font-timeout-banner-size: 24px;
+  --font-timeout-banner-size: 18px;
 
   /* Logo sizes */
-  --offset-logo-horizontal: 150px;
-  --size-team-logo-max: 180px;
-  --size-custom-logo: 100px;
+  --offset-logo-horizontal: 120px;
+  --size-team-logo-max: 100px;
+  --size-custom-logo: 70px;
 
   /* Margins */
   --margin-roster-number-right: 10px;
@@ -89,20 +89,20 @@
   --margin-team-name-bottom: 5px;
   --margin-clock-label-top: 5px;
   --margin-logo-container-bottom: 10px;
-  --margin-tournament-bottom: 10px;
-  --margin-game-info-top: 20px;
-  --margin-teams-container-top-default: 10px;
-  --margin-teams-container-top-with-logos: 190px;
+  --margin-tournament-bottom: 4px;
+  --margin-game-info-top: 5px;
+  --margin-teams-container-top-default: 5px;
+  --margin-teams-container-top-with-logos: 40px;
 
   /* Opacity */
   --opacity-captain-indicator: 0.85;
 
   /* Padding */
-  --padding-roster: 10px;
-  --padding-penalties: 10px;
-  --padding-tournament: 15px;
-  --padding-game-details: 20px;
-  --padding-game-details-with-logo: 140px;
+  --padding-roster: 5px;
+  --padding-penalties: 5px;
+  --padding-tournament: 6px;
+  --padding-game-details: 10px;
+  --padding-game-details-with-logo: 90px;
   --padding-penalty-count-vertical: 2px;
   --padding-penalty-count-horizontal: 6px;
   --padding-row-bottom: 2px;
@@ -110,25 +110,25 @@
   --padding-timeout-banner-horizontal: 20px;
 
   /* Row dimensions and properties */
-  --flex-penalties-column: 0.85;
-  --height-game-details-min: 140px;
-  --height-logo-container: 180px;
-  --height-roster-row: 40px;
+  --flex-penalties-column: 1;
+  --height-game-details-min: 80px;
+  --height-logo-container: 100px;
+  --height-roster-row: 28px;
   --height-roster-penalties-line: 1.5;
-  --height-timeout-banner: 40px;
+  --height-timeout-banner: 28px;
   --radius-border-penalty-count: 3px;
   --width-border-rosters-penalties: 1px;
   --width-roster-number: 60px;
   --width-penalty-count: 60px;
   --width-penalties-title-max: 40%;
-  --width-team-score-min: 150px;
-  --width-timeout-banner: 230px;
-  --width-vs-clock-container: 280px;
+  --width-team-score-min: 120px;
+  --width-timeout-banner: 180px;
+  --width-vs-clock-container: 220px;
 
   /* Spacing */
-  --gap-between-teams: 40px;
+  --gap-between-teams: 30px;
   --gap-roster-penalties: 10px;
-  --gap-penalty-sections: 5px;
+  --gap-penalty-sections: 2px;
   --margin-bottom-row: 4px;
   --penalty-code-spacing: 0.3em;
 
@@ -316,9 +316,9 @@ body {
 #rosters-penalties-container {
   display: flex;
   gap: var(--gap-between-teams);
-  flex: 1;
+  flex: 0 1 auto;
   width: var(--content-width);
-  margin: 0 auto;
+  margin: 0 auto 15px auto;
 }
 
 #team1-rosters-penalties,
@@ -326,6 +326,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  align-items: stretch;
 }
 
 .roster-penalties-container {
