@@ -555,8 +555,6 @@ body {
   justify-content: center;
   min-height: var(--height-game-details-min);
   padding: var(--padding-game-details);
-  padding-left: var(--padding-game-details-with-logo);
-  padding-right: var(--padding-game-details-with-logo);
   position: relative;
   width: 100%;
 }
@@ -564,12 +562,6 @@ body {
 /* **************
 ** Custom logo **
 ****************/
-
-/* Add equal padding to both sides of container when custom logo is present */
-.game-info-wrapper.has-logo #game-details {
-  padding-left: var(--padding-game-details-with-logo);
-  padding-right: var(--padding-game-details-with-logo);
-}
 
 #custom-logo-space {
   width: var(--size-custom-logo);
