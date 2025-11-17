@@ -312,7 +312,7 @@ body {
   display: flex;
   gap: var(--gap-between-teams);
   flex: 0 1 auto;
-  margin: 0 auto 15px auto;
+  margin: 0 auto 15px;
   width: var(--content-width);
 }
 
