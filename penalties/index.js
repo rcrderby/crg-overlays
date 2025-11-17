@@ -899,16 +899,14 @@ $(function() {
       
       // Show logos if they weren't already visible
       if (visibilityChanged) {
-        $elements.team1.logo.show();
-        $elements.team2.logo.show();
-        $elements.logoContainers.show();
+        $elements.team1.logo.fadeIn(500);
+        $elements.team2.logo.fadeIn(500);
         $elements.teamsContainer.addClass('logos-visible');
       }
     } else {
       // Hide logos and clear tracked URLs
-      $elements.team1.logo.hide();
-      $elements.team2.logo.hide();
-      $elements.logoContainers.hide();
+      $elements.team1.logo.fadeOut(500);
+      $elements.team2.logo.fadeOut(500);
       $elements.teamsContainer.removeClass('logos-visible');
       appState.flags.displayedLogos[1] = '';
       appState.flags.displayedLogos[2] = '';
@@ -1054,9 +1052,9 @@ $(function() {
     
     if (tournament) {
       const displayText = gameNo ? `${tournament} - Game ${gameNo}` : tournament;
-      $elements.tournamentName.text(displayText).show();
+      $elements.tournamentName.text(displayText).fadeIn(500);
     } else {
-      $elements.tournamentName.hide();
+      $elements.tournamentName.fadeOut(500);
     }
     
     if (!loadingTracker.initialized) loadingTracker.markReceived('gameInfo');
