@@ -668,24 +668,24 @@ body {
 ***************************/
 
 .timeout-banner {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  width: var(--width-timeout-banner);
-  height: var(--height-timeout-banner);
+  align-items: center;
   background-color: var(--timeout-banner-bg);
+  box-shadow: var(--shadow-box);
   color: var(--timeout-banner-fg);
   display: flex;
-  align-items: center;
-  justify-content: center;
   font-size: var(--font-timeout-banner-size);
   font-weight: bold;
-  text-shadow: var(--timeout-banner-text-shadow);
-  padding: var(--padding-timeout-banner-vertical) var(--padding-timeout-banner-horizontal);
-  box-shadow: var(--shadow-box);
-  white-space: nowrap;
+  height: var(--height-timeout-banner);
+  justify-content: center;
+  left: 50%;
   overflow: hidden;
+  padding: var(--padding-timeout-banner-vertical) var(--padding-timeout-banner-horizontal);
+  position: absolute;
   text-overflow: ellipsis;
+  text-shadow: var(--timeout-banner-text-shadow);
+  top: 100%;
+  white-space: nowrap;
+  width: var(--width-timeout-banner);
   z-index: -1;
 
   /** Timeout banner hiding behind the game information section **/
@@ -702,8 +702,8 @@ body {
 
 /* Visible state - slides down from behind the game info box */
 .timeout-banner.visible {
-  transform: translateY(0);
   opacity: 1;
+  transform: translateY(0);
 }
 
 /* Hidden state for transitions - quickly fade out */
