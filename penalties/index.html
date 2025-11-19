@@ -18,13 +18,40 @@
 
 <body sbContext="ScoreBoard.CurrentGame">
 
-  <div sbContext="Clock(Period)">
-    <div id="game-clock">
-        Penalties Overlay v3 - Under Construction
-    </div>
-      <div id="clock-label">
-        <span sbDisplay="Name"></span> Clock: <span sbDisplay="Time: sbToTime"></span>
+  <div id="overlay">
+    <!-- Game Information Section -->
+    <div id="game-info">
+      <div class="game-info-wrapper">
+        <div id="game-details">
+          <div id="teams-scores">
+
+            <!-- Team 1 (Home) -->
+            <div class="team-score-block" sbContext="Team(1)">
+              <div class="team-name" sbDisplay="AlternateName(whiteboard), Name"></div>
+              <div class="score" sbDisplay="Score"></div>
+            </div>
+
+            <!-- vs. and Clock Container -->
+            <div id="vs-clock-container" sbContext="Clock(Period)">
+              <div class="vs-text">vs.</div>
+              <div id="clock-container">
+                <div id="game-clock" sbDisplay="Time: sbToTime"></div>
+              </div>
+              <div id="clock-label">
+                <span sbDisplay="Name"></span>
+                <span sbDisplay="Number"></span>
+              </div>
+            </div>
+
+            <!-- Team 2 (Away) -->
+            <div class="team-score-block" sbContext="Team(2)">
+              <div class="team-name" sbDisplay="AlternateName(whiteboard), Name"></div>
+              <div class="score" sbDisplay="Score"></div>
+            </div>
+          </div>
+        </div>
       </div>
+    </div>
   </div>
 
 </body>
