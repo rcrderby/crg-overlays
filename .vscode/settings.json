@@ -5,6 +5,7 @@
         "foulout",
         "htmlhint",
         "IGRF",
-        "nums"
+        "nums",
+        "tagname"
     ]
 }
