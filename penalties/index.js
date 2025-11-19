@@ -55,10 +55,10 @@ $(function() {
   **************/
 
   // Data from config.js
-  const CONFIG = PenaltiesOverlayConfig.config;
-  const LABELS = PenaltiesOverlayConfig.labels;
-  const RULES = PenaltiesOverlayConfig.rules;
-  const PENALTIES = PenaltiesOverlayConfig.penalties;
+  // const CONFIG = PenaltiesOverlayConfig.config;
+  // const LABELS = PenaltiesOverlayConfig.labels;
+  // const RULES = PenaltiesOverlayConfig.rules;
+  // const PENALTIES = PenaltiesOverlayConfig.penalties;
   const TIMING = PenaltiesOverlayConfig.timing;
   
   // Initialize WebSocket connection
