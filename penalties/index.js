@@ -2,12 +2,12 @@
 
 $(function() {
   'use strict';
-  
+
   console.log('Loading Penalties Overlay configuration (config.js)...');
   
   // Import configuration data from global namespace
   const PenaltiesOverlayConfig = window.AppConfig.PenaltiesOverlayConfig;
-  
+
   /********************************
   ** Verify that config.js loads **
   ********************************/
@@ -60,8 +60,11 @@ $(function() {
   // const RULES = PenaltiesOverlayConfig.rules;
   // const PENALTIES = PenaltiesOverlayConfig.penalties;
   const TIMING = PenaltiesOverlayConfig.timing;
-  
-  // Initialize WebSocket connection
+
+  /************************************
+  ** Initialize WebSocket Connection **
+  ************************************/
+
   function initWebSocket() {
     if (typeof WS !== 'undefined') {
       WS.Connect();
