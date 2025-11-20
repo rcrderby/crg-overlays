@@ -107,6 +107,11 @@ window.prependGameNo = function(k, gameNum) {
 
 // Show captain or alt captain indicators
 window.showCaptainIndicator = function(k, captainFlags) {
+  // Handle null or undefined flags
+  if (!captainFlags) {
+    return '';
+  }
+
   const { captainFlag, altCaptainFlag } = LABELS;
   const flags = captainFlags.split(',');
 
