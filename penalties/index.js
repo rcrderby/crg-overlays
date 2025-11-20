@@ -133,6 +133,14 @@ window.shouldHideSkater = function(k, flags) {
   return filteredFlags.some(filtered => flagArray.includes(filtered));
 };
 
+// Convert text glow color to text-shadow
+window.glowColorToShadow = function(k, glowColor) {
+  if (!glowColor || glowColor === '') {
+    return 'var(--team-penalties-default-text-shadow)';
+  }
+  return `${CONFIG.defaultRosterShadowProperties} ${glowColor}`;
+};
+
 /*******************************
 ** Application Initialization **
 *******************************/
