@@ -57,6 +57,11 @@ const TIMING = PenaltiesOverlayConfig.timing;
 ** Utility Functions **
 **********************/
 
+// Check if a value exists for cases when a value isn't truthy
+window.hasValue = function(k, v) {
+  return v && v !== '';
+};
+
 // Set the appropriate clock label based on game state
 window.setClockLabel = function(
   k, 
@@ -100,9 +105,13 @@ window.prependGameNo = function(k, gameNum) {
   return ` - Game ${gameNum}`;
 };
 
-// Check if a value exists for cases when a value isn't truthy
-window.hasValue = function(k, v) {
-  return v && v !== '';
+// Show captain or alt captain indicators
+window.showCaptainIndicator = function(k, captainFlags) {
+  const { captainFlag, altCaptainFlag } = LABELS;
+  const flags = captainFlags.split(',');
+
+  return flags.includes(captainFlag) ? captainFlag :
+         flags.includes(altCaptainFlag) ? altCaptainFlag : '';
 };
 
 /*******************************
