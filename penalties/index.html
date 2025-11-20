@@ -32,14 +32,16 @@
             </div>
 
             <!-- vs. and Clock Container -->
-            <div id="vs-clock-container" sbContext="Clock(Period)">
+            <div id="vs-clock-container">
               <div class="vs-text">vs.</div>
               <div id="clock-container">
-                <div id="game-clock" sbDisplay="Time: sbToTime"></div>
+                <div id="game-clock" 
+                     sbDisplay="Clock(Period).Time: sbToTime"
+                     sbClass="hidden: OfficialScore | hidden: InOvertime">
+                </div>
               </div>
-              <div id="clock-label">
-                <span sbDisplay="Name"></span>
-                <span sbDisplay="Number"></span>
+              <div id="clock-label" 
+                   sbDisplay="CurrentPeriodNumber, OfficialScore, InOvertime, Clock(Intermission).Running: getClockLabel">
               </div>
             </div>
 
