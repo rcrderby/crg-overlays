@@ -239,14 +239,9 @@ body {
   margin: 0 auto;
   margin-bottom: var(--margin-logo-container-bottom);
   min-height: 50px;
-  padding-top: var(--padding-teams-container-top-default);
-  position: relative;
-  transition: padding-top var(--transition-fade);
-  width: var(--content-width);
-}
-
-#teams-container.logos-visible {
   padding-top: var(--padding-teams-container-top-with-logos);
+  position: relative;
+  width: var(--content-width);
 }
 
 .team-container {
@@ -272,11 +267,16 @@ body {
 }
 
 .team-logo {
-  display: none;
   filter: var(--shadow-drop-logo);
   max-height: var(--size-team-logo-max);
   max-width: var(--size-team-logo-max);
   object-fit: contain;
+  opacity: 0;
+  transition: opacity var(--transition-fade);
+}
+
+.team-logo.visible {
+  opacity: 1;
 }
 
 /****************************
@@ -542,7 +542,6 @@ body {
   width: 100%;
 }
 
-/* Hide tournament info banner if the tournament name is not set */
 #tournament-info:has(span:first-child:empty) {
   display: none;
 }
