@@ -19,9 +19,18 @@
 <body sbContext="ScoreBoard.CurrentGame">
 
   <div id="overlay">
+
     <!-- Game Information Section -->
     <div id="game-info">
       <div class="game-info-wrapper">
+
+    <!-- Tournament Information -->
+    <div id="tournament-info"
+         sbAttr="data-gameno: EventInfo(GameNo)">
+      <span sbDisplay="EventInfo(Tournament)"></span>
+      <span sbDisplay="EventInfo(GameNo): prependGameNo"></span>
+    </div>
+
         <div id="game-details">
           <div id="teams-scores">
 
