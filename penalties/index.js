@@ -114,6 +114,20 @@ window.showCaptainIndicator = function(k, captainFlags) {
          flags.includes(altCaptainFlag) ? altCaptainFlag : '';
 };
 
+// Filter players based on flags
+window.shouldHideSkater = function(k, flags) {
+  // Handle null or undefined flags
+  if (!flags) {
+    return false;
+  }
+
+  const filteredFlags = CONFIG.filteredSkaterFlags;
+  const flagArray = flags.split(',').map(f => f.trim());
+  
+  // Hide players if any flag matches the filtered list
+  return filteredFlags.some(filtered => flagArray.includes(filtered));
+};
+
 /*******************************
 ** Application Initialization **
 *******************************/
