@@ -100,6 +100,11 @@ window.prependGameNo = function(k, gameNum) {
   return ` - Game ${gameNum}`;
 };
 
+// Check if a value exists for cases when a value isn't truthy
+window.hasValue = function(k, v) {
+  return v && v !== '';
+};
+
 /*******************************
 ** Application Initialization **
 *******************************/
@@ -116,7 +121,7 @@ $(function() {
       WS.AutoRegister();
       console.log('WebSocket connected.');
 
-    // Attempt to retry WebSocket connection if it is not yet available
+    // Attempt to retry the WebSocket connection if it is not yet available
     } else {
       if (DEBUG) {
         console.log('Waiting for WebSocket...');
@@ -125,7 +130,7 @@ $(function() {
     }
   }
 
-  // Start WebSocket initialization
+  // Start the WebSocket initialization
   initWebSocket();
 
   console.log('Penalties Overlay successfully initialized.');
