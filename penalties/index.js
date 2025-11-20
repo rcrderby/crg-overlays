@@ -47,7 +47,7 @@ const DEBUG = PenaltiesOverlayConfig.debug?.enabled || false;
 console.log('Debug mode:', DEBUG);
 
 // Configuration sections - available globally for all functions
-// const CONFIG = PenaltiesOverlayConfig.config;
+const CONFIG = PenaltiesOverlayConfig.config;
 const LABELS = PenaltiesOverlayConfig.labels;
 // const RULES = PenaltiesOverlayConfig.rules;
 // const PENALTIES = PenaltiesOverlayConfig.penalties;
@@ -113,6 +113,17 @@ $(function() {
   if (DEBUG) {
     console.log('Initializing Penalties Overlay...');
   }
+
+  // Set the loading overlay text
+  $('.loading-text').text(CONFIG.loadingOverlayText);
+
+  // Set the penalties title
+  $('#penalties-title h1').text(CONFIG.penaltiesTitleText);
+
+  // Hide the loading overlay after the minimum display time
+  setTimeout(function() {
+    $('#loading-overlay').addClass('fade-out');
+  }, TIMING.minLoadDisplayMs);
 
   // Initialize the WebSocket connection
   function initWebSocket() {
