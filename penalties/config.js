@@ -69,6 +69,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Prefix used for default team names
     defaultTeamNamePrefix: 'Team ',
 
+    // Prefix used for default period label
+    defaultPeriodLabelPrefix: 'Period',
+
     // Text displayed for expelled skaters
     expelledDisplay: 'EXP',
 
