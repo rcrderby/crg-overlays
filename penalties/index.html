@@ -66,9 +66,15 @@
       <div id="team1-rosters-penalties" sbContext="Team(1)">
         <div class="roster-penalties-container">
           <div class="roster-penalty-row">
-            
+
             <!-- Team 1 Roster Column -->
-            <div id="team1-roster" class="roster">
+            <div id="team1-roster"
+                 class="roster"
+                 sbcss="color: Color(whiteboard.fg) |
+                        background-color: Color(whiteboard.bg) |
+                        border-color: Color(whiteboard.fg) |
+                        text-shadow: Color(whiteboard.glow): glowColorToShadow">
+
               <!-- Roster lines for each player -->
               <div class="roster-line"
                    sbForeach="Skater:: roster-number: resort=RosterNumber"
@@ -97,7 +103,13 @@
           <div class="roster-penalty-row">
 
             <!-- Team 2 Roster Column -->
-            <div id="team2-roster" class="roster">
+            <div id="team2-roster"
+                 class="roster"
+                 sbcss="color: Color(whiteboard.fg) |
+                        background-color: Color(whiteboard.bg) |
+                        border-color: Color(whiteboard.fg) |
+                        text-shadow: Color(whiteboard.glow): glowColorToShadow">
+
               <!-- Roster lines for each player -->
               <div class="roster-line"
                    sbForeach="Skater:: roster-number: resort=RosterNumber"
