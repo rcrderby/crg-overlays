@@ -530,7 +530,7 @@ body {
   background-color: var(--tournament-bg);
   box-shadow: var(--shadow-box);
   color: var(--tournament-fg);
-  display: none;
+  display: block;
   font-size: var(--font-tournament-size);
   justify-content: center;
   margin-bottom: var(--margin-tournament-bottom);
@@ -542,7 +542,12 @@ body {
   width: 100%;
 }
 
-/* *************************
+/* Hide tournament info banner if the tournament name is not set */
+#tournament-info:has(span:first-child:empty) {
+  display: none;
+}
+
+/***************************
 ** Game details container **
 ***************************/
 
