@@ -53,6 +53,45 @@ const RULES = PenaltiesOverlayConfig.rules;
 const PENALTIES = PenaltiesOverlayConfig.penalties;
 const TIMING = PenaltiesOverlayConfig.timing;
 
+/**********************
+** Utility Functions **
+**********************/
+
+// Set the appropriate clock label based on game state
+window.setClockLabel = function(
+  k, 
+  periodNum, 
+  officialScore, 
+  inOvertime, 
+  intermissionRunning
+) {
+  // Convert parameters to the proper types
+  const period = parseInt(periodNum) || 0;
+  const isOfficial = officialScore === true || officialScore === 'true';
+  const isOvertime = inOvertime === true || inOvertime === 'true';
+  const isIntermission = intermissionRunning === true || intermissionRunning === 'true';
+  
+  // Get the number of periods from the game rules
+  const numPeriods = parseInt(
+    WS.state['ScoreBoard.CurrentGame.Rule(Period.Number)']
+  ) || 2;
+  
+  // Determine the appropriate clock label
+  if (isOfficial) {
+    return LABELS.intermission.official;
+  } else if (isOvertime) {
+    return LABELS.intermission.overtime;
+  } else if (period >= numPeriods && isIntermission) {
+    return LABELS.intermission.unofficial;
+  } else if (period > 0 && period < numPeriods && isIntermission) {
+    return LABELS.intermission.intermission;
+  } else if (period > 0) {
+    return `${LABELS.defaultPeriodLabelPrefix} ${period}`;
+  } else {
+    return LABELS.intermission.preGame;
+  }
+};
+
 /*******************************
 ** Application Initialization **
 *******************************/
