@@ -59,6 +59,69 @@
       </div>
     </div>
 
+    <!-- Rosters and Penalties Container -->
+    <div id="rosters-penalties-container">
+
+      <!-- Team 1 (Home) Rosters and Penalties -->
+      <div id="team1-rosters-penalties" sbContext="Team(1)">
+        <div class="roster-penalties-container">
+          <div class="roster-penalty-row">
+            
+            <!-- Team 1 Roster Column -->
+            <div id="team1-roster" class="roster">
+              <!-- Roster lines for each player -->
+              <div class="roster-line"
+                   sbForeach="Skater:: roster-number: resort=RosterNumber"
+                   sbAttr="roster-number: RosterNumber | name-text: Name">
+                <div class="roster-number" sbDisplay="RosterNumber"></div>
+                  <div class="roster-name">
+                    <span class="name-text" sbDisplay="Name"></span>
+                    <span class="captain-indicator" 
+                          sbDisplay="Flags: showCaptainIndicator">
+                    </span>
+                  </div>
+                </div>
+              </div>
+            
+            <!-- Team 1 Penalties Column -->
+            <div class="penalties-column">
+              <!-- Penalties will be populated dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Team 2 (Away) Rosters and Penalties -->
+      <div id="team2-rosters-penalties" sbContext="Team(2)">
+        <div class="roster-penalties-container">
+          <div class="roster-penalty-row">
+
+            <!-- Team 2 Roster Column -->
+            <div id="team2-roster" class="roster">
+              <!-- Roster lines for each player -->
+              <div class="roster-line"
+                   sbForeach="Skater:: roster-number: resort=RosterNumber"
+                   sbAttr="roster-number: RosterNumber | name-text: Name">
+                <div class="roster-number" sbDisplay="RosterNumber"></div>
+                  <div class="roster-name">
+                    <span class="name-text" sbDisplay="Name"></span>
+                    <span class="captain-indicator" 
+                          sbDisplay="Flags: showCaptainIndicator">
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+            <!-- Team 2 Penalties Column -->
+            <div class="penalties-column">
+              <!-- Penalties will be populated dynamically -->
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Game Information Section -->
     <div id="game-info">
       <div class="game-info-wrapper">
