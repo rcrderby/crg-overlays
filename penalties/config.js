@@ -144,6 +144,6 @@ window.AppConfig.PenaltiesOverlayConfig = {
     initWebSocket: 100,
 
     // Minimum time to show loading screen (ms)
-    minLoadDisplayMs: 1000,
+    minLoadDisplayMs: 500,
   }
 };
