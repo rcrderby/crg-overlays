@@ -92,6 +92,14 @@ window.setClockLabel = function(
   }
 };
 
+// Prepend " - Game " to the game number if present
+window.prependGameNo = function(k, gameNum) {
+  if (!gameNum || gameNum === '' || gameNum === '0') {
+    return '';
+  }
+  return ` - Game ${gameNum}`;
+};
+
 /*******************************
 ** Application Initialization **
 *******************************/
