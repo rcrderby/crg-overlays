@@ -34,9 +34,9 @@
       <!-- Team 1 (Home) Container -->
       <div class="team-container" id="team1-container">
         <div class="team-logo-container">
-          <img sbAttr="src: Logo"
-               class="team-logo" 
+          <img class="team-logo"
                id="team1-logo"
+               sbAttr="src: Logo"
                sbClass="visible: Logo: hasValue"
                sbContext="Team(1)">
         </div>
@@ -50,9 +50,9 @@
       <!-- Team 2 (Away) Container -->
       <div class="team-container" id="team2-container">
         <div class="team-logo-container">
-          <img sbAttr="src: Logo"
-               class="team-logo" 
+          <img class="team-logo"
                id="team2-logo"
+               sbAttr="src: Logo"
                sbClass="visible: Logo: hasValue"
                sbContext="Team(2)">
         </div>
@@ -70,24 +70,23 @@
             <!-- Team 1 Roster Column -->
             <div id="team1-roster"
                  class="roster"
-                 sbcss="color: Color(whiteboard.fg) |
-                        background-color: Color(whiteboard.bg) |
+                 sbcss="background-color: Color(whiteboard.bg) |
                         border-color: Color(whiteboard.fg) |
+                        color: Color(whiteboard.fg) |
                         text-shadow: Color(whiteboard.glow): glowColorToShadow">
 
               <!-- Roster lines for each player -->
               <div class="roster-line"
-                   sbForeach="Skater:: roster-number: resort=RosterNumber"
                    sbAttr="roster-number: RosterNumber | name-text: Name"
-                   sbClass="sbHide: Flags: shouldHideSkater">
+                   sbClass="sbHide: Flags: shouldHideSkater"
+                   sbForeach="Skater:: roster-number: resort=RosterNumber">
                 <div class="roster-number" sbDisplay="RosterNumber"></div>
-                  <div class="roster-name">
-                    <span class="name-text" sbDisplay="Name"></span>
-                    <span class="captain-indicator" sbDisplay="Flags: showCaptainIndicator">
-                    </span>
-                  </div>
+                <div class="roster-name">
+                  <span class="name-text" sbDisplay="Name"></span>
+                  <span class="captain-indicator" sbDisplay="Flags: showCaptainIndicator"></span>
                 </div>
               </div>
+            </div>
             
             <!-- Team 1 Penalties Column -->
             <div class="penalties-column">
@@ -105,30 +104,28 @@
             <!-- Team 2 Roster Column -->
             <div id="team2-roster"
                  class="roster"
-                 sbcss="color: Color(whiteboard.fg) |
-                        background-color: Color(whiteboard.bg) |
+                 sbcss="background-color: Color(whiteboard.bg) |
                         border-color: Color(whiteboard.fg) |
+                        color: Color(whiteboard.fg) |
                         text-shadow: Color(whiteboard.glow): glowColorToShadow">
 
               <!-- Roster lines for each player -->
               <div class="roster-line"
-                   sbForeach="Skater:: roster-number: resort=RosterNumber"
                    sbAttr="roster-number: RosterNumber | name-text: Name"
-                   sbClass="sbHide: Flags: shouldHideSkater">
+                   sbClass="sbHide: Flags: shouldHideSkater"
+                   sbForeach="Skater:: roster-number: resort=RosterNumber">
                 <div class="roster-number" sbDisplay="RosterNumber"></div>
-                  <div class="roster-name">
-                    <span class="name-text" sbDisplay="Name"></span>
-                    <span class="captain-indicator" sbDisplay="Flags: showCaptainIndicator">
-                    </span>
-                  </div>
+                <div class="roster-name">
+                  <span class="name-text" sbDisplay="Name"></span>
+                  <span class="captain-indicator" sbDisplay="Flags: showCaptainIndicator"></span>
                 </div>
               </div>
+            </div>
 
             <!-- Team 2 Penalties Column -->
             <div class="penalties-column">
               <!-- Penalties will be populated dynamically -->
             </div>
-
           </div>
         </div>
       </div>
@@ -159,12 +156,15 @@
               <div class="vs-text">vs.</div>
               <div id="clock-container">
                 <div id="game-clock" 
-                     sbDisplay="Clock(Period).Time: sbToTime"
-                     sbClass="hidden: OfficialScore | hidden: InOvertime">
+                     sbClass="hidden: OfficialScore | hidden: InOvertime"
+                     sbDisplay="Clock(Period).Time: sbToTime">
                 </div>
               </div>
               <div id="clock-label" 
-                   sbDisplay="CurrentPeriodNumber, OfficialScore, InOvertime, Clock(Intermission).Running: setClockLabel">
+                   sbDisplay="CurrentPeriodNumber,
+                              OfficialScore,
+                              InOvertime,
+                              Clock(Intermission).Running: setClockLabel">
               </div>
             </div>
 
