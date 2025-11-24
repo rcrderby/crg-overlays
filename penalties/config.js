@@ -20,7 +20,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
   debug: {
     // Enable debug logging to browser console (set to "true" for troubleshooting)
-    enabled: true
+    enabled: false
   },
 
   /***************************
