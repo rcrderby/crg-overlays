@@ -1435,7 +1435,7 @@ $(function() {
         break;
         
       case 'Color':
-        if (identifier === 'whiteboard') {
+        if (identifier && identifier.startsWith('whiteboard')) {
           updateQueue.schedule(() => updateTeamColors(teamNum));
         }
         break;
