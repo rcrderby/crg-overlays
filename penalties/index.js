@@ -50,8 +50,8 @@ console.log('Debug mode:', DEBUG);
 // Configuration sections - available globally for all functions
 const CONFIG = PenaltiesOverlayConfig.config;
 const LABELS = PenaltiesOverlayConfig.labels;
-// const RULES = PenaltiesOverlayConfig.rules;
-// const PENALTIES = PenaltiesOverlayConfig.penalties;
+const RULES = PenaltiesOverlayConfig.rules;
+const PENALTIES = PenaltiesOverlayConfig.penalties;
 const TIMING = PenaltiesOverlayConfig.timing;
 
 /**********************
