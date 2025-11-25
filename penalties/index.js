@@ -23,11 +23,12 @@ if (typeof PenaltiesOverlayConfig === 'undefined') {
 
 // Validate required configuration structure
 if (
-  !PenaltiesOverlayConfig.debug || 
-  !PenaltiesOverlayConfig.config || 
-  !PenaltiesOverlayConfig.labels || 
-  !PenaltiesOverlayConfig.rules || 
-  !PenaltiesOverlayConfig.penalties || 
+  !PenaltiesOverlayConfig.debug ||
+  !PenaltiesOverlayConfig.config ||
+  !PenaltiesOverlayConfig.classes ||
+  !PenaltiesOverlayConfig.labels ||
+  !PenaltiesOverlayConfig.rules ||
+  !PenaltiesOverlayConfig.penalties ||
   !PenaltiesOverlayConfig.timing
 ) {
   console.error('ERROR: data imported from config.js is invalid.');
