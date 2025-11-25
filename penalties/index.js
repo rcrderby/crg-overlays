@@ -55,14 +55,18 @@ const RULES = PenaltiesOverlayConfig.rules;
 const PENALTIES = PenaltiesOverlayConfig.penalties;
 const TIMING = PenaltiesOverlayConfig.timing;
 
-/**********************
-** Utility Functions **
-**********************/
+/******************************
+** General Utility Functions **
+******************************/
 
 // Check if a value exists for cases when a value isn't truthy
 window.hasValue = function(k, v) {
   return v && v !== '';
 };
+
+/***************************************
+** Game Information Utility Functions **
+***************************************/
 
 // Set the appropriate clock label based on game state
 window.setClockLabel = function(
@@ -107,19 +111,9 @@ window.prependGameNo = function(k, gameNum) {
   return ` - Game ${gameNum}`;
 };
 
-// Show captain or alt captain indicators
-window.showCaptainIndicator = function(k, captainFlags) {
-  // Handle null or undefined flags
-  if (!captainFlags) {
-    return '';
-  }
-
-  const { captainFlag, altCaptainFlag } = LABELS;
-  const flags = captainFlags.split(',');
-
-  return flags.includes(captainFlag) ? captainFlag :
-         flags.includes(altCaptainFlag) ? altCaptainFlag : '';
-};
+/*****************************
+** Roster Utility Functions **
+*****************************/
 
 // Filter players based on flags
 window.shouldHideSkater = function(k, flags) {
@@ -135,7 +129,21 @@ window.shouldHideSkater = function(k, flags) {
   return filteredFlags.some(filtered => flagArray.includes(filtered));
 };
 
-// Convert text glow color to text-shadow
+// Show captain or alt captain indicators
+window.showCaptainIndicator = function(k, captainFlags) {
+  // Handle null or undefined flags
+  if (!captainFlags) {
+    return '';
+  }
+
+  const { captainFlag, altCaptainFlag } = LABELS;
+  const flags = captainFlags.split(',');
+
+  return flags.includes(captainFlag) ? captainFlag :
+         flags.includes(altCaptainFlag) ? altCaptainFlag : '';
+};
+
+// Convert the text glow color to the text-shadow color
 window.glowColorToShadow = function(k, glowColor) {
   if (!glowColor || glowColor === '') {
     return CLASSES.textShadow;
