@@ -90,8 +90,32 @@
             
             <!-- Team 1 Penalties Column -->
             <div class="penalties-column">
-              <!-- Penalties will be populated dynamically -->
+              <div id="team1-penalties">
+                <div class="penalty-line"
+                     sbAttr="roster-number: RosterNumber"
+                     sbClass="sbHide: Flags: shouldHideSkater"
+                     sbForeach="Skater:: roster-number: resort=RosterNumber">
+
+                  <!-- Penalty codes display -->
+                  <div class="penalty-codes">
+                    <span sbAttr="penalty-number: Number"
+                          sbDisplay="Code"
+                          sbClass="sbHide: Code, Number: shouldHidePenaltyCode"
+                          sbForeach="Penalty">
+                    </span>
+                  </div>
+
+                  <!-- Penalty count with status detection (Penalty(0).Code registers WebSocket channel) -->
+                  <div class="penalty-count"
+                       sbClass="penalty-count-5: PenaltyCount, Penalty(0).Code: isPenaltyCount5 | 
+                                penalty-count-6: PenaltyCount, Penalty(0).Code: isPenaltyCount6 | 
+                                penalty-count-exp-fo-re: PenaltyCount, Penalty(0).Code: isPenaltyCountExpFoRe"
+                       sbDisplay="PenaltyCount, Penalty(0).Code: getPenaltyCountDisplay">
+                  </div>
+                </div>
+              </div>
             </div>
+
           </div>
         </div>
       </div>
@@ -124,8 +148,32 @@
 
             <!-- Team 2 Penalties Column -->
             <div class="penalties-column">
-              <!-- Penalties will be populated dynamically -->
+              <div id="team2-penalties">
+                <div class="penalty-line"
+                     sbAttr="roster-number: RosterNumber"
+                     sbClass="sbHide: Flags: shouldHideSkater"
+                     sbForeach="Skater:: roster-number: resort=RosterNumber">
+                  
+                  <!-- Penalty codes display -->
+                  <div class="penalty-codes">
+                    <span sbAttr="penalty-number: Number"
+                          sbDisplay="Code"
+                          sbClass="sbHide: Code, Number: shouldHidePenaltyCode"
+                          sbForeach="Penalty">
+                    </span>
+                  </div>
+
+                  <!-- Penalty count with status detection (Penalty(0).Code registers WebSocket channel) -->
+                  <div class="penalty-count"
+                       sbClass="penalty-count-5: PenaltyCount, Penalty(0).Code: isPenaltyCount5 | 
+                                penalty-count-6: PenaltyCount, Penalty(0).Code: isPenaltyCount6 | 
+                                penalty-count-exp-fo-re: PenaltyCount, Penalty(0).Code: isPenaltyCountExpFoRe"
+                       sbDisplay="PenaltyCount, Penalty(0).Code: getPenaltyCountDisplay">
+                  </div>
+                </div>
+              </div>
             </div>
+
           </div>
         </div>
       </div>
