@@ -236,6 +236,43 @@ window.shouldHidePenaltyCode = function(k, code, penaltyNumber) {
   return false;
 };
 
+/************************************
+** Timeout Banner Helper Functions **
+************************************/
+
+// Determine the timeout banner text to display
+window.getTimeoutText = function(k, timeoutOwner, officialReview) {
+  const isReview = (officialReview === true || officialReview === 'true') || 
+                   WS.state['ScoreBoard.CurrentGame.OfficialReview'] === true;
+  
+  if (isReview) return LABELS.timeout.review;
+  if (timeoutOwner === 'O') return LABELS.timeout.official;
+  if (timeoutOwner && (timeoutOwner.endsWith('_1') || timeoutOwner.endsWith('_2'))) {
+    return LABELS.timeout.team;
+  }
+  return LABELS.timeout.untyped;
+};
+
+// Position untyped and official timeouts in the center of the game information box
+window.isPositionCenter = function(k, timeoutOwner) {
+  return timeoutOwner === 'O' || !timeoutOwner || timeoutOwner === '';
+};
+
+// Position team 1 timeouts on the left side of the game information box
+window.isPositionTeam1 = function(k, timeoutOwner) {
+  return !!(timeoutOwner && timeoutOwner.endsWith('_1'));
+};
+
+// Position team 2 timeouts on the right side of the game information box
+window.isPositionTeam2 = function(k, timeoutOwner) {
+  return !!(timeoutOwner && timeoutOwner.endsWith('_2'));
+};
+
+// Determine if the timeout banner should be visible
+window.isTimeoutVisible = function(k, timeoutRunning) {
+  return timeoutRunning === true || timeoutRunning === 'true';
+};
+
 /*******************************
 ** Application Initialization **
 *******************************/
