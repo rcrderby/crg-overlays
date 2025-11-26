@@ -99,7 +99,7 @@
   --padding-roster: 5px;
   --padding-penalties: 5px;
   --padding-tournament: 6px;
-  --padding-game-details: 10px;
+  --padding-game-details: 15px;
   --padding-game-details-with-logo: 90px;
   --padding-penalty-count-vertical: 2px;
   --padding-penalty-count-horizontal: 6px;
@@ -564,7 +564,7 @@ body {
   width: 100%;
 }
 
-/* **************
+/****************
 ** Custom logo **
 ****************/
 
@@ -575,6 +575,7 @@ body {
   height: var(--size-custom-logo);
   justify-content: center;
   left: var(--padding-game-details);
+  max-height: var(--size-custom-logo);
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
@@ -586,6 +587,11 @@ body {
   max-height: 100%;
   max-width: 100%;
   object-fit: contain;
+  opacity: 0;
+}
+
+.custom-logo.visible {
+  opacity: 1;
 }
 
 /********************************
