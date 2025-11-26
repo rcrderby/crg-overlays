@@ -133,7 +133,7 @@
   --gap-roster-penalties: 10px;
   --gap-penalty-sections: 2px;
   --margin-bottom-row: 4px;
-  --penalty-code-spacing: 0.3em;
+  --penalty-code-spacing: 0.5em;
 
   /* Transitions */
   --transition-background: 0.3s ease;
@@ -337,7 +337,6 @@ body {
   gap: var(--gap-roster-penalties);
 }
 
-
 /********************
 ** Rosters section **
 ********************/
@@ -447,15 +446,16 @@ body {
 }
 
 .penalty-codes {
+  display: flex;
   flex: 1;
   font-weight: bold;
+  gap: var(--penalty-code-spacing);
   margin-right: var(--margin-penalty-codes-right);
   overflow: hidden;
   text-align: left;
   text-overflow: ellipsis;
   text-shadow: var(--shadow-text);
   white-space: nowrap;
-  word-spacing: var(--penalty-code-spacing);
 }
 
 .penalty-count {
@@ -513,6 +513,7 @@ body {
   display: flex;
   flex-direction: column;
   margin-top: var(--margin-game-info-top);
+  position: relative;
   width: 100%;
 }
 
@@ -688,39 +689,25 @@ body {
   text-overflow: ellipsis;
   text-shadow: var(--timeout-banner-text-shadow);
   top: 100%;
+  transform: translateX(-50%);
   white-space: nowrap;
   width: var(--width-timeout-banner);
   z-index: -1;
-
-  /** Timeout banner hiding behind the game information section **/
-
-  /* Include translateX(-50%) so changing position classes doesn't cause horizontal/diagonal animation */
-  transform: translateX(-50%) translateY(-100%);
   opacity: 0;
-
-  /* Only animate vertical movement and opacity */
-  transition: 
-    transform var(--transition-timeout-slide),
-    opacity var(--transition-timeout-slide);
 }
 
-/* Visible state - slides down from behind the game info box */
 .timeout-banner.visible {
   opacity: 1;
-  transform: translateY(0);
 }
 
-/* Hidden state for transitions - quickly fade out */
-.timeout-banner.hiding {
-  opacity: 0;
-  transition: opacity var(--transition-timeout-hide);
+.timeout-banner.visible.position-center {
+  left: 50%;
 }
 
-/* Untyped and OTO - Left position is translateX(-50%) from the base transform */
-.timeout-banner.position-center.visible,
-/* Team 1 TTO/OR - left position set by JavaScript to center on team name */
-.timeout-banner.position-team1.visible,
-/* Team 2 TTO/OR - left position set by JavaScript to center on team name */
-.timeout-banner.position-team2.visible {
-  transform: translateX(-50%) translateY(0);
+.timeout-banner.visible.position-team1 {
+  left: 40.5%;
+}
+
+.timeout-banner.visible.position-team2 {
+  left: 59.5%;
 }
