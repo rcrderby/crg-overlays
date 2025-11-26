@@ -212,7 +212,8 @@
 
             <!-- Team 1 (Home) -->
             <div class="team-score-block" sbContext="Team(1)">
-              <div class="team-name" sbDisplay="AlternateName(whiteboard), Name"></div>
+              <div class="team-name" 
+                  sbDisplay="AlternateName(whiteboard), Name: getTeamNameWithDefault"></div>
               <div class="score" sbDisplay="Score"></div>
             </div>
 
@@ -235,9 +236,11 @@
 
             <!-- Team 2 (Away) -->
             <div class="team-score-block" sbContext="Team(2)">
-              <div class="team-name" sbDisplay="AlternateName(whiteboard), Name"></div>
+              <div class="team-name" 
+                  sbDisplay="AlternateName(whiteboard), Name: getTeamNameWithDefault"></div>
               <div class="score" sbDisplay="Score"></div>
             </div>
+
           </div>
         </div>
       </div>
