@@ -49,10 +49,15 @@ window.AppConfig.PenaltiesOverlayConfig = {
     loadingOverlayText: 'Loading game data...',
 
     // Penalties title text
-    penaltiesTitleText: 'PENALTIES',
+    penaltiesTitleText: 'PENALTIES'
+  },
 
-    // Buffer pixels to prevent team name overflow
-    teamNameOverflowBufferPixels: 1
+  /****************
+  ** CSS Classes **
+  ****************/
+
+  classes: {
+    textShadow: 'var(--team-penalties-default-text-shadow)'
   },
 
   /********************
