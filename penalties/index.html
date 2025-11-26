@@ -236,7 +236,17 @@
           </div>
         </div>
       </div>
+
+      <!-- Timeout Banner -->
+      <div class="timeout-banner"
+          sbClass="visible: Clock(Timeout).Running: isTimeoutVisible | 
+                    position-center: TimeoutOwner: isPositionCenter |
+                    position-team1: TimeoutOwner: isPositionTeam1 |
+                    position-team2: TimeoutOwner: isPositionTeam2"
+          sbDisplay="TimeoutOwner, OfficialReview: getTimeoutText">
+      </div>
     </div>
+
   </div>
 
 </body>
