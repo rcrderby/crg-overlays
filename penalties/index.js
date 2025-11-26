@@ -68,6 +68,26 @@ window.hasValue = function(k, v) {
 ** Game Information Utility Functions **
 ***************************************/
 
+// Display team names with fallback mechanisms to prevent a blank name
+window.getTeamNameWithDefault = function(k, alternateName) {
+  // Try AlternateName(whiteboard) first
+  if (typeof alternateName === 'string' && alternateName.trim() !== '') {
+    return alternateName;
+  }
+  
+  // Try team name (Name) read from WS.state second
+  const teamNum = k.Team || '?';
+  const nameKey = `ScoreBoard.CurrentGame.Team(${teamNum}).Name`;
+  const name = WS.state[nameKey];
+  
+  if (typeof name === 'string' && name.trim() !== '') {
+    return name;
+  }
+  
+  // Use "Team N" third
+  return LABELS.defaultTeamNamePrefix + teamNum;
+};
+
 // Set the appropriate clock label based on game state
 window.setClockLabel = function(
   k, 
