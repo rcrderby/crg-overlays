@@ -111,6 +111,68 @@ window.prependGameNo = function(k, gameNum) {
   return ` - Game ${gameNum}`;
 };
 
+/************************************
+** Custom Logo Helper Function **
+************************************/
+
+// Load a custom logo if available
+function loadCustomLogo() {
+
+  // Check if the logo path is configured
+  if (!CONFIG.bannerLogoPath || CONFIG.bannerLogoPath === '') {
+
+    // Apply padding when no logo is present
+    $('#teams-scores').css({
+      'padding-left': CONFIG.gameInfoPaddingWithoutLogo + 'px',
+      'padding-right': CONFIG.gameInfoPaddingWithoutLogo + 'px'
+    });
+    
+    if (DEBUG) {
+      console.log('No custom logo available, using default padding:', CONFIG.gameInfoPaddingWithoutLogo);
+    }
+    return;
+  }
+
+  const logoImg = new Image();
+  const $customLogo = $('#custom-logo');
+
+  // Show the logo and apply the appropriate padding when the logo loads successfully
+  logoImg.onload = function() {
+    $customLogo.attr('src', CONFIG.bannerLogoPath);
+    $customLogo.addClass('visible');
+    
+    // Apply padding when the logo is present
+    $('#teams-scores').css({
+      'padding-left': CONFIG.gameInfoPaddingWithLogo + 'px',
+      'padding-right': CONFIG.gameInfoPaddingWithLogo + 'px'
+    });
+    
+    if (DEBUG) {
+      console.log('Custom logo loaded:', CONFIG.bannerLogoPath);
+      console.log('Adding padding:', CONFIG.gameInfoPaddingWithLogo);
+    }
+  };
+
+  // Hide the logo and apply default padding when there is no logo or it fails to load
+  logoImg.onerror = function() {
+    $customLogo.removeClass('visible');
+    
+    // Apply padding for no logo
+    $('#teams-scores').css({
+      'padding-left': CONFIG.gameInfoPaddingWithoutLogo + 'px',
+      'padding-right': CONFIG.gameInfoPaddingWithoutLogo + 'px'
+    });
+    
+    if (DEBUG) {
+      console.log('Custom logo failed to load:', CONFIG.bannerLogoPath);
+      console.log('Using default padding:', CONFIG.gameInfoPaddingWithoutLogo);
+    }
+  };
+
+  // Attempt to load the logo
+  logoImg.src = CONFIG.bannerLogoPath;
+}
+
 /*****************************
 ** Roster Utility Functions **
 *****************************/
@@ -287,6 +349,9 @@ $(function() {
 
   // Set the penalties title
   $('#penalties-title h1').text(CONFIG.penaltiesTitleText);
+
+  // Attempt to load a custom logo
+  loadCustomLogo();
 
   // Hide the loading overlay after the minimum display time
   setTimeout(function() {
