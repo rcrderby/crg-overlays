@@ -22,19 +22,25 @@ if (typeof PenaltiesOverlayConfig === 'undefined') {
 }
 
 // Validate required configuration structure
-if (
-  !PenaltiesOverlayConfig.debug ||
-  !PenaltiesOverlayConfig.config ||
-  !PenaltiesOverlayConfig.classes ||
-  !PenaltiesOverlayConfig.labels ||
-  !PenaltiesOverlayConfig.rules ||
-  !PenaltiesOverlayConfig.penalties ||
-  !PenaltiesOverlayConfig.timing
-) {
-  console.error('ERROR: data imported from config.js is invalid.');
-  console.error('Required structures: debug, config, labels, rules, penalties, and timing');
-  alert('Configuration Error: config.js is invalid. Check browser console for details.');
-  throw new Error('Configuration file (config.js) has invalid structure');
+const requiredSections = [
+  'debug',
+  'config',
+  'classes',
+  'labels',
+  'rules',
+  'penalties',
+  'timing'
+];
+
+const missingSections = requiredSections.filter(
+  section => !PenaltiesOverlayConfig[section]
+);
+
+if (missingSections.length > 0) {
+  const errorMsg = `Configuration file (config.js) is missing required sections: ${missingSections.join(', ')}`;
+  console.error('ERROR:', errorMsg);
+  alert(`Configuration Error: ${errorMsg}. Check browser console for details.`);
+  throw new Error(errorMsg);
 }
 
 console.log('...config.js loaded successfully.');
