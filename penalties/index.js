@@ -330,14 +330,32 @@ window.shouldHidePenaltyCode = function(k, code, penaltyNumber) {
 
 // Determine the timeout banner text to display
 window.getTimeoutText = function(k, timeoutOwner, officialReview) {
+
+  // Official review
   const isReview = (officialReview === true || officialReview === 'true') || 
                    WS.state['ScoreBoard.CurrentGame.OfficialReview'] === true;
-  
   if (isReview) return LABELS.timeout.review;
-  if (timeoutOwner === 'O') return LABELS.timeout.official;
-  if (timeoutOwner && (timeoutOwner.endsWith('_1') || timeoutOwner.endsWith('_2'))) {
+
+  // Official timeout
+  if (
+    timeoutOwner === LABELS.timeoutOwner.official
+  ) return LABELS.timeout.official;
+
+  // Team timeout
+  if (
+    timeoutOwner && (
+      timeoutOwner.endsWith(
+        LABELS.timeoutOwner.team1
+      ) ||
+      timeoutOwner.endsWith(
+        LABELS.timeoutOwner.team2
+      )
+    )
+  ) {
     return LABELS.timeout.team;
   }
+
+  // Untyped timeout
   return LABELS.timeout.untyped;
 };
 
