@@ -105,6 +105,13 @@ window.AppConfig.PenaltiesOverlayConfig = {
       official: 'Official Timeout',
       team: 'Team Timeout',
       review: 'Official Review'
+    },
+
+    // Timeout owner indicators
+    timeoutOwner: {
+      official: 'O',
+      team1: '_1',
+      team2: '_2'
     }
   },
 
@@ -112,13 +119,15 @@ window.AppConfig.PenaltiesOverlayConfig = {
   ** Rules Settings **
   *******************/
 
-  rules: {
-    // Override any custom rules settings
-    // Number of teams
-    numTeams: 2,
-
+ rules: {
     // Number of penalties that result in a foulout
     fouloutPenaltyCount: 7,
+
+    // Override a custom number of periods
+    numPeriods: 2,
+
+    // Override a custom number of teams
+    numTeams: 2,
 
     // Penalty count that triggers the first warning color
     warningPenaltyCount5: 5,
