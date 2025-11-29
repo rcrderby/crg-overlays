@@ -137,20 +137,6 @@ window.prependGameNo = function(k, gameNum) {
   return ` - Game ${gameNum}`;
 };
 
-// Format clock time to always display as M:SS
-window.formatClockTime = function(k, timeValue) {
-  if (!timeValue || timeValue === 0) {
-    return '0:00';
-  }
-  
-  const totalSeconds = Math.floor(timeValue / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  
-  // Preserve a M:SS format when the clock is under 1:00
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-};
-
 /************************************
 ** Custom Logo Helper Function **
 ************************************/
