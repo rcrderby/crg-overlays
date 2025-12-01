@@ -107,7 +107,6 @@ window.shouldHidePeriodClock = function(_k, intermissionRunning) {
 
   // Pre-game, when no intermission clock is running (Coming Up)
   const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
-  const numPeriods = RULES.numPeriods;
 
   // When the intermission clock is running
   const isIntermission = intermissionRunning === true;
@@ -138,9 +137,8 @@ window.shouldHideIntermissionClock = function(_k, intermissionRunning) {
 
   // After the last period
   const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
-  const numPeriods = RULES.numPeriods;
 
-  return !isIntermission || isOfficial || isOvertime || (period >= numPeriods);
+  return !isIntermission || isOfficial || isOvertime || (period >= RULES.numPeriods);
 };
 
 /************************
