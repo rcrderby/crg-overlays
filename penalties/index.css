@@ -126,8 +126,7 @@
   --width-penalties-column-max: 250px;
   --width-penalty-count: 50px;
   --width-penalties-title-max: 40%;
-  --width-team-score-max: 270px;
-  --width-team-score-min: 220px;
+  --width-team-score: 220px;
   --width-timeout-banner: 180px;
   --width-vs-clock-container: 160px;
 
@@ -614,9 +613,7 @@ body {
 }
 
 .team-score-block {
-  flex: 0 0 var(--width-team-score-max);
-  max-width: var(--width-team-score-max);
-  min-width: var(--width-team-score-max);
+  flex: 0 0 var(--width-team-score);
   text-align: center;
 }
 
@@ -644,9 +641,9 @@ body {
 #vs-clock-container {
   align-items: center;
   display: flex;
+  flex: 0 0 var(--width-vs-clock-container);
   flex-direction: column;
   justify-content: flex-start;
-  width: var(--width-vs-clock-container);
 }
 
 .vs-text {
@@ -662,7 +659,8 @@ body {
   width: 100%;
 }
 
-#game-clock {
+#period-clock,
+#intermission-clock {
   font-size: var(--font-clock-size);
   font-weight: bold;
   font-variant-numeric: tabular-nums;
@@ -671,7 +669,7 @@ body {
   width: 100%;
 }
 
-#clock-label {
+.clock-label {
   color: var(--clock-label-fg);
   font-size: var(--font-clock-label-size);
   font-weight: bold;
