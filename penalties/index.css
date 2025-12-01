@@ -100,11 +100,9 @@
   --padding-penalties: 5px;
   --padding-tournament: 6px;
   --padding-game-details: 15px;
-  --padding-game-details-with-logo: 90px;
   --padding-penalty-count-vertical: 2px;
   --padding-penalty-count-horizontal: 6px;
   --padding-row-bottom: 4px;
-  --padding-teams-container-top-default: 5px;
   --padding-teams-container-top-with-logos: 20px;
   --padding-timeout-banner-vertical: 8px;
   --padding-timeout-banner-horizontal: 20px;
@@ -140,8 +138,6 @@
   /* Transitions */
   --transition-background: 0.3s ease;
   --transition-fade: 0.5s ease;
-  --transition-timeout-hide: 0.3s ease-in-out;
-  --transition-timeout-slide: 0.4s ease-in-out;
   --transition-width: 0.3s ease;
 }
 
