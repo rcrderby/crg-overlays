@@ -74,6 +74,14 @@ window.hasValue = function(k, v) {
 ** Game Information Utility Functions **
 ***************************************/
 
+// Prepend " - Game " to the game number if present
+window.prependGameNo = function(k, gameNum) {
+  if (!gameNum || gameNum === '' || gameNum === '0') {
+    return '';
+  }
+  return ` - Game ${gameNum}`;
+};
+
 // Display team names with fallback mechanisms to prevent a blank name
 window.getTeamNameWithDefault = function(k, alternateName) {
   // Try AlternateName(whiteboard) first
@@ -94,52 +102,110 @@ window.getTeamNameWithDefault = function(k, alternateName) {
   return LABELS.defaultTeamNamePrefix + teamNum;
 };
 
-// Set the appropriate clock label based on game state
-window.setClockLabel = function(
-  k, 
-  periodNum, 
-  officialScore, 
-  inOvertime, 
-  intermissionRunning
-) {
-  // Convert parameters to the proper types
-  const period = parseInt(periodNum) || 0;
-  const isOfficial = officialScore === true || officialScore === 'true';
-  const isOvertime = inOvertime === true || inOvertime === 'true';
+// Determine if the period clock should be hidden
+window.shouldHidePeriodClock = function(k, intermissionRunning) {
+
+  // Pre-game, when no intermission clock is running (Coming Up)
+  const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
+
+  // When the intermission clock is running
   const isIntermission = intermissionRunning === true || intermissionRunning === 'true';
-  
-  // Get the number of periods from the game rules
-  const numPeriods = parseInt(
-    WS.state['ScoreBoard.CurrentGame.Rule(Period.Number)']
-  ) || 2;
-  
-  // Determine the appropriate clock label
-  if (isOfficial) {
-    return LABELS.intermission.official;
-  } else if (isOvertime) {
-    return LABELS.intermission.overtime;
-  } else if (period >= numPeriods && isIntermission) {
-    return LABELS.intermission.unofficial;
-  } else if (period > 0 && period < numPeriods && isIntermission) {
-    return LABELS.intermission.intermission;
-  } else if (period > 0) {
-    return `${LABELS.defaultPeriodLabelPrefix} ${period}`;
-  } else {
-    return LABELS.intermission.preGame;
-  }
+
+  // When the score is unofficial or official
+  const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
+
+  // During overtime
+  const isOvertime = WS.state['ScoreBoard.CurrentGame.InOvertime'] === true;
+
+  return period === 0 ||
+         isIntermission ||
+         isOfficial ||
+         isOvertime;
 };
 
-// Prepend " - Game " to the game number if present
-window.prependGameNo = function(k, gameNum) {
-  if (!gameNum || gameNum === '' || gameNum === '0') {
+// Determine if the intermission clock should be hidden
+window.shouldHideIntermissionClock = function(k, intermissionRunning) {
+
+  // When the intermission clock is not running
+  const isIntermission = intermissionRunning === true || intermissionRunning === 'true';
+
+  // When the score is unofficial or official
+  const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
+
+  // During overtime
+  const isOvertime = WS.state['ScoreBoard.CurrentGame.InOvertime'] === true;
+
+  // After the last period
+  const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
+  const numPeriods = RULES.numPeriods;
+
+  return !isIntermission || isOfficial || isOvertime || (period >= numPeriods);
+};
+
+/************************
+** Clock Label Helpers **
+************************/
+
+// Simple helper to invert boolean for sbHide
+window.invertBoolean = function(k, value) {
+  return !value;
+};
+
+// Get period label
+window.getPeriodLabel = function(k, periodNumber) {
+  const period = parseInt(periodNumber);
+  if (!period || period === 0) return '';
+  return `${LABELS.defaultPeriodLabelPrefix} ${period}`;
+};
+
+// Get intermission label
+window.getIntermissionLabel = function(k, periodNumber) {
+  const period = parseInt(periodNumber) || 0;
+  const numPeriods = RULES.numPeriods;
+  
+  // Read intermission labels from the WS.state
+  const preGame = WS.state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)'];
+  const intermission = WS.state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)'];
+  
+  // Before the game starts
+  if (period === 0) {
+    return preGame || '';
+  }
+  // Between periods
+  else if (period < numPeriods) {
+    return intermission || '';
+  }
+  // After the final period, don't show the intermission label, "Unofficial" or "Official" labels will show instead
+  else {
     return '';
   }
-  return ` - Game ${gameNum}`;
 };
 
-/************************************
+// Hide the "Unofficial Score" label
+window.shouldHideUnofficialScore = function(k, periodNumber) {
+  const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
+  const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
+  const isOvertime = WS.state['ScoreBoard.CurrentGame.InOvertime'] === true;
+  const numPeriods = RULES.numPeriods || 2;
+  
+  // Show the "Unofficial Score"
+  return period < numPeriods || isOfficial || isOvertime;
+};
+
+// Hide the "Coming Up" label
+window.shouldHideComingUp = function(k, periodNumber) {
+  const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
+  const isIntermission = WS.state['ScoreBoard.CurrentGame.Clock(Intermission).Running'] === true;
+  const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
+  const isOvertime = WS.state['ScoreBoard.CurrentGame.InOvertime'] === true;
+  
+  // Show the "Coming Up" label
+  return period !== 0 || isIntermission || isOfficial || isOvertime;
+};
+
+/********************************
 ** Custom Logo Helper Function **
-************************************/
+********************************/
 
 // Load a custom logo if available
 function loadCustomLogo() {
