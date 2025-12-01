@@ -48,6 +48,12 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Loading overlay text
     loadingOverlayText: 'Loading game data...',
 
+    // Title banner background color
+    titleBannerBackgroundColor: '#666666',
+  
+    // Title banner text/foreground color
+    titleBannerForegroundColor: '#ffffff',
+
     // Penalties title text
     penaltiesTitleText: 'PENALTIES'
   },
