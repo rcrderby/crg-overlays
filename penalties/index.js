@@ -43,7 +43,7 @@ if (missingSections.length > 0) {
   throw new Error(errorMsg);
 }
 
-console.log('...config.js loaded successfully.');
+console.log('config.js loaded successfully.');
 
 /**********************
 ** Global Constants  **
@@ -61,9 +61,35 @@ const RULES = PenaltiesOverlayConfig.rules;
 const PENALTIES = PenaltiesOverlayConfig.penalties;
 const TIMING = PenaltiesOverlayConfig.timing;
 
-/**********************************
-** Title Banner Format Functions **
-**********************************/
+/*************************************
+** Overlay Display Format Functions **
+*************************************/
+
+function setOverlayScale() {
+  // Set overlay scale from config with validation
+  let overlayScalePercent = 100; // Default to 100%
+  
+  // Validate overlayScale config.js value
+  const overlayScaleConfig = CONFIG.overlayScale
+  if (typeof overlayScaleConfig === 'undefined' || overlayScaleConfig === null) {
+    console.warn('overlayScale not defined in config - using default 100%.');
+  } else if (typeof overlayScaleConfig !== 'number' || isNaN(overlayScaleConfig)) {
+    console.warn(`Invalid overlayScale value "${overlayScaleConfig}" (must be numeric) - using default 100%.`);
+  } else if (overlayScaleConfig <= 0 || overlayScaleConfig > 200) {
+    console.warn(`Invalid overlayScale value ${overlayScaleConfig} (must be between 1 and 200) - using default 100%.`);
+  } else {
+    // Round scale to two decimal points
+    overlayScalePercent = Math.round(overlayScaleConfig * 100) / 100;
+  }
+  
+  // Convert percentage to decimal for CSS transform
+  const overlayScale = overlayScalePercent / 100;
+  document.documentElement.style.setProperty('--overlay-scale', overlayScale);
+
+  if (DEBUG) {
+    console.log(`Overlay scaled to ${overlayScalePercent}%.`);
+  }
+}
 
 // Format title banner with values from config.js
 function formatTitleBanner() {
@@ -501,6 +527,9 @@ $(function() {
   if (DEBUG) {
     console.log('Initializing Penalties Overlay...');
   }
+
+  // Set the overlay scale percentage
+  setOverlayScale()
 
   // Set the loading overlay text
   $('.loading-text').text(CONFIG.loadingOverlayText);

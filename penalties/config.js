@@ -57,6 +57,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Title banner shadow visibility
     titleBannerShadow: true,
 
+    // Overall overlay scale (percentage: 100 = full size, 90 = 90% size, etc.)
+    overlayScale: 100,
+
     // Penalties title text
     penaltiesTitleText: 'PENALTIES'
   },

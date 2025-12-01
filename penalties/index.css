@@ -224,6 +224,8 @@ body {
   flex-direction: column;
   height: var(--overlay-height);
   padding: var(--overlay-padding);
+  transform: scale(var(--overlay-scale, 1));
+  transform-origin: top center;
   transition: opacity var(--transition-fade);
   width: var(--overlay-width);
 }
