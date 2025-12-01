@@ -373,7 +373,8 @@ window.shouldHidePenaltyCode = function(k, code, penaltyNumber) {
   const filteredCodes = [
     PENALTIES.fouloutCode,
     PENALTIES.removedCode
-  ]
+  ];
+
   if (filteredCodes.includes(code)) {
     return true;
   }
