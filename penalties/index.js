@@ -66,7 +66,7 @@ const TIMING = PenaltiesOverlayConfig.timing;
 ******************************/
 
 // Check if a value exists for cases when a value isn't truthy
-window.hasValue = function(k, v) {
+window.hasValue = function(_k, v) {
   return v && v !== '';
 };
 
@@ -75,7 +75,7 @@ window.hasValue = function(k, v) {
 ***************************************/
 
 // Prepend " - Game " to the game number if present
-window.prependGameNo = function(k, gameNum) {
+window.prependGameNo = function(_k, gameNum) {
   if (!gameNum || gameNum === '' || gameNum === '0') {
     return '';
   }
@@ -103,7 +103,7 @@ window.getTeamNameWithDefault = function(k, alternateName) {
 };
 
 // Determine if the period clock should be hidden
-window.shouldHidePeriodClock = function(k, intermissionRunning) {
+window.shouldHidePeriodClock = function(_k, intermissionRunning) {
 
   // Pre-game, when no intermission clock is running (Coming Up)
   const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
@@ -125,7 +125,7 @@ window.shouldHidePeriodClock = function(k, intermissionRunning) {
 };
 
 // Determine if the intermission clock should be hidden
-window.shouldHideIntermissionClock = function(k, intermissionRunning) {
+window.shouldHideIntermissionClock = function(_k, intermissionRunning) {
 
   // When the intermission clock is not running
   const isIntermission = intermissionRunning === true || intermissionRunning === 'true';
@@ -148,19 +148,19 @@ window.shouldHideIntermissionClock = function(k, intermissionRunning) {
 ************************/
 
 // Simple helper to invert boolean for sbHide
-window.invertBoolean = function(k, value) {
+window.invertBoolean = function(_k, value) {
   return !value;
 };
 
 // Get period label
-window.getPeriodLabel = function(k, periodNumber) {
+window.getPeriodLabel = function(_k, periodNumber) {
   const period = parseInt(periodNumber);
   if (!period || period === 0) return '';
   return `${LABELS.defaultPeriodLabelPrefix} ${period}`;
 };
 
 // Get intermission label
-window.getIntermissionLabel = function(k, periodNumber) {
+window.getIntermissionLabel = function(_k, periodNumber) {
   const period = parseInt(periodNumber) || 0;
   
   // Read intermission labels from the WS.state
@@ -182,7 +182,7 @@ window.getIntermissionLabel = function(k, periodNumber) {
 };
 
 // Hide the "Unofficial Score" label
-window.shouldHideUnofficialScore = function(k) {
+window.shouldHideUnofficialScore = function(_k) {
   const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
   const isIntermission = WS.state['ScoreBoard.CurrentGame.Clock(Intermission).Running'] === true;
   const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
@@ -192,7 +192,7 @@ window.shouldHideUnofficialScore = function(k) {
 };
 
 // Hide the "Coming Up" label
-window.shouldHideComingUp = function(k) {
+window.shouldHideComingUp = function(_k) {
   const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
   const isIntermission = WS.state['ScoreBoard.CurrentGame.Clock(Intermission).Running'] === true;
   const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
@@ -268,7 +268,7 @@ function loadCustomLogo() {
 *****************************/
 
 // Filter players based on flags
-window.shouldHideSkater = function(k, flags) {
+window.shouldHideSkater = function(_k, flags) {
   // Handle null or undefined flags
   if (!flags) {
     return false;
@@ -282,7 +282,7 @@ window.shouldHideSkater = function(k, flags) {
 };
 
 // Show captain or alt captain indicators
-window.showCaptainIndicator = function(k, captainFlags) {
+window.showCaptainIndicator = function(_k, captainFlags) {
   // Handle null or undefined flags
   if (!captainFlags) {
     return '';
@@ -296,7 +296,7 @@ window.showCaptainIndicator = function(k, captainFlags) {
 };
 
 // Convert the text glow color to the text-shadow color
-window.glowColorToShadow = function(k, glowColor) {
+window.glowColorToShadow = function(_k, glowColor) {
   if (!glowColor || glowColor === '') {
     return CLASSES.textShadow;
   }
@@ -393,7 +393,7 @@ window.shouldHidePenaltyCode = function(k, code, penaltyNumber) {
 ************************************/
 
 // Determine the timeout banner text to display
-window.getTimeoutText = function(k, timeoutOwner, officialReview) {
+window.getTimeoutText = function(_k, timeoutOwner, officialReview) {
 
   // Official review
   const isReview = (officialReview === true || officialReview === 'true') || 
@@ -424,22 +424,22 @@ window.getTimeoutText = function(k, timeoutOwner, officialReview) {
 };
 
 // Position untyped and official timeouts in the center of the game information box
-window.isPositionCenter = function(k, timeoutOwner) {
+window.isPositionCenter = function(_k, timeoutOwner) {
   return timeoutOwner === 'O' || !timeoutOwner || timeoutOwner === '';
 };
 
 // Position team 1 timeouts on the left side of the game information box
-window.isPositionTeam1 = function(k, timeoutOwner) {
+window.isPositionTeam1 = function(_k, timeoutOwner) {
   return !!(timeoutOwner && timeoutOwner.endsWith('_1'));
 };
 
 // Position team 2 timeouts on the right side of the game information box
-window.isPositionTeam2 = function(k, timeoutOwner) {
+window.isPositionTeam2 = function(_k, timeoutOwner) {
   return !!(timeoutOwner && timeoutOwner.endsWith('_2'));
 };
 
 // Determine if the timeout banner should be visible
-window.isTimeoutVisible = function(k, timeoutRunning) {
+window.isTimeoutVisible = function(_k, timeoutRunning) {
   return timeoutRunning === true || timeoutRunning === 'true';
 };
 
