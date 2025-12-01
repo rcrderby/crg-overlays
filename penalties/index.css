@@ -17,6 +17,10 @@
   --shadow-text-title: 2px 2px 3px rgb(0 0 0 / 40%);
   --shadow-drop-logo: drop-shadow(0 0 4px rgb(0 0 0 / 40%));
 
+  /* Title colors */
+  --title-banner-bg: #666666;
+  --title-banner-fg: white;
+
   /* Team and penalty default colors */
   --team-penalties-default-fg-color: white;
   --team-penalties-default-bg-color: black;
@@ -106,6 +110,8 @@
   --padding-teams-container-top-with-logos: 20px;
   --padding-timeout-banner-vertical: 8px;
   --padding-timeout-banner-horizontal: 20px;
+  --padding-title-banner-vertical: 10px;
+  --padding-title-banner-horizontal: 18px;
 
   /* Row dimensions and properties */
   --flex-penalties-column: 1;
@@ -282,17 +288,19 @@ body {
 ****************************/
 
 #penalties-title {
+  background-color: var(--title-banner-bg);
   bottom: 0;
   left: 50%;
   max-width: var(--width-penalties-title-max);
   min-width: 0;
+  padding: var(--padding-title-banner-vertical) var(--padding-title-banner-horizontal);
   position: absolute;
   text-align: center;
   transform: translateX(-50%);
 }
 
 #penalties-title h1 {
-  color: var(--penalties-fg);
+  color: var(--title-banner-fg);
   font-size: var(--font-penalties-title-size);
   font-weight: bold;
   text-shadow: var(--shadow-text-title);
