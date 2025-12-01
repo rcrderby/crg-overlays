@@ -54,6 +54,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Title banner text/foreground color
     titleBannerForegroundColor: '#ffffff',
 
+    // Title banner shadow visibility
+    titleBannerShadow: true,
+
     // Penalties title text
     penaltiesTitleText: 'PENALTIES'
   },
