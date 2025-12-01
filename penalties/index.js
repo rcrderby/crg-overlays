@@ -374,7 +374,6 @@ window.shouldHidePenaltyCode = function(k, code, penaltyNumber) {
     PENALTIES.fouloutCode,
     PENALTIES.removedCode
   ];
-
   if (filteredCodes.includes(code)) {
     return true;
   }
@@ -395,8 +394,8 @@ window.shouldHidePenaltyCode = function(k, code, penaltyNumber) {
 window.getTimeoutText = function(_k, timeoutOwner, officialReview) {
 
   // Official review
-  const isReview = (officialReview === true) || 
-                   WS.state['ScoreBoard.CurrentGame.OfficialReview'] === true;
+  const isReview = officialReview === true || 
+                 WS.state['ScoreBoard.CurrentGame.OfficialReview'] === true;
   if (isReview) return LABELS.timeout.review;
 
   // Official timeout
