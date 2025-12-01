@@ -61,9 +61,9 @@ const RULES = PenaltiesOverlayConfig.rules;
 const PENALTIES = PenaltiesOverlayConfig.penalties;
 const TIMING = PenaltiesOverlayConfig.timing;
 
-/*********************************
-** Title Banner Color Functions **
-*********************************/
+/**********************************
+** Title Banner Format Functions **
+**********************************/
 
 // Format title banner with values from config.js
 function formatTitleBanner() {
