@@ -3,8 +3,11 @@
         "brandonfowler",
         "dbaeumer",
         "foulout",
+        "gameno",
         "htmlhint",
         "IGRF",
-        "nums"
+        "nums",
+        "sbcss",
+        "tagname"
     ]
 }

@@ -1,1742 +1,542 @@
 //  JavaScript for custom penalties overlay - index.html
 
-$(function() {
-  'use strict';
+'use strict';
 
-  // Import configuration data from global namespace
-  const PenaltiesOverlayConfig = window.AppConfig.PenaltiesOverlayConfig;
+/******************************************
+** Configuration Import and Validation **
+******************************************/
 
-  /********************************
-  ** Verify that config.js loads **
-  ********************************/
+console.log('Loading Penalties Overlay configuration (config.js)...');
 
-  // Halt if config.js does not load correctly
-  if (typeof PenaltiesOverlayConfig === 'undefined') {
-    console.error('ERROR: config.js did not load.');
-    console.error('Make sure config.js is in the same directory as index.js');
-    console.error('and that index.html includes: <script src="config.js"></script>');
-    console.error('before <script> tags that import index.js and core.js.');
-    alert('Configuration Error: config.js is missing or did not load properly. Check browser console for details.');
-    return;
-  }
+// Import configuration data from config.js
+const PenaltiesOverlayConfig = window.AppConfig?.PenaltiesOverlayConfig;
 
-  /********************************************
-  ** Verify imported configuration variables **
-  ********************************************/
+// Validate that config.js loaded correctly
+if (typeof PenaltiesOverlayConfig === 'undefined') {
+  console.error('ERROR: config.js did not load.');
+  console.error('Make sure config.js is in the same directory as index.js');
+  console.error('and that index.html includes: <script src="config.js"></script>');
+  console.error('before <script> tags that import index.js and core.js.');
+  alert('Configuration Error: config.js is missing or did not load properly. Check browser console for details.');
+  throw new Error('Configuration file (config.js) failed to load');
+}
 
-  // Halt if PenaltiesOverlayConfig appears invalid
+// Validate required configuration structure
+const requiredSections = [
+  'debug',
+  'config',
+  'classes',
+  'labels',
+  'rules',
+  'penalties',
+  'timing'
+];
+
+const missingSections = requiredSections.filter(
+  section => !PenaltiesOverlayConfig[section]
+);
+
+if (missingSections.length > 0) {
+  const errorMsg = `Configuration file (config.js) is missing required sections: ${missingSections.join(', ')}`;
+  console.error('ERROR:', errorMsg);
+  alert(`Configuration Error: ${errorMsg}. Check browser console for details.`);
+  throw new Error(errorMsg);
+}
+
+console.log('...config.js loaded successfully.');
+
+/**********************
+** Global Constants  **
+**********************/
+
+// Debugging setting
+const DEBUG = PenaltiesOverlayConfig.debug?.enabled || false;
+console.log('Debug mode:', DEBUG);
+
+// Configuration sections - available globally for all functions
+const CONFIG = PenaltiesOverlayConfig.config;
+const CLASSES = PenaltiesOverlayConfig.classes;
+const LABELS = PenaltiesOverlayConfig.labels;
+const RULES = PenaltiesOverlayConfig.rules;
+const PENALTIES = PenaltiesOverlayConfig.penalties;
+const TIMING = PenaltiesOverlayConfig.timing;
+
+/**********************************
+** Title Banner Format Functions **
+**********************************/
+
+// Format title banner with values from config.js
+function formatTitleBanner() {
+
+  // Apply valid background colors
   if (
-      !PenaltiesOverlayConfig.debug || 
-      !PenaltiesOverlayConfig.config || 
-      !PenaltiesOverlayConfig.labels || 
-      !PenaltiesOverlayConfig.rules || 
-      !PenaltiesOverlayConfig.penalties || 
-      !PenaltiesOverlayConfig.timing
+    CONFIG.titleBannerBackgroundColor && 
+    CSS.supports('color', CONFIG.titleBannerBackgroundColor)
   ) {
-    console.error('ERROR: data imported from config.js is invalid.');
-    console.error('Required structures: timing, display, labels, rules, and penalties');
-    alert('Configuration Error: config.js is invalid. Check browser console for details.');
-    return;
-  }
-
-  // Logging utility - read debug setting from config.js
-  const DEBUG = PenaltiesOverlayConfig.debug?.enabled || false;
-  const logger = {
-    debug: DEBUG ? console.log.bind(console) : () => {},
-    warn: console.warn.bind(console),
-    error: console.error.bind(console)
-  };
-
-  /**************
-  ** Constants **
-  **************/
-
-  // Data from config.js
-  const CONFIG = PenaltiesOverlayConfig.config;
-  const LABELS = PenaltiesOverlayConfig.labels;
-  const RULES = PenaltiesOverlayConfig.rules;
-  const PENALTIES = PenaltiesOverlayConfig.penalties;
-  const TIMING = PenaltiesOverlayConfig.timing;
-
-  // CSS classes
-  const CSS_CLASSES = {
-    PENALTY_5: 'penalty-count-5',
-    PENALTY_6: 'penalty-count-6',
-    PENALTY_EXP_FO_RE: 'penalty-count-exp-fo-re',
-    HAS_LOGO: 'has-logo'
-  };
-
-  // Expected data counts for loading tracker
-  const EXPECTED_DATA_COUNTS = {
-    // Number of game info fields (clock, clockLabel, tournament, expulsions)
-    GAME_INFO_FIELDS: 4
-  };
-
-  // Cached regex patterns
-  const REGEX_PATTERNS = {
-    penaltyPattern: /ScoreBoard\.CurrentGame\.Team\((\d+)\)\.Skater\(([^)]+)\)\.Penalty\(([^)]+)\)\.(Code|Id)/,
-    expulsionId: /ScoreBoard\.CurrentGame\.Expulsion\(([^)]+)\)\.Id/,
-  };
-
-  /**************************************
-  ** Application data state management **
-  **************************************/
-
-  // Application state for roster and penalty data
-  const appState = {
-    teams: {
-      1: { skaters: {}, logo: '', colors: { fg: null, bg: null, glow: null } },
-      2: { skaters: {}, logo: '', colors: { fg: null, bg: null, glow: null } }
-    },
-    cache: {
-      expulsionIds: [],
-      expulsionIdsValid: false,
-      expulsionIdsExpiry: 0,
-      startTimePast: null,
-      startTimeCacheExpiry: 0,
-      penaltyIdToSkater: {}
-    },
-    flags: {
-      displayedLogos: { 1: '', 2: '' },
-      bothTeamsHaveLogos: false,
-      initialLoadComplete: false,
-      teamNameSet: { 1: false, 2: false }
-    },
-    timeout: {
-      owner: null,              // null (untyped), 'O' (official), '1' (team1), or '2' (team2) - tracks current display
-      isOfficialReview: false,  // true if official review - tracks current display
-      isRunning: false,         // true if banner is currently visible
-      transitionTimeout: null   // timeout ID for hiding animation
-    },
-    dom: {
-      root: document.documentElement
-    }
-  };
-
-  // Loading tracker - monitors which data has been received during initialization
-  const loadingTracker = {
-    // State during initialization
-    initialized: false,
-    loadStartTime: null,
-    safetyTimeoutId: null,
-    counters: {
-      teamsBasicData: { received: 0, required: RULES.numTeams },
-      teamLogos: { received: 0, required: 1 },
-      teamRosters: { received: 0, required: RULES.numTeams },
-      teamPenalties: { received: 0, required: RULES.numTeams },
-      gameInfo: { received: 0, required: EXPECTED_DATA_COUNTS.GAME_INFO_FIELDS }
-    },
-    
-    // Mark a data item as received
-    markReceived(dataKey) {
-      const counter = this.counters[dataKey];
-      if (counter && counter.received < counter.required) {
-        counter.received++;
-        logger.debug(`Loading tracker: ${dataKey} = ${counter.received}/${counter.required}`);
-        this.checkIfReady();
-      }
-    },
-    
-    // Check if all required data has been received
-    isAllDataReceived() {
-      return Object.entries(this.counters).every(([key, counter]) => {
-        const isComplete = counter.received >= counter.required;
-        if (!isComplete) {
-          logger.debug(`Waiting for ${key}: ${counter.received}/${counter.required}`);
-        }
-        return isComplete;
-      });
-    },
-    
-    // Check if ready to display and show overlay if complete
-    checkIfReady() {
-      if (this.initialized || !this.loadStartTime) {
-        return;
-      }
-
-      if (this.isAllDataReceived()) {
-        logger.debug('Loading status:', this.getLoadingStatus());
-        logger.debug('All data received, preparing to display overlay...');
-        this.initialized = true;
-        
-        // Clear safety timeout after receiving all data
-        if (this.safetyTimeoutId) {
-          clearTimeout(this.safetyTimeoutId);
-          this.safetyTimeoutId = null;
-        }
-        
-        // Wait a moment to allow all renderings to complete
-        setTimeout(() => {
-          this.showOverlay();
-        }, TIMING.dataCompleteDelayMs);
-      }
-    },
-    
-    // Show the main overlay and hide loading screen
-    showOverlay() {
-      const loadTime = Date.now() - this.loadStartTime;
-      const minDisplayTime = TIMING.minLoadDisplayMs;
-      
-      // Ensure the loading screen shows for a minimum amount of time
-      const delay = Math.max(0, minDisplayTime - loadTime);
-      
-      setTimeout(() => {
-        logger.debug('Showing overlay (data load complete)');
-        const $loadingOverlay = $('#loading-overlay');
-        const $overlay = $('#overlay');
-        
-        // Fade out loading screen, fade in overlay content
-        $loadingOverlay.addClass('fade-out');
-        $overlay.removeClass('hidden');
-        
-        // Remove loading screen after fade completes
-        setTimeout(() => {
-          $loadingOverlay.remove();
-        }, TIMING.maxLoadDisplayRemoveMs);
-        
-        // Mark initialization as complete
-        appState.flags.initialLoadComplete = true;
-        
-        // Final adjustments
-        equalizeTeamBoxWidths();
-      }, delay);
-    },
-    
-    // Force display of overlay after timeout
-    forceShowOverlay() {
-      if (this.initialized) {
-        return;
-      }
-      
-      // Log any missing data
-      const missing = Object.entries(this.counters)
-        .filter(([_, counter]) => counter.received < counter.required)
-        .map(([key, counter]) => `${key} (${counter.received}/${counter.required})`);
-      
-      logger.warn('Timeout reached - displaying overlay with available data');
-      logger.warn('Missing data:', missing);
-      
-      this.initialized = true;
-      this.showOverlay();
-    },
-    
-    // Start loading data
-    startLoading() {
-      this.loadStartTime = Date.now();
-      logger.debug('Started loading data...');
-      
-      // Set timeout to force displaying the overlay after the maximum wait time
-      this.safetyTimeoutId = setTimeout(() => {
-        this.forceShowOverlay();
-      }, TIMING.maxLoadWaitMs);
-    },
-
-    // Get the loading progress as a percentage complete
-    getLoadingProgress() {
-      const totals = Object.values(this.counters).reduce(
-        (acc, counter) => ({
-          received: acc.received + counter.received,
-          required: acc.required + counter.required
-        }),
-        { received: 0, required: 0 }
-      );
-
-      return totals.required > 0 
-        ? Math.round((totals.received / totals.required) * 100)
-        : 0;
-    },
-
-    // Get the detailed loading status for troubleshooting
-    getLoadingStatus() {
-      return {
-        initialized: this.initialized,
-        progress: this.getLoadingProgress(),
-        counters: Object.entries(this.counters).map(([key, counter]) => ({
-          name: key,
-          received: counter.received,
-          required: counter.required,
-          complete: counter.received >= counter.required
-        }))
-      };
-    }
-  };
-
-  // Cache DOM selectors
-  const $elements = {
-    team1: {
-      logo: $('#team1-logo'),
-      name: $('#team1-name'),
-      score: $('#team1-score'),
-      roster: $('#team1-roster'),
-      penalties: $('#team1-penalties'),
-      total: $('#team1-total .total-count')
-    },
-    team2: {
-      logo: $('#team2-logo'),
-      name: $('#team2-name'),
-      score: $('#team2-score'),
-      roster: $('#team2-roster'),
-      penalties: $('#team2-penalties'),
-      total: $('#team2-total .total-count')
-    },
-    customLogoSpace: $('#custom-logo-space'),
-    gameClock: $('#game-clock'),
-    gameInfoWrapper: $('.game-info-wrapper'),
-    logoContainers: $('.team-logo-container'),
-    teamsContainer: $('#teams-container'),
-    periodInfo: $('#clock-label'),
-    teamScoreBlocks: $('.team-score-block'),
-    timeoutBanner: $('#timeout-banner'),
-    timeoutText: $('#timeout-text'),
-    tournamentName: $('#tournament-info'),
-    vsClockContainer: $('#vs-clock-container')
-  };
-
-  /*********************
-  ** Helper functions **
-  *********************/
-
-  // Safely retrieve values from the WebSocket state, avoiding race conditions
-  function safeGetState(key, defaultValue = null) {
-    if (!WS || !WS.state || typeof WS.state[key] === 'undefined') {
-      return defaultValue;
-    }
-    return WS.state[key];
-  }
-
-  // Determine if the WebSocket is available for use
-  function isWSReady() {
-    return typeof WS !== 'undefined' && 
-           typeof WS.state !== 'undefined' && 
-           Object.keys(WS.state).length > 0;
-  }
-
-  // Sanitize user input to prevent XSS via HTML injection in roster or team data
-  function sanitizeHTML(str) {
-    if (str === null || str === undefined) return '';
-    const div = document.createElement('div');
-    div.textContent = String(str);
-    return div.innerHTML;
-  }
-
-  // Check boolean values from the WebSocket
-  function isTrue(value) {
-    return value === true || value === 'true';
-  }
-
-  // Trim blank space values from the WebSocket
-  function trimValue(value) {
-    if (value === null || value === undefined) {
-      return '';
-    }
-    return String(value).trim();
-  }
-
-  // Format time from milliseconds to (M)M:SS
-  function formatTime(ms) {
-    const totalSeconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-  }
-
-  // Get intermission label with fallback to default
-  function getIntermissionLabel(stateKey, defaultValue) {
-    if (!isWSReady()) {
-      return defaultValue;
-    }
-    const value = trimValue(safeGetState(stateKey));
-    return value || defaultValue;
-  }
-
-  // Debouncing function
-  function debounce(func, wait) {
-    let timeout;
-    return function() {
-      const context = this;
-      const args = arguments;
-      clearTimeout(timeout);
-      timeout = setTimeout(() => func.apply(context, args), wait);
-    };
-  }
-
-  // Handle team name updates
-  function handleTeamNameUpdate(teamNum, team, value) {
-    const altName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`));
-    const name = altName || trimValue(value);
-    
-    // Use the IGRF team name or a default value if the "whiteboard" custom name is empty/default
-    const currentText = team.name.text();
-    if (name || !currentText || currentText === `${LABELS.defaultTeamNamePrefix}${teamNum}`) {
-      team.name.text(name || '');
-      if (name) {
-        appState.flags.teamNameSet[teamNum] = true;
-      }
-      updateQueue.schedule(equalizeTeamBoxWidths);
-    }
-    
-    if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
-  }
-
-  // Parse team-related WebSocket key info into components
-  function parseTeamKey(key) {
-
-    // Match: Team(N).Property or Team(N).Property.SubProperty
-    const match = key.match(/Team\((\d+)\)\.([^.(]+)(?:\(([^)]+)\))?(?:\.(.+))?/);
-    if (!match) return null;
-    
-    return {
-      teamNum: parseInt(match[1]),
-      property: match[2],            // e.g., 'Name', 'Score', 'Color', 'AlternateName'
-      identifier: match[3] || null,  // e.g., 'whiteboard' from AlternateName(whiteboard)
-      subProperty: match[4] || null  // e.g., 'fg' from Color(whiteboard.fg)
-    };
-  }
-
-  // Parse player-related WebSocket key info into components
-  function parseSkaterKey(key) {
-
-    // Match: Team(N).Skater(ID).Property
-    const match = key.match(/Team\((\d+)\)\.Skater\(([^)]+)\)\.(.+)/);
-    if (!match) return null;
-    
-    return {
-      teamNum: parseInt(match[1]),
-      skaterId: match[2],
-      property: match[3]  // e.g., 'Name', 'RosterNumber', 'Flags'
-    };
-  }
-
-  /*********************************
-  ** Batch update queue functions **
-  *********************************/
-
-  // Batch update helper for reducing reflows
-  const updateQueue = {
-    pending: false,
-    callbacks: [],
-    
-    schedule(callback) {
-      this.callbacks.push(callback);
-      if (!this.pending) {
-        this.pending = true;
-        requestAnimationFrame(this.flush.bind(this));
-      }
-    },
-    
-    flush() {
-      const callbacks = this.callbacks;
-      this.callbacks = [];
-      this.pending = false;
-      callbacks.forEach(cb => cb());
-    }
-  };
-
-  /*******************************
-  ** Cache management functions **
-  *******************************/
-
-  // Get cached expulsion penalty IDs
-  function getExpulsionPenaltyIds() {
-    const now = Date.now();
-    
-    // Invalidate cache if expired
-    if (now > appState.cache.expulsionIdsExpiry) {
-      appState.cache.expulsionIdsValid = false;
-    }
-    
-    if (appState.cache.expulsionIdsValid) {
-      return appState.cache.expulsionIds;
-    }
-
-    if (!isWSReady()) {
-      return [];
-    }
-
-    const ids = [];
-    const state = WS.state;
-    
-    for (const key in state) {
-      if (!Object.prototype.hasOwnProperty.call(state, key)) continue;
-      
-      const match = key.match(REGEX_PATTERNS.expulsionId);
-      if (match) {
-        const expulsionId = state[key];
-        if (expulsionId) {
-          ids.push(expulsionId);
-        }
-      }
-    }
-    
-    appState.cache.expulsionIds = ids;
-    appState.cache.expulsionIdsValid = true;
-    appState.cache.expulsionIdsExpiry = now + TIMING.cacheExpiryMs;
-    return ids;
+    document.documentElement.style.setProperty(
+      '--title-banner-bg', 
+      CONFIG.titleBannerBackgroundColor
+    );
+  } else if (CONFIG.titleBannerBackgroundColor) {
+    console.warn(
+      `Invalid title banner background color: "${CONFIG.titleBannerBackgroundColor}" - using CSS default.`
+    );
   }
   
-  // Invalidate expulsion cache
-  function invalidateExpulsionCache() {
-    appState.cache.expulsionIdsValid = false;
-  }
-
-  // Check if game start time is missing or in the past (with caching)
-  function isStartTimeMissingOrPast() {
-    const now = Date.now();
-    
-    // Return cached value if still valid
-    if (appState.cache.startTimePast !== null && now < appState.cache.startTimeCacheExpiry) {
-      return appState.cache.startTimePast;
-    }
-    
-    if (!isWSReady()) {
-      appState.cache.startTimePast = true;
-      appState.cache.startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
-      return true;
-    }
-    
-    const startDate = safeGetState('ScoreBoard.CurrentGame.EventInfo(Date)');
-    const startTime = safeGetState('ScoreBoard.CurrentGame.EventInfo(StartTime)');
-    
-    // If no date or time is set, treat as if start time is missing/past
-    if (!startDate || !startTime) {
-      appState.cache.startTimePast = true;
-      appState.cache.startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
-      return true;
-    }
-    
-    try {
-      const startDateTime = new Date(`${startDate}T${startTime}`);
-      appState.cache.startTimePast = startDateTime < new Date();
-      appState.cache.startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
-      return appState.cache.startTimePast;
-    } catch (error) {
-      // If date parsing fails, treat as missing
-      logger.warn('Failed to parse start date/time:', error);
-      appState.cache.startTimePast = true;
-      appState.cache.startTimeCacheExpiry = now + TIMING.cacheExpiryMs;
-      return true;
-    }
-  }
-
-  /********************************
-  ** Player management functions **
-  ********************************/
-
-  // Get player information
-  function getSkaterStatus(teamNum, skaterId, displayCount = null) {
-    const skater = appState.teams?.[teamNum]?.skaters?.[skaterId];
-    
-    // Return default status if player is not found or has no penalties
-    if (!skater || !skater.penalties) {
-      return { 
-        isExpelled: false, 
-        isFouledOut: false,
-        isRemoved: false,
-        statusClass: '', 
-        displayValue: displayCount || 0 
-      };
-    }
-
-    const totalPenalties = skater.penalties.length;
-    const actualDisplayCount = displayCount !== null ? displayCount : totalPenalties;
-
-    // Check 1: determine if a player is expelled (EXP)
-    const expulsionIds = getExpulsionPenaltyIds();
-    if (expulsionIds.length > 0 && skater.penaltyIds) {
-      const isExpelled = skater.penaltyIds.some(penaltyId => expulsionIds.includes(penaltyId));
-      
-      if (isExpelled) {
-        return {
-          isExpelled: true,
-          isFouledOut: false,
-          isRemoved: false,
-          statusClass: CSS_CLASSES.PENALTY_EXP_FO_RE,
-          displayValue: LABELS.expelledDisplay
-        };
-      }
-    }
-
-    // Check 2: determine if a player is removed by the head referee (RE)
-    const hasRECode = skater.penalties.some(penalty => 
-      String(penalty || '').trim().toUpperCase() === PENALTIES.removedCode
+  // Apply valid foreground colors
+  if (
+    CONFIG.titleBannerForegroundColor && 
+    CSS.supports('color', CONFIG.titleBannerForegroundColor)
+  ) {
+    document.documentElement.style.setProperty(
+      '--title-banner-fg', 
+      CONFIG.titleBannerForegroundColor
     );
-    
-    if (hasRECode) {
-      return {
-        isExpelled: false,
-        isFouledOut: false,
-        isRemoved: true,
-        statusClass: CSS_CLASSES.PENALTY_EXP_FO_RE,
-        displayValue: LABELS.removedDisplay
-      };
-    }
-
-    // Check 3: determine if a player fouled out (FO)
-    const hasFOCode = skater.penalties.some(penalty => 
-      String(penalty || '').trim().toUpperCase() === LABELS.fouloutDisplay
+  } else if (CONFIG.titleBannerForegroundColor) {
+    console.warn(
+      `Invalid title banner text color: "${CONFIG.titleBannerForegroundColor}" - using CSS default.`
     );
-    const isFouledOut = totalPenalties >= RULES.fouloutPenaltyCount || hasFOCode;
-    
-    if (isFouledOut) {
-      return {
-        isExpelled: false,
-        isFouledOut: true,
-        isRemoved: false,
-        statusClass: CSS_CLASSES.PENALTY_EXP_FO_RE,
-        displayValue: LABELS.fouloutDisplay
-      };
-    }
-
-    // Check 4: determine the warning class (color) based on a player's penalty count
-    let statusClass = '';
-    if (actualDisplayCount === RULES.warningPenaltyCount6) {
-      statusClass = CSS_CLASSES.PENALTY_6;
-    } else if (actualDisplayCount === RULES.warningPenaltyCount5) {
-      statusClass = CSS_CLASSES.PENALTY_5;
-    }
-
-    return {
-      isExpelled: false,
-      isFouledOut: false,
-      isRemoved: false,
-      statusClass,
-      displayValue: actualDisplayCount
-    };
   }
 
-  // Sort skaters alphabetically by number (as text)
-  function sortSkaters(skaters) {
-    return Object.values(skaters).sort((a, b) => {
-      const numA = String(a.number || '');
-      const numB = String(b.number || '');
-      
-      if (numA === '' && numB === '') return 0;
-      if (numA === '') return 1;
-      if (numB === '') return -1;
-      
-      return numA.localeCompare(numB);
+  // Control title banner shadow visibility
+  if (typeof CONFIG.titleBannerShadow === 'boolean') {
+    if (CONFIG.titleBannerShadow === false) {
+      document.documentElement.style.setProperty(
+        '--title-banner-shadow',
+        'none'
+      );
+    }
+  } else if (typeof CONFIG.titleBannerShadow !== 'undefined') {
+    console.warn(
+      `Invalid title banner shadow value: "${CONFIG.titleBannerShadow}" - using CSS default.`
+    );
+  }
+}
+
+/******************************
+** General Utility Functions **
+******************************/
+
+// Check if a value exists for cases when a value isn't truthy
+window.hasValue = function(_k, v) {
+  return v && v !== '';
+};
+
+/*****************************
+** Roster Utility Functions **
+*****************************/
+
+// Filter players based on flags
+window.shouldHideSkater = function(_k, flags) {
+  // Handle null or undefined flags
+  if (!flags) {
+    return false;
+  }
+
+  const filteredFlags = CONFIG.filteredSkaterFlags;
+  const flagArray = flags.split(',').map(f => f.trim());
+  
+  // Hide players if any flag matches the filtered list
+  return filteredFlags.some(filtered => flagArray.includes(filtered));
+};
+
+// Show captain or alt captain indicators
+window.showCaptainIndicator = function(_k, captainFlags) {
+  // Handle null or undefined flags
+  if (!captainFlags) {
+    return '';
+  }
+
+  const { captainFlag, altCaptainFlag } = LABELS;
+  const flags = captainFlags.split(',');
+
+  return flags.includes(captainFlag) ? captainFlag :
+         flags.includes(altCaptainFlag) ? altCaptainFlag : '';
+};
+
+// Convert the text glow color to the text-shadow color
+window.glowColorToShadow = function(_k, glowColor) {
+  if (!glowColor || glowColor === '') {
+    return CLASSES.textShadow;
+  }
+  return `${CONFIG.defaultRosterShadowProperties} ${glowColor}`;
+};
+
+/************************************
+** Penalty Count Helper Functions **
+************************************/
+
+// Private helper to check if a player is expelled or removed
+function checkPenaltyStatus(k) {
+  // Extract the player context from the key
+  const skaterContext = k.substring(
+    0, k.lastIndexOf('.Skater(') + k.substring(k.lastIndexOf('.Skater(')).indexOf(')') + 1
+  );
+  
+  // Get Penalty(0).Code from WS.state
+  const penalty0Code = WS.state[skaterContext + '.Penalty(0).Code'];
+  
+  // Empty/undefined means a player is neither expelled nor removed
+  if (!penalty0Code || penalty0Code === '') {
+    return { isExpelled: false, isRemoved: false };
+  }
+  
+  // Removed by the head official
+  const isRemoved = penalty0Code === PENALTIES.removedCode;
+  
+  // Fouled out - has the "FO" code
+  const isFouledOut = penalty0Code === PENALTIES.fouloutCode;
+  
+  // Expelled - has a penalty code other than RE or FO
+  const isExpelled = !isRemoved && !isFouledOut;
+  
+  return { isExpelled, isRemoved };
+}
+
+// Determine if a player should have CSS formatting for 5 penalties 
+window.isPenaltyCount5 = function(k, penaltyCount) {
+  const count = parseInt(penaltyCount) || 0;
+  const { isExpelled, isRemoved } = checkPenaltyStatus(k);
+  
+  return count === RULES.warningPenaltyCount5 && !isExpelled && !isRemoved;
+};
+
+// Determine if a player should have CSS formatting for 6 penalties
+window.isPenaltyCount6 = function(k, penaltyCount) {
+  const count = parseInt(penaltyCount) || 0;
+  const { isExpelled, isRemoved } = checkPenaltyStatus(k);
+  
+  return count === RULES.warningPenaltyCount6 && !isExpelled && !isRemoved;
+};
+
+// Determine if a player should have CSS formatting for expulsion, foulout, or removal
+window.isPenaltyCountExpFoRe = function(k, penaltyCount) {
+  const count = parseInt(penaltyCount) || 0;
+  const { isExpelled, isRemoved } = checkPenaltyStatus(k);
+  
+  return isRemoved || isExpelled || count >= RULES.fouloutPenaltyCount;
+};
+
+// Determine the text to show for a player's penalty count
+window.getPenaltyCountDisplay = function(k, penaltyCount) {
+  const count = parseInt(penaltyCount) || 0;
+  const { isExpelled, isRemoved } = checkPenaltyStatus(k);
+  
+  if (isRemoved) return LABELS.removedDisplay;
+  if (isExpelled) return LABELS.expelledDisplay;
+  if (count >= RULES.fouloutPenaltyCount) return LABELS.fouloutDisplay;
+  
+  return count > 0 ? count : '';
+};
+
+// Hide filtered penalty codes from a player's penalty code list
+window.shouldHidePenaltyCode = function(k, code, penaltyNumber) {
+  const filteredCodes = [
+    PENALTIES.fouloutCode,
+    PENALTIES.removedCode
+  ];
+  if (filteredCodes.includes(code)) {
+    return true;
+  }
+  
+  // Always hide Penalty(0) - it indicates a player is expelled, fouled out, or removed
+  if (parseInt(penaltyNumber) === 0 || k.includes('.Penalty(0)')) {
+    return true;
+  }
+  
+  return false;
+};
+
+/***************************************
+** Game Information Utility Functions **
+***************************************/
+
+// Prepend " - Game " to the game number if present
+window.prependGameNo = function(_k, gameNum) {
+  if (!gameNum || gameNum === '' || gameNum === '0') {
+    return '';
+  }
+  return ` - Game ${gameNum}`;
+};
+
+// Display team names with fallback mechanisms to prevent a blank name
+window.getTeamNameWithDefault = function(k, alternateName) {
+  // Try AlternateName(whiteboard) first
+  if (typeof alternateName === 'string' && alternateName.trim() !== '') {
+    return alternateName;
+  }
+  
+  // Try team name (Name) read from WS.state second
+  const teamNum = k.Team || '?';
+  const nameKey = `ScoreBoard.CurrentGame.Team(${teamNum}).Name`;
+  const name = WS.state[nameKey];
+  
+  if (typeof name === 'string' && name.trim() !== '') {
+    return name;
+  }
+  
+  // Use "Team N" third
+  return LABELS.defaultTeamNamePrefix + teamNum;
+};
+
+// Determine if the period clock should be hidden
+window.shouldHidePeriodClock = function(_k, intermissionRunning) {
+
+  // Pre-game, when no intermission clock is running (Coming Up)
+  const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
+
+  // When the intermission clock is running
+  const isIntermission = intermissionRunning === true;
+
+  // When the score is unofficial or official
+  const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
+
+  // During overtime
+  const isOvertime = WS.state['ScoreBoard.CurrentGame.InOvertime'] === true;
+
+  return period === 0 ||
+         isIntermission ||
+         isOfficial ||
+         isOvertime;
+};
+
+// Determine if the intermission clock should be hidden
+window.shouldHideIntermissionClock = function(_k, intermissionRunning) {
+
+  // When the intermission clock is not running
+  const isIntermission = intermissionRunning === true;
+
+  // When the score is unofficial or official
+  const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
+
+  // During overtime
+  const isOvertime = WS.state['ScoreBoard.CurrentGame.InOvertime'] === true;
+
+  // After the last period
+  const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
+
+  return !isIntermission || isOfficial || isOvertime || (period >= RULES.numPeriods);
+};
+
+/************************
+** Clock Label Helpers **
+************************/
+
+// Simple helper to invert boolean for sbHide
+window.invertBoolean = function(_k, value) {
+  return !value;
+};
+
+// Get period label
+window.getPeriodLabel = function(_k, periodNumber) {
+  const period = parseInt(periodNumber);
+  if (!period || period === 0) return '';
+  return `${LABELS.defaultPeriodLabelPrefix} ${period}`;
+};
+
+// Get intermission label
+window.getIntermissionLabel = function(_k, periodNumber) {
+  const period = parseInt(periodNumber) || 0;
+  
+  // Read intermission labels from the WS.state
+  const preGame = WS.state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)'];
+  const intermission = WS.state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)'];
+  
+  // Before the game starts
+  if (period === 0) {
+    return preGame || '';
+  }
+  // Between periods
+  else if (period < RULES.numPeriods) {
+    return intermission || '';
+  }
+  // After the final period, don't show the intermission label, "Unofficial" or "Official" labels will show instead
+  else {
+    return '';
+  }
+};
+
+// Hide the "Unofficial Score" label
+window.shouldHideUnofficialScore = function(_k) {
+  const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
+  const isIntermission = WS.state['ScoreBoard.CurrentGame.Clock(Intermission).Running'] === true;
+  const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
+  const isOvertime = WS.state['ScoreBoard.CurrentGame.InOvertime'] === true;
+  
+  return period < RULES.numPeriods || !isIntermission || isOfficial || isOvertime;
+};
+
+// Hide the "Coming Up" label
+window.shouldHideComingUp = function(_k) {
+  const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
+  const isIntermission = WS.state['ScoreBoard.CurrentGame.Clock(Intermission).Running'] === true;
+  const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
+  const isOvertime = WS.state['ScoreBoard.CurrentGame.InOvertime'] === true;
+  
+  return period !== 0 || isIntermission || isOfficial || isOvertime;
+};
+
+/********************************
+** Custom Logo Helper Function **
+********************************/
+
+// Load a custom logo if available
+function loadCustomLogo() {
+
+  // Check if the logo path is configured
+  if (!CONFIG.bannerLogoPath || CONFIG.bannerLogoPath === '') {
+
+    // Apply padding when no logo is present
+    $('#teams-scores').css({
+      'padding-left': CONFIG.gameInfoPaddingWithoutLogo + 'px',
+      'padding-right': CONFIG.gameInfoPaddingWithoutLogo + 'px'
     });
-  }
-
-  // Get or create skater object
-  function getOrCreateSkater(teamNum, skaterId) {
-    const skaters = appState.teams[teamNum].skaters;
     
-    if (!skaters[skaterId]) {
-      skaters[skaterId] = { 
-        id: skaterId, 
-        number: '', 
-        name: '', 
-        penalties: [],
-        penaltyIds: [],
-        penaltyDetails: [],
-        flags: ''
-      };
+    if (DEBUG) {
+      console.log('No custom logo available, using default padding:', CONFIG.gameInfoPaddingWithoutLogo);
     }
-    
-    return skaters[skaterId];
+    return;
   }
 
-  /**********************
-  ** Penalty functions **
-  **********************/
+  const logoImg = new Image();
+  const $customLogo = $('#custom-logo');
 
-  // Filter penalties for display (exclude FO codes and expulsions)
-  function getDisplayPenalties(penaltyDetails, expulsionIds) {
-    const hasExpulsions = expulsionIds.length > 0;
+  // Show the logo and apply the appropriate padding when the logo loads successfully
+  logoImg.onload = function() {
+    $customLogo.attr('src', CONFIG.bannerLogoPath);
+    $customLogo.addClass('visible');
     
-    return penaltyDetails.filter(penalty => {
-      const codeUpper = String(penalty.code || '').trim().toUpperCase();
-      
-      // Filter out FO codes
-      if (PENALTIES.filteredCodes.includes(codeUpper)) {
-        return false;
-      }
-      
-      // Filter out expulsion codes
-      if (hasExpulsions && expulsionIds.includes(penalty.id)) {
-        return false;
-      }
-      
-      return true;
+    // Apply padding when the logo is present
+    $('#teams-scores').css({
+      'padding-left': CONFIG.gameInfoPaddingWithLogo + 'px',
+      'padding-right': CONFIG.gameInfoPaddingWithLogo + 'px'
     });
-  }
-
-  // Update team penalties (collect all penalty data)
-  function updatePenalties(teamNum) {
-    if (!isWSReady()) {
-      return;
-    }
-
-    // Prevent function from throwing an error if a team is undefined
-    if (!appState.teams[teamNum]) {
-      logger.warn(`Team ${teamNum} data not initialized`);
-      return;
-    }
-
-    const skaters = appState.teams[teamNum].skaters;
-    const state = WS.state;
     
-    // Clear penalty lists
-    for (const skaterId in skaters) {
-      if (Object.prototype.hasOwnProperty.call(skaters, skaterId)) {
-        const skater = skaters[skaterId];
-        skater.penalties = [];
-        skater.penaltyIds = [];
-        skater.penaltyDetails = [];
-      }
-    }
-    
-    // Clear stale entries from penalty ID reverse lookup map
-    for (const penaltyId in appState.cache.penaltyIdToSkater) {
-      if (appState.cache.penaltyIdToSkater[penaltyId].teamNum === teamNum) {
-        delete appState.cache.penaltyIdToSkater[penaltyId];
-      }
-    }
-    
-    // Single-pass penalty collection
-    const penaltyData = {};
-    
-    for (const key in state) {
-      if (!Object.prototype.hasOwnProperty.call(state, key)) continue;
-      
-      const match = key.match(REGEX_PATTERNS.penaltyPattern);
-      if (match && match[1] == teamNum) {
-        const skaterIdMatch = match[2];
-        const penaltyNumMatch = match[3];
-        const field = match[4];
-        
-        if (!penaltyData[skaterIdMatch]) {
-          penaltyData[skaterIdMatch] = {};
-        }
-        if (!penaltyData[skaterIdMatch][penaltyNumMatch]) {
-          penaltyData[skaterIdMatch][penaltyNumMatch] = { code: null, id: null };
-        }
-        
-        penaltyData[skaterIdMatch][penaltyNumMatch][field === 'Code' ? 'code' : 'id'] = state[key];
-      }
-    }
-    
-    // Populate skater penalty arrays
-    for (const skaterKey in penaltyData) {
-      if (skaters[skaterKey]) {
-        const skaterObj = skaters[skaterKey];
-        const penalties = penaltyData[skaterKey];
-        
-        for (const penaltyKey in penalties) {
-          const penalty = penalties[penaltyKey];
-          if (penalty.code && penalty.id) {
-            skaterObj.penalties.push(penalty.code);
-            skaterObj.penaltyIds.push(penalty.id);
-            skaterObj.penaltyDetails.push({ code: penalty.code, id: penalty.id });
-            
-            // Build reverse lookup map for efficient expulsion handling
-            appState.cache.penaltyIdToSkater[penalty.id] = { teamNum, skaterId: skaterKey };
-          }
-        }
-      }
-    }
-    
-    updateRosterAndPenalties(teamNum);
-  }
-
-  /*****************************************
-  ** Roster and penalty display functions **
-  *****************************************/
-
-  // Build roster HTML for a player
-  function buildRosterHTML(skater) {
-    const flags = skater.flags.split(',');
-    const isCaptain = skater.flags === LABELS.captainFlag || 
-                      flags.includes(LABELS.captainFlag);
-    const isAltCaptain = skater.flags === LABELS.altCaptainFlag || 
-                      flags.includes(LABELS.altCaptainFlag);
-    
-    const captainIndicator = isCaptain ? '<span class="captain-indicator">C</span>' : 
-                            isAltCaptain ? '<span class="captain-indicator">A</span>' : '';
-    
-    // Sanitize roster user input
-    const safeNumber = sanitizeHTML(skater.number);
-    const safeName = sanitizeHTML(skater.name);
-    
-    return `
-      <div class="roster-line">
-        <div class="roster-number">${safeNumber}</div>
-        <div class="roster-name">
-          <span class="name-text">${safeName}</span>${captainIndicator}
-        </div>
-      </div>
-    `;
-  }
-
-  // Build penalty HTML for a player
-  function buildPenaltyHTML(teamNum, skater, expulsionIds) {
-    const displayPenalties = getDisplayPenalties(skater.penaltyDetails, expulsionIds);
-    const displayCount = displayPenalties.length;
-    
-    // Sanitize penalty codes
-    const codes = displayPenalties.map(p => sanitizeHTML(p.code)).join(' ');
-    
-    // Get player status
-    const { statusClass, displayValue } = getSkaterStatus(teamNum, skater.id, displayCount);
-    
-    return `
-      <div class="penalty-line">
-        <div class="penalty-codes">${codes}</div>
-        <div class="penalty-count ${statusClass}">${displayValue}</div>
-      </div>
-    `.trim();
-  }
-
-  // Check if a player should be filtered from display based on their flags
-  function shouldFilterSkater(skater) {
-    if (!skater.flags) return false;
-    
-    const flags = skater.flags.split(',');
-    return CONFIG.filteredSkaterFlags.some(filteredFlag => flags.includes(filteredFlag));
-  }
-
-  // Update rosters and penalties
-  function updateRosterAndPenalties(teamNum) {
-    const skaters = appState.teams[teamNum].skaters;
-    const sortedSkaters = sortSkaters(skaters);
-    const team = $elements[`team${teamNum}`];
-    const expulsionIds = getExpulsionPenaltyIds();
-    
-    const rosterParts = [];
-    const penaltyParts = [];
-    
-    for (const skater of sortedSkaters) {
-      // Skip skaters without number or name, or with filtered flags
-      if (!skater.number || !skater.name || shouldFilterSkater(skater)) continue;
-      
-      rosterParts.push(buildRosterHTML(skater));
-      penaltyParts.push(buildPenaltyHTML(teamNum, skater, expulsionIds));
-    }
-    
-    team.roster.html(rosterParts.join(''));
-    team.penalties.html(penaltyParts.join(''));
-    
-    if (!loadingTracker.initialized) {
-      loadingTracker.markReceived('teamRosters');
-      loadingTracker.markReceived('teamPenalties');
-    }
-  }
-
-  /**************************
-  ** Team update functions **
-  **************************/
-
-  // Team color-specific helper function to colors to CSS variables
-  function applyTeamColors(teamNum, fgColor, bgColor, glowColor) {
-    appState.dom.root.style.setProperty(`--team${teamNum}-fg`, fgColor);
-    appState.dom.root.style.setProperty(`--team${teamNum}-bg`, bgColor);
-    appState.dom.root.style.setProperty(`--team${teamNum}-border`, fgColor);
-    appState.dom.root.style.setProperty(`--team${teamNum}-text-shadow`, glowColor);
-  }
-
-  // Update team colors
-  function updateTeamColors(teamNum) {
-    if (!isWSReady()) return;
-    
-    const fgColor = safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Color(whiteboard.fg)`);
-    const bgColor = safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Color(whiteboard.bg)`);
-    const glowColor = safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Color(whiteboard.glow)`);
-    const colors = appState.teams[teamNum].colors;
-    
-    // Skip update if colors haven't changed
-    if (colors.fg === fgColor && colors.bg === bgColor && colors.glow === glowColor) {
-      if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
-      return;
-    }
-
-    // Set team colors
-    colors.fg = fgColor;
-    colors.bg = bgColor;
-    colors.glow = glowColor;
-
-    // Use default colors if none are set
-    const finalFg = fgColor || 'var(--team-penalties-default-fg-color)';
-    const finalBg = bgColor || 'var(--team-penalties-default-bg-color)';
-    const finalGlow = glowColor ? `${CONFIG.defaultRosterShadowProperties} ${glowColor}` : 'var(--team-penalties-default-text-shadow)';
-    
-    applyTeamColors(teamNum, finalFg, finalBg, finalGlow);
-    
-    if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
-  }
-
-  // Check for and display logos if present
-  function checkAndDisplayLogos() {
-    const team1Logo = appState.teams[1].logo;
-    const team2Logo = appState.teams[2].logo;
-    const shouldShow = team1Logo && team2Logo;
-    
-    // Check for logo changes
-    const visibilityChanged = shouldShow !== appState.flags.bothTeamsHaveLogos;
-    const team1LogoChanged = team1Logo !== appState.flags.displayedLogos[1];
-    const team2LogoChanged = team2Logo !== appState.flags.displayedLogos[2];
-    
-    // Return immediately if nothing changed
-    if (!visibilityChanged && !team1LogoChanged && !team2LogoChanged) {
-      if (!loadingTracker.initialized) loadingTracker.markReceived('teamLogos');
-      return;
-    }
-    
-    // Update visibility flag
-    appState.flags.bothTeamsHaveLogos = shouldShow;
-    
-    if (shouldShow) {
-      // Update each team's logo if changed
-      if (team1LogoChanged) {
-        $elements.team1.logo.attr('src', team1Logo);
-        appState.flags.displayedLogos[1] = team1Logo;
-      }
-      
-      if (team2LogoChanged) {
-        $elements.team2.logo.attr('src', team2Logo);
-        appState.flags.displayedLogos[2] = team2Logo;
-      }
-      
-      // Show logos if they weren't already visible
-      if (visibilityChanged) {
-        $elements.team1.logo.fadeIn(500);
-        $elements.team2.logo.fadeIn(500);
-        $elements.teamsContainer.addClass('logos-visible');
-      }
-    } else {
-      // Hide logos and clear tracked URLs
-      $elements.team1.logo.fadeOut(500);
-      $elements.team2.logo.fadeOut(500);
-      $elements.teamsContainer.removeClass('logos-visible');
-      appState.flags.displayedLogos[1] = '';
-      appState.flags.displayedLogos[2] = '';
-    }
-    
-    if (!loadingTracker.initialized) loadingTracker.markReceived('teamLogos');
-  }
-
-  // Equalize team name and score block widths and set wrapper width
-  function equalizeTeamBoxWidths() {
-    requestAnimationFrame(() => {
-      // Force a reflow to get natural widths if needed
-      const team1Width = $elements.team1.name.parent().get(0).scrollWidth;
-      const team2Width = $elements.team2.name.parent().get(0).scrollWidth;
-
-      // Add a buffer to the maximum width to prevent overflow/truncation
-      const maxWidth = Math.max(team1Width, team2Width) + CONFIG.teamNameOverflowBufferPixels;
-      
-      // Single write operation
-      $elements.teamScoreBlocks.css('width', `${maxWidth}px`);
-      
-      const vsClockWidth = $elements.vsClockContainer.outerWidth();
-      const hasLogo = $elements.gameInfoWrapper.hasClass(CSS_CLASSES.HAS_LOGO);
-      const padding = hasLogo 
-        ? CONFIG.gameInfoPaddingWithLogo 
-        : CONFIG.gameInfoPaddingWithoutLogo;
-      
-      const totalWidth = (maxWidth * 2) + vsClockWidth + padding;
-      $elements.gameInfoWrapper.css('width', `${totalWidth}px`);
-    });
-  }
-
-  /******************************************
-  ** Clock and game state update functions **
-  ******************************************/
-
-// Update the game clock
-  function updateClock() {
-    if (!isWSReady()) return;
-    
-    try {
-      // Get the clock label
-      const officialScore = isTrue(safeGetState('ScoreBoard.CurrentGame.OfficialScore'));
-      const inOvertime = isTrue(safeGetState('ScoreBoard.CurrentGame.InOvertime'));
-      const currentPeriod = parseInt(safeGetState('ScoreBoard.CurrentGame.CurrentPeriodNumber')) || 0;
-      const intermissionTime = parseInt(safeGetState('ScoreBoard.CurrentGame.Clock(Intermission).Time')) || 0;
-      const periodTime = parseInt(safeGetState('ScoreBoard.CurrentGame.Clock(Period).Time')) || 0;
-      const periodRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Period).Running'));
-      const numPeriods = parseInt(safeGetState('ScoreBoard.CurrentGame.Rule(Period.Number)')) || 2;
-      const intermissionRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Intermission).Running'));
-
-      // Determine if the game is over
-      const gameOver = currentPeriod > numPeriods || 
-                      (currentPeriod >= numPeriods && (intermissionRunning || intermissionTime > 0));
-      
-      // Hide the period clock for for unofficial/official score or overtime
-      if (officialScore || gameOver || inOvertime) {
-        $elements.gameClock.html('&nbsp;');
-      // Before period 1, if the IGRF start time is missing or in the past, show the upcoming period clock
-      } else if (currentPeriod === 0) {
-        if (isStartTimeMissingOrPast()) {
-          $elements.gameClock.text(formatTime(periodTime));
-        } else if (intermissionTime <= 0) {
-          $elements.gameClock.html('&nbsp;');
-        } else {
-          $elements.gameClock.text(formatTime(intermissionTime));
-        }
-      // Between periods, show the intermission clock
-      } else if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionRunning && !periodRunning) {
-        $elements.gameClock.text(formatTime(intermissionTime));
-      } else {
-        $elements.gameClock.text(formatTime(periodTime));
-      }
-      
-      if (!loadingTracker.initialized) loadingTracker.markReceived('gameInfo');
-      
-    } catch(error) {
-      logger.error('Error updating clock:', error);
-    }
-  }
-
-  // Update game state (period info)
-  function updateGameState() {
-    if (!isWSReady()) return;
-    
-    try {
-      const currentPeriod = parseInt(safeGetState('ScoreBoard.CurrentGame.CurrentPeriodNumber')) || 0;
-      const inOvertime = isTrue(safeGetState('ScoreBoard.CurrentGame.InOvertime'));
-      const officialScore = isTrue(safeGetState('ScoreBoard.CurrentGame.OfficialScore'));
-      const intermissionTime = parseInt(safeGetState('ScoreBoard.CurrentGame.Clock(Intermission).Time')) || 0;
-      const periodRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Period).Running'));
-      const numPeriods = parseInt(safeGetState('ScoreBoard.CurrentGame.Rule(Period.Number)')) || 2;
-      const intermissionRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Intermission).Running'));
-
-      // Get intermission labels from settings with fallback to defaults
-      const labels = {
-        preGame: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)', LABELS.intermission.preGame),
-        intermission: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)', LABELS.intermission.intermission),
-        unofficial: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)', LABELS.intermission.unofficial),
-        official: getIntermissionLabel('ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)', LABELS.intermission.official)
-      };
-
-      // Determine if the game is over
-      const gameOver = currentPeriod > numPeriods || 
-                      (currentPeriod >= numPeriods && (intermissionRunning || intermissionTime > 0));
-      
-      let text;
-
-      // Determine the correct clock label
-      if (officialScore) {
-        text = labels.official;
-      } else if (gameOver) {
-        text = labels.unofficial;
-      } else if (inOvertime) {
-        text = LABELS.intermission.overtime;
-      } else if (currentPeriod > 0 && currentPeriod < numPeriods && intermissionRunning && !periodRunning) {
-        text = labels.intermission;
-      } else if (currentPeriod > 0 && currentPeriod <= numPeriods) {
-        text = `Period ${currentPeriod}`;
-      // If start time is missing or in past, show LABELS.preFirstPeriodLabel for the upcoming period
-      } else if (currentPeriod === 0 && isStartTimeMissingOrPast()) {
-        text = LABELS.preFirstPeriodLabel;
-      } else if (currentPeriod === 0 && intermissionTime > 0) {
-        text = labels.preGame;
-      } else {
-        text = LABELS.intermission.comingUp;
-      }
-      
-      $elements.periodInfo.text(text);
-      updateClock();
-      
-      if (!loadingTracker.initialized) loadingTracker.markReceived('gameInfo');
-      
-    } catch(error) {
-      logger.error('Error updating game state:', error);
-    }
-  }
-
-  // Update tournament name and game number if available
-  function updateTournamentName() {
-    const tournament = trimValue(safeGetState('ScoreBoard.CurrentGame.EventInfo(Tournament)'));
-    const gameNo = trimValue(safeGetState('ScoreBoard.CurrentGame.EventInfo(GameNo)'));
-    
-    if (tournament) {
-      const displayText = gameNo ? `${tournament} - Game ${gameNo}` : tournament;
-      $elements.tournamentName.text(displayText).slideDown(500);
-    } else {
-      $elements.tournamentName.slideUp(500);
-    }
-    
-    if (!loadingTracker.initialized) loadingTracker.markReceived('gameInfo');
-  }
-
-  // Load custom logo if available
-  function loadCustomLogo() {
-    // Check if the logo path is configured
-    if (!CONFIG.bannerLogoPath) {
-      return;
-    }
-
-    const logoImg = new Image();
-
-    // Attempt to load custom logo and add symmetrical padding
-    logoImg.onload = () => {
-      $elements.customLogoSpace.html(`<img src="${CONFIG.bannerLogoPath}" class="custom-logo" />`);
-      $elements.gameInfoWrapper.addClass(CSS_CLASSES.HAS_LOGO);
-    };
-
-    // Do not add symmetrical padding if logo fails to load
-    logoImg.onerror = () => {
-      $elements.customLogoSpace.empty();
-      $elements.gameInfoWrapper.removeClass(CSS_CLASSES.HAS_LOGO);
-    };
-
-    logoImg.src = CONFIG.bannerLogoPath;
-  }
-
-  /******************************
-  ** Timeout Banner Functions **
-  ******************************/
-
-  // Parse timeout owner string and determine banner display properties
-  function parseTimeoutOwner(rawOwner, isReview = false) {
-
-    // Set default properties
-    let owner = null;
-    let position = 'center';
-    let text = LABELS.timeout.untyped;
-    let isOfficialReview = false;
-
-    if (!rawOwner) {
-      return { owner, isOfficialReview, position, text };
-    }
-
-    // Official timeout
-    if (rawOwner === 'O') {
-      owner = rawOwner;
-      text = LABELS.timeout.official;
-
-    // Team 1 timeout or official review
-    } else if (rawOwner.endsWith('_1') || rawOwner === '1') {
-      owner = '1';
-      position = 'team1';
-      if (isReview) {
-        isOfficialReview = true;
-        text = LABELS.timeout.review;
-      } else {
-        text = LABELS.timeout.team;
-      }
-
-    // Team 2 timeout or official review
-    } else if (rawOwner.endsWith('_2') || rawOwner === '2') {
-      owner = '2';
-      position = 'team2';
-      if (isReview) {
-        isOfficialReview = true;
-        text = LABELS.timeout.review;
-      } else {
-        text = LABELS.timeout.team;
-      }
-    }
-
-    return { owner, isOfficialReview, position, text };
-  }
-
-  // Get timeout details from the CurrentTimeout WebSocket ID
-  function getTimeoutDetailsFromId() {
-    if (!isWSReady()) return null;
-
-    const currentTimeoutId = trimValue(safeGetState('ScoreBoard.CurrentGame.CurrentTimeout'));
-    if (!currentTimeoutId) return null;
-
-    const currentPeriod = trimValue(safeGetState('ScoreBoard.CurrentGame.CurrentPeriodNumber')) || '1';
-
-    // Look up timeout details in the period data
-    const rawOwner = trimValue(safeGetState(`ScoreBoard.CurrentGame.Period(${currentPeriod}).Timeout(${currentTimeoutId}).Owner`));
-    const isReview = isTrue(safeGetState(`ScoreBoard.CurrentGame.Period(${currentPeriod}).Timeout(${currentTimeoutId}).Review`));
-    
-    if (!rawOwner) return null;
-
-    logger.debug('Timeout details from ID:', { currentTimeoutId, currentPeriod, owner: rawOwner, isReview });
-
-    return parseTimeoutOwner(rawOwner, isReview);
-  }
-
-  // Get timeout information and display details
-  function getTimeoutDisplayInfo() {
-    if (!isWSReady()) return null;
-
-    const timeoutRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Timeout).Running'));
-    const lineupRunning = isTrue(safeGetState('ScoreBoard.CurrentGame.Clock(Lineup).Running'));
-
-    // If neither timeout nor lineup clock is running
-    if (!timeoutRunning && !lineupRunning) return null;
-    
-    // Get timeout details from CurrentTimeout ID
-    const timeoutFromId = getTimeoutDetailsFromId();
-    if (timeoutFromId) {
-        logger.debug('Got timeout info from CurrentTimeout ID:', timeoutFromId);
-        return timeoutFromId;
-    }
-    
-    // Fallback - use WebSocket flags for edge cases where CurrentTimeout might not be set yet
-    const team1InTimeout = isTrue(safeGetState('ScoreBoard.CurrentGame.Team(1).InTimeout'));
-    const team2InTimeout = isTrue(safeGetState('ScoreBoard.CurrentGame.Team(2).InTimeout'));
-    const team1InReview = isTrue(safeGetState('ScoreBoard.CurrentGame.Team(1).InOfficialReview'));
-    const team2InReview = isTrue(safeGetState('ScoreBoard.CurrentGame.Team(2).InOfficialReview'));
-    
-    // Determine timeout type from flags
-    let rawOwner = null;
-    let isReview = false;
-
-    if (team1InTimeout) {
-        rawOwner = '1';
-    } else if (team2InTimeout) {
-        rawOwner = '2';
-    } else if (team1InReview) {
-        rawOwner = '1';
-        isReview = true;
-    } else if (team2InReview) {
-        rawOwner = '2';
-        isReview = true;
-    } else {
-        rawOwner = trimValue(safeGetState('ScoreBoard.CurrentGame.TimeoutOwner'));
-    }
-
-    const displayInfo = parseTimeoutOwner(rawOwner, isReview);
-
-    logger.debug('Got timeout info from WebSocket flags:', { 
-        timeoutRunning, 
-        lineupRunning, 
-        ...displayInfo 
-    });
-
-    // Do not show the banner if the timeout type is unknown or can't be determined
-    if (lineupRunning && displayInfo.owner === null) {
-        logger.debug('Lineup running with undetermined timeout type, hiding banner');
-        return null;
-    }
-
-    return displayInfo;
-    }
-
-  // Update the timeout banner display
-  const updateTimeoutBanner = debounce(function() {
-    if (!isWSReady()) return;
-
-    try {
-      const displayInfo = getTimeoutDisplayInfo();
-
-      logger.debug('Update timeout banner:', displayInfo);
-
-      // Clear any pending transition timeout
-      if (appState.timeout.transitionTimeout) {
-        clearTimeout(appState.timeout.transitionTimeout);
-        appState.timeout.transitionTimeout = null;
-      }
-
-      // Hide banner if no timeout info available
-      if (!displayInfo) {
-        if (appState.timeout.isRunning) {
-          hideTimeoutBanner();
-        }
-        appState.timeout.isRunning = false;
-        appState.timeout.owner = null;
-        appState.timeout.isOfficialReview = false;
-
-        return;
-      }
-
-      // Check if the timeout type or position changed
-      const typeChanged = 
-        appState.timeout.owner !== displayInfo.owner ||
-        appState.timeout.isOfficialReview !== displayInfo.isOfficialReview;
-
-      logger.debug('Type changed:', typeChanged, 'Was:', { owner: appState.timeout.owner, isOfficialReview: appState.timeout.isOfficialReview }, 'Now:', { owner: displayInfo.owner, isOfficialReview: displayInfo.isOfficialReview });
-
-      // If timeout type changed, hide the timeout banner before showing a new banner
-      if (typeChanged && appState.timeout.isRunning) {
-        logger.debug('Triggering transition animation');
-        hideTimeoutBannerForTransition(() => {
-          showTimeoutBanner(displayInfo.position, displayInfo.text);
-          // Update state after animation completes
-          appState.timeout.isRunning = true;
-          appState.timeout.owner = displayInfo.owner;
-          appState.timeout.isOfficialReview = displayInfo.isOfficialReview;
-        });
-      } else {
-        // Show banner
-        showTimeoutBanner(displayInfo.position, displayInfo.text);
-        // Update state immediately
-        appState.timeout.isRunning = true;
-        appState.timeout.owner = displayInfo.owner;
-        appState.timeout.isOfficialReview = displayInfo.isOfficialReview;
-      }
-
-    } catch(error) {
-      logger.error('Error updating timeout banner:', error);
-    }
-  }, TIMING.debounceTimeoutBannerNormalMs); // Debounce to wait for all fields to update
-
-  // Show the timeout banner with the specified position and text
-  function showTimeoutBanner(position, text) {
-    logger.debug('Showing timeout banner:', { position, text });
-    
-    // Always remove visible class first to ensure a clean animation state
-    $elements.timeoutBanner.removeClass('visible');
-    
-    // Remove all position classes
-    $elements.timeoutBanner.removeClass('position-center position-team1 position-team2');
-    
-    // Calculate and set left position before adding position class
-    if (position === 'team1' || position === 'team2') {
-      const teamNum = position === 'team1' ? '1' : '2';
-      const $teamName = $elements[`team${teamNum}`].name;
-      
-      // Get the team name element's position relative to the game-info-wrapper
-      const teamNameOffset = $teamName.offset();
-      const wrapperOffset = $elements.gameInfoWrapper.offset();
-      
-      if (teamNameOffset && wrapperOffset) {
-        // Calculate the center of the team name element relative to wrapper
-        const teamNameWidth = $teamName.outerWidth();
-        const relativeLeft = teamNameOffset.left - wrapperOffset.left;
-        const centerPosition = relativeLeft + (teamNameWidth / 2);
-        
-        // Set the left position before adding the position class
-        $elements.timeoutBanner.css('left', `${centerPosition}px`);
-        
-        logger.debug('Team banner position:', { 
-          teamNum, 
-          teamNameWidth, 
-          relativeLeft, 
-          centerPosition 
-        });
-      }
-    } else {
-      // For center position, set left to 50% before adding the position class
-      $elements.timeoutBanner.css('left', '50%');
-    }
-    
-    // Force a reflow to ensure left position is set before adding classes
-    $elements.timeoutBanner[0].offsetHeight;
-    
-    // Add the position class
-    $elements.timeoutBanner.addClass(`position-${position}`);
-    
-    // Set the text
-    $elements.timeoutText.text(text);
-    
-    // Force a reflow to ensure position class and text changes are applied
-    $elements.timeoutBanner[0].offsetHeight;
-    
-    // Use requestAnimationFrame to ensure browser is ready for animation
-    requestAnimationFrame(() => {
-      // Add visible class to trigger slide-in animation
-      $elements.timeoutBanner.addClass('visible');
-    });
-  }
-
-  // Hide the timeout banner
-  function hideTimeoutBanner() {
-    logger.debug('Hiding timeout banner');
-    $elements.timeoutBanner.removeClass('visible');
-  }
-
-  // Hide the timeout banner quickly for transitioning to a new timeout type
-  function hideTimeoutBannerForTransition(callback) {
-    logger.debug('Hiding timeout banner for transition');
-    
-    // Remove visible class to slide the banner up
-    $elements.timeoutBanner.removeClass('visible');
-    
-    // Wait for the slide-up animation to complete
-    appState.timeout.transitionTimeout = setTimeout(() => {
-      // Clear position classes
-      $elements.timeoutBanner.removeClass('position-center position-team1 position-team2');
-      
-      // Use requestAnimationFrame to ensure browser has processed the state change
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          if (callback) callback();
-          appState.timeout.transitionTimeout = null;
-        });
-      });
-    }, TIMING.timeoutBannerSlideMs);
-  }
-
-  /**************************************
-  ** WebSocket event handler functions **
-  **************************************/
-
-  // Debounced penalty update with cleanup
-  const debouncedPenaltyUpdate = {
-    timers: {},
-
-    update(teamNum) {
-      const delay = appState.flags.initialLoadComplete 
-        ? TIMING.debouncePenaltyNormalMs 
-        : TIMING.debouncePenaltyInitMs;
-
-      // Clear existing timer
-      if (this.timers[teamNum]) {
-        clearTimeout(this.timers[teamNum]);
-      }
-      
-      this.timers[teamNum] = setTimeout(() => {
-        // Clean up timer reference after execution
-        delete this.timers[teamNum];
-        
-        // Run update only if WebSocket is ready
-        if (isWSReady()) {
-          updatePenalties(teamNum);
-        }
-      }, delay);
-    },
-    
-    // Clear all timers
-    clearAll() {
-      Object.values(this.timers).forEach(timer => clearTimeout(timer));
-      this.timers = {};
-    },
-    
-    // Clear specific team timer
-    clear(teamNum) {
-      if (this.timers[teamNum]) {
-        clearTimeout(this.timers[teamNum]);
-        delete this.timers[teamNum];
-      }
+    if (DEBUG) {
+      console.log('Custom logo loaded:', CONFIG.bannerLogoPath);
+      console.log('Adding padding:', CONFIG.gameInfoPaddingWithLogo);
     }
   };
 
-  // Unified team update handler
-  function handleTeamUpdate(key, value) {
-
-    // Skip player-related keys (handled by handleSkaterUpdate)
-    if (key.includes('.Skater(')) return;
+  // Hide the logo and apply default padding when there is no logo or it fails to load
+  logoImg.onerror = function() {
+    $customLogo.removeClass('visible');
     
-    const parsed = parseTeamKey(key);
-    if (!parsed) return;
-    
-    const { teamNum, property, identifier } = parsed;
-    const team = $elements[`team${teamNum}`];
-
-    switch(property) {
-      case 'AlternateName':
-        if (identifier === 'whiteboard') {
-          handleTeamNameUpdate(teamNum, team, value);
-        }
-        break;
-        
-      case 'Name':
-
-        // Only handle if not an alternate name and not a skater name
-        handleTeamNameUpdate(teamNum, team, value);
-        break;
-        
-      case 'Score':
-        team.score.text(value || '0');
-        if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
-        break;
-        
-      case 'Logo':
-        appState.teams[teamNum].logo = value || '';
-        checkAndDisplayLogos();
-        break;
-        
-      case 'Color':
-        if (identifier && identifier.startsWith('whiteboard')) {
-          updateQueue.schedule(() => updateTeamColors(teamNum));
-        }
-        break;
-        
-      case 'TotalPenalties':
-        team.total.text(value || '0');
-        if (!loadingTracker.initialized) loadingTracker.markReceived('teamsBasicData');
-        break;
-        
-      default:
-        // Unhandled team property handling for troubleshooting
-        // logger.debug(`Unhandled team property: ${property}`, { key, value });
-        break;
-    }
-  }
-
-  // Unified player update handler
-  function handleSkaterUpdate(key, value) {
-    const parsed = parseSkaterKey(key);
-    if (!parsed) return;
-    
-    const { teamNum, skaterId, property } = parsed;
-    const skater = getOrCreateSkater(teamNum, skaterId);
-    
-    switch(property) {
-      case 'RosterNumber':
-        skater.number = trimValue(value);
-        updateRosterAndPenalties(teamNum);
-        break;
-        
-      case 'Name':
-      case 'LegalName':  // Handle both Name and LegalName
-        skater.name = trimValue(value);
-        updateRosterAndPenalties(teamNum);
-        break;
-        
-      case 'Flags':
-        skater.flags = trimValue(value);
-        updateRosterAndPenalties(teamNum);
-        break;
-        
-      default:
-        // Unhandled player property handling for troubleshooting
-        // logger.debug(`Unhandled skater property: ${property}`, { key, value });
-        break;
-    }
-  }
-
-  // Handle penalty updates
-  function handlePenaltyUpdate(key, _value) {
-    const match = key.match(REGEX_PATTERNS.penaltyPattern);
-    if (match) {
-      const teamNum = parseInt(match[1]);
-      if (!isNaN(teamNum) && teamNum >= 1 && teamNum <= RULES.numTeams) {
-        debouncedPenaltyUpdate.update(teamNum);
-      }
-    }
-  }
-
-  // Handle expulsion updates
-  function handleExpulsionUpdate(key, _value) {
-    invalidateExpulsionCache();
-    
-    if (!loadingTracker.initialized) loadingTracker.markReceived('gameInfo');
-    
-    const expulsionIdMatch = key.match(REGEX_PATTERNS.expulsionId);
-    
-    if (expulsionIdMatch && expulsionIdMatch[1]) {
-      const id = expulsionIdMatch[1];
-      
-      // Use reverse lookup map to find which team has this expulsion penalty ID
-      const skaterInfo = appState.cache.penaltyIdToSkater[id];
-      if (skaterInfo) {
-        updateRosterAndPenalties(skaterInfo.teamNum);
-        return;
-      }
-    }
-
-    // Fallback: update both teams if we can't determine which team has this penalty
-    updateRosterAndPenalties(1);
-    updateRosterAndPenalties(2);
-  }
-
-  /***************************
-  ** Memory leak prevention **
-  ****************************/
-
-  // Store all registered handlers for cleanup
-  const registeredHandlers = [];
-  let cleanupRegistered = false;
-
-  // Register a WebSocket handler with automatic cleanup tracking
-  function registerHandler(paths, handler) {
-    if (!isWSReady()) {
-      logger.warn('Attempted to register handler before WebSocket ready');
-      return;
-    }
-
-    WS.Register(paths, handler);
-    registeredHandlers.push({ paths, handler });
-  }
-
-  // Clean up all registered handlers and timers
-  function cleanup() {
-    logger.debug('Cleaning up overlay resources...');
-
-    // Unregister WebSocket handlers
-    registeredHandlers.forEach(({ paths, handler }) => {
-      if (WS && WS.Unregister) {
-        try {
-          WS.Unregister(paths, handler);
-        } catch (error) {
-          logger.warn('Error unregistering handler:', error);
-        }
-      }
+    // Apply padding for no logo
+    $('#teams-scores').css({
+      'padding-left': CONFIG.gameInfoPaddingWithoutLogo + 'px',
+      'padding-right': CONFIG.gameInfoPaddingWithoutLogo + 'px'
     });
-    registeredHandlers.length = 0;
     
-    // Clear all penalty update timers
-    debouncedPenaltyUpdate.clearAll();
-
-    // Clear timeout transition timer
-    if (appState.timeout.transitionTimeout) {
-      clearTimeout(appState.timeout.transitionTimeout);
-      appState.timeout.transitionTimeout = null;
+    if (DEBUG) {
+      console.log('Custom logo failed to load:', CONFIG.bannerLogoPath);
+      console.log('Using default padding:', CONFIG.gameInfoPaddingWithoutLogo);
     }
+  };
 
-    // Clear update queue
-    if (updateQueue.pending) {
-      updateQueue.callbacks = [];
-      updateQueue.pending = false;
-    }
+  // Attempt to load the logo
+  logoImg.src = CONFIG.bannerLogoPath;
+}
 
-    logger.debug('Cleanup complete');
+/************************************
+** Timeout Banner Helper Functions **
+************************************/
+
+// Determine the timeout banner text to display
+window.getTimeoutText = function(_k, timeoutOwner, officialReview) {
+
+  // Official review
+  const isReview = officialReview === true || 
+                 WS.state['ScoreBoard.CurrentGame.OfficialReview'] === true;
+  if (isReview) return LABELS.timeout.review;
+
+  // Official timeout
+  if (
+    timeoutOwner === LABELS.timeoutOwner.official
+  ) return LABELS.timeout.official;
+
+  // Team timeout
+  if (
+    timeoutOwner && (
+      timeoutOwner.endsWith(
+        LABELS.timeoutOwner.team1
+      ) ||
+      timeoutOwner.endsWith(
+        LABELS.timeoutOwner.team2
+      )
+    )
+  ) {
+    return LABELS.timeout.team;
   }
 
-  // Register cleanup handler ( once during initialization)
-  function registerCleanupHandler() {
-    if (cleanupRegistered) return;
+  // Untyped timeout
+  return LABELS.timeout.untyped;
+};
 
-    $(window).on('beforeunload', cleanup);
+// Position untyped and official timeouts in the center of the game information box
+window.isPositionCenter = function(_k, timeoutOwner) {
+  return !timeoutOwner || timeoutOwner === LABELS.timeoutOwner.official;
+};
 
-    // Also cleanup on visibility change (for SPAs)
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        cleanup();
-      }
-    });
+// Position team 1 timeouts on the left side of the game information box
+window.isPositionTeam1 = function(_k, timeoutOwner) {
+  return !!(timeoutOwner && timeoutOwner.endsWith(LABELS.timeoutOwner.team1));
+};
 
-    cleanupRegistered = true;
+// Position team 2 timeouts on the right side of the game information box
+window.isPositionTeam2 = function(_k, timeoutOwner) {
+  return !!(timeoutOwner && timeoutOwner.endsWith(LABELS.timeoutOwner.team2));
+};
+
+// Determine if the timeout banner should be visible
+window.isTimeoutVisible = function(_k, timeoutRunning) {
+  return timeoutRunning === true;
+};
+
+/*******************************
+** Application Initialization **
+*******************************/
+
+$(function() {
+  if (DEBUG) {
+    console.log('Initializing Penalties Overlay...');
   }
 
-  /*******************
-  ** Initialization **
-  *******************/
+  // Set the loading overlay text
+  $('.loading-text').text(CONFIG.loadingOverlayText);
 
-  // Set a default team name if none is provided after delay
-  function setDefaultTeamNameIfNeeded(teamNum) {
-    const currentText = $elements[`team${teamNum}`].name.text();
-    const checkAltName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`));
-    const checkName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Name`));
-    
-    if ((!currentText || currentText.trim() === '') && !checkAltName && !checkName && !appState.flags.teamNameSet[teamNum]) {
-      $elements[`team${teamNum}`].name.text(`${LABELS.defaultTeamNamePrefix}${teamNum}`);
-      updateQueue.schedule(equalizeTeamBoxWidths);
-    }
-  }
+  // Apply title banner colors from config.js
+  formatTitleBanner();
 
-  // Initialize display with initial data
-  function initializeDisplay() {
-    if (!isWSReady()) {
-      logger.warn('WebSocket not ready during initialization, retrying...');
-      setTimeout(initializeDisplay, TIMING.wsWaitMs);
-      return;
-    }
-    
-    try {
-      
-      // Initialize team data
-      for (let teamNum = 1; teamNum <= RULES.numTeams; teamNum++) {
-        const altName = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).AlternateName(whiteboard)`));
-        const name = trimValue(safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Name`));
-        const total = safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).TotalPenalties`, '0');
-        const score = safeGetState(`ScoreBoard.CurrentGame.Team(${teamNum}).Score`, '0');
+  // Set the penalties title
+  $('#penalties-title h1').text(CONFIG.penaltiesTitleText);
 
-        // Set team name, or default name after delay
-        if (altName || name) {
-          $elements[`team${teamNum}`].name.text(altName || name);
-          appState.flags.teamNameSet[teamNum] = true;
-        } else {
-          setTimeout(() => setDefaultTeamNameIfNeeded(teamNum), TIMING.defaultNameDelayMs);
-        }
-        
-        $elements[`team${teamNum}`].score.text(score);
-        $elements[`team${teamNum}`].total.text(total);
-        
-        updateTeamColors(teamNum);
-        updatePenalties(teamNum);
-        
-        // Mark basic team data as received for this team
-        loadingTracker.markReceived('teamsBasicData');
-      }
+  // Attempt to load a custom logo
+  loadCustomLogo();
 
-      updateTournamentName();
-      updateClock();
-      updateGameState();
-      checkAndDisplayLogos();
-      updateTimeoutBanner();
-      equalizeTeamBoxWidths();
+  // Hide the loading overlay after the minimum display time
+  setTimeout(function() {
+    $('#loading-overlay').addClass('fade-out');
+  }, TIMING.minLoadDisplayMs);
 
-    } catch(error) {
-      logger.error('Error during initialization:', error);
-      setTimeout(initializeDisplay, TIMING.wsWaitMs * 2);
-    }
-  }
-
-  // Initialize WebSocket listeners
-  function init() {
-    if (!isWSReady()) {
-      logger.debug('Waiting for WebSocket...');
-      setTimeout(init, TIMING.wsWaitMs);
-      return;
-    }
-    
-    try {
+  // Initialize the WebSocket connection
+  function initWebSocket() {
+    if (typeof WS !== 'undefined') {
       WS.Connect();
       WS.AutoRegister();
+      console.log('WebSocket connected.');
 
-      // Register cleanup handler
-      registerCleanupHandler();
-
-      // Register all team data with wildcards (using safe wrapper)
-      registerHandler(['ScoreBoard.CurrentGame.Team(*)'], handleTeamUpdate);
-      registerHandler(['ScoreBoard.CurrentGame.Team(*).Skater(*)'], handleSkaterUpdate);
-      registerHandler(['ScoreBoard.CurrentGame.Team(*).Skater(*).Penalty(*)'], handlePenaltyUpdate);
-
-      // Register for expulsion updates
-      registerHandler(['ScoreBoard.CurrentGame.Expulsion(*)'], handleExpulsionUpdate);
-
-      // Clock and game state
-      registerHandler(['ScoreBoard.CurrentGame.Clock(*)'], debounce(updateClock, TIMING.debounceClockMs));
-      registerHandler(['ScoreBoard.CurrentGame'], updateGameState);
-      registerHandler(['ScoreBoard.CurrentGame.OfficialScore'], updateGameState);
-
-      // Intermission label settings
-      registerHandler(['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)'], updateGameState);
-      registerHandler(['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)'], updateGameState);
-      registerHandler(['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)'], updateGameState);
-      registerHandler(['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)'], updateGameState);
-
-      // Tournament info
-      registerHandler(['ScoreBoard.CurrentGame.EventInfo(Tournament)'], updateTournamentName);
-      registerHandler(['ScoreBoard.CurrentGame.EventInfo(GameNo)'], updateTournamentName);
-
-      // Event info for start time checking
-      registerHandler(['ScoreBoard.CurrentGame.EventInfo(Date)'], updateGameState);
-      registerHandler(['ScoreBoard.CurrentGame.EventInfo(StartTime)'], updateGameState);
-
-      // Timeout banner updates
-      registerHandler(['ScoreBoard.CurrentGame.Clock(Timeout).Running'], updateTimeoutBanner);
-      registerHandler(['ScoreBoard.CurrentGame.Clock(Lineup).Running'], updateTimeoutBanner);
-      registerHandler(['ScoreBoard.CurrentGame.CurrentTimeout'], updateTimeoutBanner);
-      registerHandler(['ScoreBoard.CurrentGame.TimeoutOwner'], updateTimeoutBanner);
-      registerHandler(['ScoreBoard.CurrentGame.OfficialReview'], updateTimeoutBanner);
-      registerHandler(['ScoreBoard.CurrentGame.Team(1).InTimeout'], updateTimeoutBanner);
-      registerHandler(['ScoreBoard.CurrentGame.Team(2).InTimeout'], updateTimeoutBanner);
-      registerHandler(['ScoreBoard.CurrentGame.Team(1).InOfficialReview'], updateTimeoutBanner);
-      registerHandler(['ScoreBoard.CurrentGame.Team(2).InOfficialReview'], updateTimeoutBanner);
-
-      loadCustomLogo();
-      setTimeout(initializeDisplay, TIMING.initDelayMs);
-      loadingTracker.startLoading();
-      
-      logger.debug('Penalties overlay initialization started');
-      
-    } catch(error) {
-      logger.error('Failed to initialize overlay:', error);
-      // Retry after delay
-      setTimeout(init, TIMING.wsWaitMs * 5);
+    // Attempt to retry the WebSocket connection if it is not yet available
+    } else {
+      if (DEBUG) {
+        console.log('Waiting for WebSocket...');
+      }
+      setTimeout(initWebSocket, TIMING.initWebSocket);
     }
   }
 
-  // Wait for WebSocket to finish loading
-  function waitForWS() {
-    if (typeof WS === 'undefined') {
-      setTimeout(waitForWS, TIMING.wsWaitMs);
-      return;
-    }
-    init();
-  }
+  // Start the WebSocket initialization
+  initWebSocket();
 
-  // Set configurable HTML text values from config variables
-  function setConfigurableText() {
-    // Set the loading overlay text
-    $('.loading-text').text(CONFIG.loadingOverlayText);
-    
-    // Set the penalties title text
-    $('#penalties-title h1').text(CONFIG.penaltiesTitleText);
-  }
-
-  // Initialize configurable HTML text and start the application
-  setConfigurableText();
-  waitForWS();
+  console.log('Penalties Overlay successfully initialized.');
 });

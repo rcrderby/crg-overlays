@@ -4,157 +4,319 @@
 <head>
   <title>Penalties Overlay</title>
   <meta charset="UTF-8">
-  
+
   <!-- Required CRG Javascript files -->
   <script type="text/javascript" src="/external/jquery/jquery.js"></script>
   <script type="text/javascript" src="/external/jquery-ui/jquery-ui.js"></script>
-  
-  <!-- Configuration file - load before index.js -->
+
+  <!-- Configuration file - load before core.js -->
   <script type="text/javascript" src="config.js"></script>
 
-  <!-- Loads index.js and index.css -->
+  <!-- This automatically loads index.js and index.css -->
   <script type="text/javascript" src="/json/core.js"></script>
-  
 </head>
 
-<body>
-  <!-- Loading overlay - shown during initialization -->
+<body sbContext="ScoreBoard.CurrentGame">
+
+  <!-- Loading Overlay -->
   <div id="loading-overlay">
     <div class="loading-content">
       <div class="loading-spinner"></div>
-      <!-- Derived from 'config.loadingOverlayText' in config.js -->
       <div class="loading-text"></div>
     </div>
   </div>
 
-  <div id="overlay" class="hidden">
+  <div id="overlay">
+
+    <!-- Teams and Logos Section -->
     <div id="teams-container">
-      <!-- Team 1 (Home) - left side) -->
-      <div id="team1-container" class="team-container">
+      
+      <!-- Team 1 (Home) Container -->
+      <div class="team-container" id="team1-container">
         <div class="team-logo-container">
-          <img id="team1-logo" class="team-logo" src="" alt="" />
+          <img class="team-logo"
+               id="team1-logo"
+               sbAttr="src: Logo"
+               sbClass="visible: Logo: hasValue"
+               sbContext="Team(1)">
         </div>
       </div>
-      
+
       <!-- Penalties Title -->
       <div id="penalties-title">
-        <!-- Derived from 'config.penaltiesTitleText' in config.js -->
         <h1></h1>
       </div>
-      
-      <!-- Team 2 (Away) - right side) -->
-      <div id="team2-container" class="team-container">
+
+      <!-- Team 2 (Away) Container -->
+      <div class="team-container" id="team2-container">
         <div class="team-logo-container">
-          <img id="team2-logo" class="team-logo" src="" alt="" />
+          <img class="team-logo"
+               id="team2-logo"
+               sbAttr="src: Logo"
+               sbClass="visible: Logo: hasValue"
+               sbContext="Team(2)">
         </div>
       </div>
     </div>
 
-
-  <!-- Rosters and penalties -->
+    <!-- Rosters and Penalties Container -->
     <div id="rosters-penalties-container">
 
-      <div id="team1-rosters-penalties">
+      <!-- Team 1 (Home) Rosters and Penalties -->
+      <div id="team1-rosters-penalties" sbContext="Team(1)">
         <div class="roster-penalties-container">
-
-          <!-- Team 1 roster -->
           <div class="roster-penalty-row">
-            <div id="team1-roster" class="roster">
-              <!-- Populated by JavaScript -->
+
+            <!-- Team 1 Roster Column -->
+            <div id="team1-roster"
+                 class="roster"
+                 sbcss="background-color: Color(whiteboard.bg) |
+                        border-color: Color(whiteboard.fg) |
+                        color: Color(whiteboard.fg) |
+                        text-shadow: Color(whiteboard.glow): glowColorToShadow">
+
+              <!-- Roster lines for each player -->
+              <div class="roster-line"
+                   sbAttr="roster-number: RosterNumber | name-text: Name"
+                   sbClass="sbHide: Flags: shouldHideSkater"
+                   sbForeach="Skater:: roster-number: resort=RosterNumber">
+                <div class="roster-number" sbDisplay="RosterNumber"></div>
+                <div class="roster-name">
+                  <span class="name-text" sbDisplay="Name"></span>
+                  <span class="captain-indicator" sbDisplay="Flags: showCaptainIndicator"></span>
+                </div>
+              </div>
             </div>
             
-            <!-- Team 1 penalties -->
+            <!-- Team 1 Penalties Column -->
             <div class="penalties-column">
-              <div id="team1-penalties" class="penalties">
-                <!-- Populated by JavaScript -->
+              <div id="team1-penalties">
+                <div class="penalty-line"
+                     sbAttr="roster-number: RosterNumber"
+                     sbClass="sbHide: Flags: shouldHideSkater"
+                     sbForeach="Skater:: roster-number: resort=RosterNumber">
+
+                  <!-- Penalty codes display -->
+                  <div class="penalty-codes">
+                    <span sbAttr="penalty-number: Number"
+                          sbDisplay="Code"
+                          sbClass="sbHide: Code, Number: shouldHidePenaltyCode"
+                          sbForeach="Penalty">
+                    </span>
+                  </div>
+
+                  <!-- Penalty count with status detection (Penalty(0).Code registers WebSocket channel) -->
+                  <div class="penalty-count"
+                       sbClass="penalty-count-5: PenaltyCount, Penalty(0).Code: isPenaltyCount5 | 
+                                penalty-count-6: PenaltyCount, Penalty(0).Code: isPenaltyCount6 | 
+                                penalty-count-exp-fo-re: PenaltyCount, Penalty(0).Code: isPenaltyCountExpFoRe"
+                       sbDisplay="PenaltyCount, Penalty(0).Code: getPenaltyCountDisplay">
+                  </div>
+                </div>
               </div>
 
-              <!-- Team 1 penalty totals -->
+              <!-- Team 1 penalty total -->
               <div id="team1-total" class="penalty-total">
                 <span class="total-label">Total:</span>
-                  <!-- Populated by JavaScript -->
-                <span class="total-count">0</span>
-
+                <span class="total-count" sbDisplay="TotalPenalties"></span>
               </div>
             </div>
+
           </div>
         </div>
       </div>
-      
-      <div id="team2-rosters-penalties">
-        <div class="roster-penalties-container">
 
-          <!-- Team 2 roster -->
+      <!-- Team 2 (Away) Rosters and Penalties -->
+      <div id="team2-rosters-penalties" sbContext="Team(2)">
+        <div class="roster-penalties-container">
           <div class="roster-penalty-row">
-            <div id="team2-roster" class="roster">
-              <!-- Populated by JavaScript -->
-            </div>
-            
-            <div class="penalties-column">
-              <div id="team2-penalties" class="penalties">
-                <!-- Populated by JavaScript -->
+
+            <!-- Team 2 Roster Column -->
+            <div id="team2-roster"
+                 class="roster"
+                 sbcss="background-color: Color(whiteboard.bg) |
+                        border-color: Color(whiteboard.fg) |
+                        color: Color(whiteboard.fg) |
+                        text-shadow: Color(whiteboard.glow): glowColorToShadow">
+
+              <!-- Roster lines for each player -->
+              <div class="roster-line"
+                   sbAttr="roster-number: RosterNumber | name-text: Name"
+                   sbClass="sbHide: Flags: shouldHideSkater"
+                   sbForeach="Skater:: roster-number: resort=RosterNumber">
+                <div class="roster-number" sbDisplay="RosterNumber"></div>
+                <div class="roster-name">
+                  <span class="name-text" sbDisplay="Name"></span>
+                  <span class="captain-indicator" sbDisplay="Flags: showCaptainIndicator"></span>
+                </div>
               </div>
-              
-              <!-- Team 2 penalty totals -->
+            </div>
+
+            <!-- Team 2 Penalties Column -->
+            <div class="penalties-column">
+              <div id="team2-penalties">
+                <div class="penalty-line"
+                     sbAttr="roster-number: RosterNumber"
+                     sbClass="sbHide: Flags: shouldHideSkater"
+                     sbForeach="Skater:: roster-number: resort=RosterNumber">
+                  
+                  <!-- Penalty codes display -->
+                  <div class="penalty-codes">
+                    <span sbAttr="penalty-number: Number"
+                          sbDisplay="Code"
+                          sbClass="sbHide: Code, Number: shouldHidePenaltyCode"
+                          sbForeach="Penalty">
+                    </span>
+                  </div>
+
+                  <!-- Penalty count with status detection (Penalty(0).Code registers WebSocket channel) -->
+                  <div class="penalty-count"
+                       sbClass="penalty-count-5: PenaltyCount, Penalty(0).Code: isPenaltyCount5 | 
+                                penalty-count-6: PenaltyCount, Penalty(0).Code: isPenaltyCount6 | 
+                                penalty-count-exp-fo-re: PenaltyCount, Penalty(0).Code: isPenaltyCountExpFoRe"
+                       sbDisplay="PenaltyCount, Penalty(0).Code: getPenaltyCountDisplay">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Team 2 penalty total -->
               <div id="team2-total" class="penalty-total">
                 <span class="total-label">Total:</span>
-                  <!-- Updated by JavaScript -->
-                <span class="total-count">0</span>
-
+                <span class="total-count" sbDisplay="TotalPenalties"></span>
               </div>
             </div>
+
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Game information -->
+    <!-- Game Information Section -->
     <div id="game-info">
       <div class="game-info-wrapper">
 
-        <!-- Tournament info - displayed by JavaScript if available -->
-        <div id="tournament-info" style="display: none;"></div>
+        <!-- Tournament Information -->
+        <div id="tournament-info"
+             sbAttr="data-gameno: EventInfo(GameNo)">
+          <span sbDisplay="EventInfo(Tournament)"></span>
+          <span sbDisplay="EventInfo(GameNo): prependGameNo"></span>
+        </div>
 
-        <!-- Game details -->
         <div id="game-details">
-
-          <!-- Placeholder for optional custom logo - displayed by JavaScript if available -->
-          <div id="custom-logo-space"></div>
-
           <div id="teams-scores">
-            <div class="team-score-block">
 
-              <!-- Team 1 name and score - populated by JavaScript -->
-              <div id="team1-name" class="team-name"></div>
-              <div id="team1-score" class="score"></div>
+            <!-- Custom logo -->
+            <div id="custom-logo-space">
+              <img id="custom-logo" class="custom-logo" src="" />
             </div>
-            
+
+            <!-- Team 1 (Home) -->
+            <div class="team-score-block" sbContext="Team(1)">
+              <div class="team-name" 
+                  sbDisplay="AlternateName(whiteboard), Name: getTeamNameWithDefault"></div>
+              <div class="score" sbDisplay="Score"></div>
+            </div>
+
+            <!-- vs. and Clock Container -->
             <div id="vs-clock-container">
               <div class="vs-text">vs.</div>
-
-              <!-- Clock and clock label - populated by JavaScript -->
               <div id="clock-container">
-                <div id="game-clock"></div>
-              </div>
-              <div id="clock-label"></div>
-            </div>
-            
-            <div class="team-score-block">
 
-              <!-- Team 2 name and score - populated by JavaScript -->
-              <div id="team2-name" class="team-name"></div>
-              <div id="team2-score" class="score"></div>
+                <!-- Period Clock -->
+                <div id="period-clock" 
+                     sbClass="sbHide: Clock(Intermission).Running,
+                                      OfficialScore,
+                                      InOvertime,
+                                      CurrentPeriodNumber: shouldHidePeriodClock"
+                     sbDisplay="Clock(Period).Time: sbToLongTime">
+                </div>
+
+                <!-- Intermission Clock -->
+                <div id="intermission-clock"
+                     sbClass="sbHide: Clock(Intermission).Running,
+                                      OfficialScore,
+                                      InOvertime,
+                                      CurrentPeriodNumber: shouldHideIntermissionClock"
+                     sbDisplay="Clock(Intermission).Time: sbToLongTime">
+                </div>
+              </div>
+
+              <!-- Clock Labels for each game state -->
+              
+              <!-- Period Clock Label -->
+              <div class="clock-label"
+                   sbClass="sbHide: Clock(Intermission).Running,
+                                    OfficialScore,
+                                    InOvertime,
+                                    CurrentPeriodNumber: shouldHidePeriodClock"
+                   sbDisplay="CurrentPeriodNumber: getPeriodLabel">
+              </div>
+
+              <!-- Intermission Label -->
+              <div class="clock-label"
+                   sbPrefix="#: ScoreBoard.Settings.Setting(ScoreBoard.Intermission : )"
+                   sbClass="sbHide: Clock(Intermission).Running,
+                                    OfficialScore,
+                                    InOvertime,
+                                    CurrentPeriodNumber: shouldHideIntermissionClock"
+                   sbDisplay="CurrentPeriodNumber, #.*: getIntermissionLabel">
+              </div>
+
+              <!-- Unofficial Score Label -->
+              <div class="clock-label"
+                   sbPrefix="#: ScoreBoard.Settings.Setting(ScoreBoard.Intermission : )"
+                   sbClass="sbHide: CurrentPeriodNumber,
+                                    Clock(Intermission).Running,
+                                    OfficialScore,
+                                    InOvertime: shouldHideUnofficialScore"
+                   sbDisplay="#.Unofficial">
+              </div>
+
+              <!-- Official Score Label -->
+              <div class="clock-label"
+                   sbPrefix="#: ScoreBoard.Settings.Setting(ScoreBoard.Intermission : )"
+                   sbClass="sbHide: OfficialScore: invertBoolean"
+                   sbDisplay="#.Official">
+              </div>
+
+              <!-- Overtime Label -->
+              <div class="clock-label"
+                   sbClass="sbHide: InOvertime: invertBoolean">
+                   Overtime
+              </div>
+
+              <!-- Coming Up Label -->
+              <div class="clock-label"
+                   sbClass="sbHide: CurrentPeriodNumber,
+                                    Clock(Intermission).Running,
+                                    OfficialScore,
+                                    InOvertime: shouldHideComingUp">
+                   Coming Up
+              </div>
             </div>
+
+            <!-- Team 2 (Away) -->
+            <div class="team-score-block" sbContext="Team(2)">
+              <div class="team-name" 
+                  sbDisplay="AlternateName(whiteboard), Name: getTeamNameWithDefault"></div>
+              <div class="score" sbDisplay="Score"></div>
+            </div>
+
           </div>
         </div>
+      </div>
 
-        <!-- Timeout indicator banner - positioned and populated by JavaScript -->
-        <div id="timeout-banner" class="timeout-banner">
-          <span id="timeout-text"></span>
-        </div>
+      <!-- Timeout Banner -->
+      <div class="timeout-banner"
+          sbClass="visible: Clock(Timeout).Running: isTimeoutVisible | 
+                   position-center: TimeoutOwner: isPositionCenter |
+                   position-team1: TimeoutOwner: isPositionTeam1 |
+                   position-team2: TimeoutOwner: isPositionTeam2"
+          sbDisplay="TimeoutOwner, OfficialReview: getTimeoutText">
       </div>
     </div>
+
   </div>
-      
+
 </body>
 </html>

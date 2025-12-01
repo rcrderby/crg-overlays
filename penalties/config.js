@@ -14,6 +14,7 @@ window.AppConfig = window.AppConfig || {};
 
 // Global variables
 window.AppConfig.PenaltiesOverlayConfig = {
+
   /********************
   ** Debug Settings **
   ********************/
@@ -36,10 +37,10 @@ window.AppConfig.PenaltiesOverlayConfig = {
     filteredSkaterFlags: ['ALT', 'B', 'BA'],
 
     // Game info box side padding with optional banner logo
-    gameInfoPaddingWithLogo: 180,
+    gameInfoPaddingWithLogo: 70,
 
     // Game info box side padding without optional banner logo
-    gameInfoPaddingWithoutLogo: 90,
+    gameInfoPaddingWithoutLogo: 25,
 
     // Default roster shadow properties
     defaultRosterShadowProperties: '.5px .5px 1px',
@@ -47,11 +48,25 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Loading overlay text
     loadingOverlayText: 'Loading game data...',
 
-    // Penalties title text
-    penaltiesTitleText: 'PENALTIES',
+    // Title banner background color
+    titleBannerBackgroundColor: '#666666',
+  
+    // Title banner text/foreground color
+    titleBannerForegroundColor: '#ffffff',
 
-    // Buffer pixels to prevent team name overflow
-    teamNameOverflowBufferPixels: 1
+    // Title banner shadow visibility
+    titleBannerShadow: true,
+
+    // Penalties title text
+    penaltiesTitleText: 'PENALTIES'
+  },
+
+  /****************
+  ** CSS Classes **
+  ****************/
+
+  classes: {
+    textShadow: 'var(--team-penalties-default-text-shadow)'
   },
 
   /********************
@@ -68,21 +83,14 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Prefix used for default team names
     defaultTeamNamePrefix: 'Team ',
 
+    // Prefix used for default period label
+    defaultPeriodLabelPrefix: 'Period',
+
     // Text displayed for expelled skaters
     expelledDisplay: 'EXP',
 
     // Text displayed for fouled out skaters
     fouloutDisplay: 'FO',
-
-    // Default/fallback intermission labels
-    intermission: {
-      preGame: 'Time to Derby',
-      intermission: 'Intermission',
-      unofficial: 'Unofficial Score',
-      official: 'Final Score',
-      overtime: 'Overtime',
-      comingUp: 'Coming Up'
-    },
 
     // Label shown before P1 when IGRF start time is missing or in the past
     preFirstPeriodLabel: 'Period 1',
@@ -96,6 +104,13 @@ window.AppConfig.PenaltiesOverlayConfig = {
       official: 'Official Timeout',
       team: 'Team Timeout',
       review: 'Official Review'
+    },
+
+    // Timeout owner indicators
+    timeoutOwner: {
+      official: 'O',
+      team1: '_1',
+      team2: '_2'
     }
   },
 
@@ -103,13 +118,15 @@ window.AppConfig.PenaltiesOverlayConfig = {
   ** Rules Settings **
   *******************/
 
-  rules: {
-    // Override any custom rules settings
-    // Number of teams
-    numTeams: 2,
-
+ rules: {
     // Number of penalties that result in a foulout
     fouloutPenaltyCount: 7,
+
+    // Override a custom number of periods
+    numPeriods: 2,
+
+    // Override a custom number of teams
+    numTeams: 2,
 
     // Penalty count that triggers the first warning color
     warningPenaltyCount5: 5,
@@ -123,10 +140,10 @@ window.AppConfig.PenaltiesOverlayConfig = {
   ***********************/
 
   penalties: {
-    // Penalty codes to filter from each player's list of penalties
-    filteredCodes: ['FO', 'RE'],
+    // Penalty codes for fouled out players
+    fouloutCode: 'FO',
   
-    // Penalty code for player's removed by the head referee
+    // Penalty code for players removed by the head referee
     removedCode: 'RE'
   },
 
@@ -135,46 +152,11 @@ window.AppConfig.PenaltiesOverlayConfig = {
   ********************/
 
   timing: {
-    // Cache expiration time (ms)
-    cacheExpiryMs: 30000,
-
-    // Time to wait after all data received before showing overlay (ms)
-    dataCompleteDelayMs: 200,
-
-    // Debounce delay for clock updates (ms)
-    debounceClockMs: 50,
-
-    // Debounce delay for penalty updates during initialization (ms)
-    debouncePenaltyInitMs: 300,
-
-    // Debounce delay for penalty updates during normal operation (ms)
-    debouncePenaltyNormalMs: 50,
-
-    // Debounce delay for timeout banner updates during normal operation (ms)
-    debounceTimeoutBannerNormalMs: 50,
-
-    // Delay before setting default team names if no names provided (ms)
-    defaultNameDelayMs: 500,
 
     // Delay before initializing display after WebSocket connects (ms)
-    initDelayMs: 200,
-
-    // Maximum time to wait (timeout) for initial data before displaying overlay (ms)
-    maxLoadWaitMs: 10000,
-
-    // Maximum time to wait after load completes before removing loading screen (ms)
-    maxLoadDisplayRemoveMs: 500,
+    initWebSocket: 100,
 
     // Minimum time to show loading screen (ms)
-    minLoadDisplayMs: 1000,
-
-    // Timeout banner slide in/out animation duration (ms)
-    timeoutBannerSlideMs: 400,
-
-      // Timeout banner slide in/out animation duration when changing timeout types (ms)
-    timeoutBannerTransitionMs: 300,
-
-    // Polling interval to wait for WebSocket connection (ms)
-    wsWaitMs: 100
+    minLoadDisplayMs: 500,
   }
 };
