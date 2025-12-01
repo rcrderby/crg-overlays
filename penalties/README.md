@@ -36,7 +36,6 @@ The overlay gets the information and settings it needs from CRG, so you can just
   - Indicates team captains with a "C" and alternate captains with an "A".
   - Hides roster names that:
     - Are marked as "Not Skating", "Bench Alt Captain", or "Bench Staff".
-    - Don't include a roster name *and* number.
   - Uses each team's custom "whiteboard" background, text, and glow colors if set.
     - Defaults to black backgrounds with white text if not set.
 - Highlights player penalty counts with different color backgrounds at specific thresholds.
