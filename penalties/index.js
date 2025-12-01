@@ -423,19 +423,17 @@ window.getTimeoutText = function(_k, timeoutOwner, officialReview) {
 
 // Position untyped and official timeouts in the center of the game information box
 window.isPositionCenter = function(_k, timeoutOwner) {
-  return timeoutOwner === LABELS.timeoutOwner.official ||
-         timeoutOwner === '' ||
-         !timeoutOwner;
+  return !timeoutOwner || timeoutOwner === LABELS.timeoutOwner.official;
 };
 
 // Position team 1 timeouts on the left side of the game information box
 window.isPositionTeam1 = function(_k, timeoutOwner) {
-  return timeoutOwner && timeoutOwner.endsWith(LABELS.timeoutOwner.team1);
+  return !!(timeoutOwner && timeoutOwner.endsWith(LABELS.timeoutOwner.team1));
 };
 
 // Position team 2 timeouts on the right side of the game information box
 window.isPositionTeam2 = function(_k, timeoutOwner) {
-  return timeoutOwner && timeoutOwner.endsWith(LABELS.timeoutOwner.team2);
+  return !!(timeoutOwner && timeoutOwner.endsWith(LABELS.timeoutOwner.team2));
 };
 
 // Determine if the timeout banner should be visible
