@@ -17,9 +17,10 @@
   --shadow-text-title: 2px 2px 3px rgb(0 0 0 / 40%);
   --shadow-drop-logo: drop-shadow(0 0 4px rgb(0 0 0 / 40%));
 
-  /* Title colors */
+  /* Title banner */
   --title-banner-bg: #666666;
   --title-banner-fg: white;
+  --title-banner-shadow: var(--shadow-box);
 
   /* Team and penalty default colors */
   --team-penalties-default-fg-color: white;
@@ -290,7 +291,7 @@ body {
 #penalties-title {
   background-color: var(--title-banner-bg);
   bottom: 0;
-  box-shadow: var(--shadow-box);
+  box-shadow: var(--title-banner-shadow);
   left: 50%;
   max-width: var(--width-penalties-title-max);
   min-width: 0;
