@@ -61,6 +61,44 @@ const RULES = PenaltiesOverlayConfig.rules;
 const PENALTIES = PenaltiesOverlayConfig.penalties;
 const TIMING = PenaltiesOverlayConfig.timing;
 
+/*********************************
+** Title Banner Color Functions **
+*********************************/
+
+// Apply title banner colors from config.js
+function applyTitleBannerColors() {
+
+  // Apply only valid background colors
+  if (
+    CONFIG.titleBannerBackgroundColor && 
+    CSS.supports('color', CONFIG.titleBannerBackgroundColor)
+  ) {
+    document.documentElement.style.setProperty(
+      '--title-banner-bg', 
+      CONFIG.titleBannerBackgroundColor
+    );
+  } else if (CONFIG.titleBannerBackgroundColor) {
+    console.warn(
+      `Invalid title banner background color: "${CONFIG.titleBannerBackgroundColor}" - using CSS default.`
+    );
+  }
+  
+  // Only apply valid foreground colors
+  if (
+    CONFIG.titleBannerForegroundColor && 
+    CSS.supports('color', CONFIG.titleBannerForegroundColor)
+  ) {
+    document.documentElement.style.setProperty(
+      '--title-banner-fg', 
+      CONFIG.titleBannerForegroundColor
+    );
+  } else if (CONFIG.titleBannerForegroundColor) {
+    console.warn(
+      `Invalid title banner text color: "${CONFIG.titleBannerForegroundColor}" - using CSS default.`
+    );
+  }
+}
+
 /******************************
 ** General Utility Functions **
 ******************************/
@@ -449,6 +487,9 @@ $(function() {
   if (DEBUG) {
     console.log('Initializing Penalties Overlay...');
   }
+
+  // Apply title banner colors from config.js
+  applyTitleBannerColors();
 
   // Set the loading overlay text
   $('.loading-text').text(CONFIG.loadingOverlayText);
