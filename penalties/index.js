@@ -65,10 +65,10 @@ const TIMING = PenaltiesOverlayConfig.timing;
 ** Title Banner Color Functions **
 *********************************/
 
-// Apply title banner colors from config.js
-function applyTitleBannerColors() {
+// Format title banner with values from config.js
+function formatTitleBanner() {
 
-  // Apply only valid background colors
+  // Apply valid background colors
   if (
     CONFIG.titleBannerBackgroundColor && 
     CSS.supports('color', CONFIG.titleBannerBackgroundColor)
@@ -83,7 +83,7 @@ function applyTitleBannerColors() {
     );
   }
   
-  // Only apply valid foreground colors
+  // Apply valid foreground colors
   if (
     CONFIG.titleBannerForegroundColor && 
     CSS.supports('color', CONFIG.titleBannerForegroundColor)
@@ -95,6 +95,20 @@ function applyTitleBannerColors() {
   } else if (CONFIG.titleBannerForegroundColor) {
     console.warn(
       `Invalid title banner text color: "${CONFIG.titleBannerForegroundColor}" - using CSS default.`
+    );
+  }
+
+  // Control title banner shadow visibility
+  if (typeof CONFIG.titleBannerShadow === 'boolean') {
+    if (CONFIG.titleBannerShadow === false) {
+      document.documentElement.style.setProperty(
+        '--title-banner-shadow',
+        'none'
+      );
+    }
+  } else if (typeof CONFIG.titleBannerShadow !== 'undefined') {
+    console.warn(
+      `Invalid title banner shadow value: "${CONFIG.titleBannerShadow}" - using CSS default.`
     );
   }
 }
@@ -492,7 +506,7 @@ $(function() {
   $('.loading-text').text(CONFIG.loadingOverlayText);
 
   // Apply title banner colors from config.js
-  applyTitleBannerColors();
+  formatTitleBanner();
 
   // Set the penalties title
   $('#penalties-title h1').text(CONFIG.penaltiesTitleText);
