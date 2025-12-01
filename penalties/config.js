@@ -83,16 +83,6 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Text displayed for fouled out skaters
     fouloutDisplay: 'FO',
 
-    // Default/fallback intermission labels
-    intermission: {
-      preGame: 'Time to Derby',
-      intermission: 'Intermission',
-      unofficial: 'Unofficial Score',
-      official: 'Final Score',
-      overtime: 'Overtime',
-      comingUp: 'Coming Up'
-    },
-
     // Label shown before P1 when IGRF start time is missing or in the past
     preFirstPeriodLabel: 'Period 1',
 
