@@ -110,7 +110,7 @@ window.shouldHidePeriodClock = function(_k, intermissionRunning) {
   const numPeriods = RULES.numPeriods;
 
   // When the intermission clock is running
-  const isIntermission = intermissionRunning === true || intermissionRunning === 'true';
+  const isIntermission = intermissionRunning === true;
 
   // When the score is unofficial or official
   const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
@@ -128,7 +128,7 @@ window.shouldHidePeriodClock = function(_k, intermissionRunning) {
 window.shouldHideIntermissionClock = function(_k, intermissionRunning) {
 
   // When the intermission clock is not running
-  const isIntermission = intermissionRunning === true || intermissionRunning === 'true';
+  const isIntermission = intermissionRunning === true;
 
   // When the score is unofficial or official
   const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
@@ -396,7 +396,7 @@ window.shouldHidePenaltyCode = function(k, code, penaltyNumber) {
 window.getTimeoutText = function(_k, timeoutOwner, officialReview) {
 
   // Official review
-  const isReview = (officialReview === true || officialReview === 'true') || 
+  const isReview = (officialReview === true) || 
                    WS.state['ScoreBoard.CurrentGame.OfficialReview'] === true;
   if (isReview) return LABELS.timeout.review;
 
@@ -440,7 +440,7 @@ window.isPositionTeam2 = function(_k, timeoutOwner) {
 
 // Determine if the timeout banner should be visible
 window.isTimeoutVisible = function(_k, timeoutRunning) {
-  return timeoutRunning === true || timeoutRunning === 'true';
+  return timeoutRunning === true;
 };
 
 /*******************************
