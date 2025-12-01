@@ -37,10 +37,10 @@ window.AppConfig.PenaltiesOverlayConfig = {
     filteredSkaterFlags: ['ALT', 'B', 'BA'],
 
     // Game info box side padding with optional banner logo
-    gameInfoPaddingWithLogo: 100,
+    gameInfoPaddingWithLogo: 70,
 
     // Game info box side padding without optional banner logo
-    gameInfoPaddingWithoutLogo: 40,
+    gameInfoPaddingWithoutLogo: 25,
 
     // Default roster shadow properties
     defaultRosterShadowProperties: '.5px .5px 1px',
