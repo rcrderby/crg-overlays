@@ -51,9 +51,9 @@
 
   /* Game information area colors */
   --clock-label-fg: #ff69b4;
-  --title-banner-bg: #666666;
   --game-details-bg: #666666;
   --game-details-fg: white;
+  --title-banner-bg: #666666;
   --tournament-bg: #333333;
   --tournament-fg: white;
 
@@ -290,13 +290,11 @@ body {
 
 #penalties-title {
   background-color: var(--title-banner-bg);
-  background-color: var(--game-details-bg);
   bottom: 0;
   box-shadow: var(--shadow-box);
   left: 50%;
   max-width: var(--width-penalties-title-max);
   min-width: 0;
-  padding: var(--padding-title-banner-vertical) var(--padding-title-banner-horizontal);
   padding: var(--padding-title-banner-vertical) var(--padding-title-banner-horizontal);
   position: absolute;
   text-align: center;
