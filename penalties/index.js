@@ -523,8 +523,8 @@ $(function() {
   // Apply title banner colors from config.js
   formatTitleBanner();
 
-  // Set the penalties title
-  $(CLASSES.penaltiesTitleH1Selector).text(CONFIG.penaltiesTitleText);
+  // Set the title banner text
+  $(CLASSES.penaltiesTitleH1Selector).text(CONFIG.titleBannerText);
 
   // Attempt to load a custom logo
   loadCustomLogo();
