@@ -143,7 +143,7 @@ A configuration file named [config.js](./config.js) allows you customize various
     Configuration File Reference
   </summary>
 
-  ***debug***
+  ***debug*** **Section**
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
@@ -151,7 +151,7 @@ A configuration file named [config.js](./config.js) allows you customize various
 
   ---
 
-  ***config***
+  ***config*** **Section**
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
@@ -167,7 +167,7 @@ A configuration file named [config.js](./config.js) allows you customize various
 
   ---
 
-  ***classes***
+  ***classes*** **Section**
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
@@ -184,7 +184,7 @@ A configuration file named [config.js](./config.js) allows you customize various
 
   ---
 
-  ***labels***
+  ***labels*** **Section**
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
@@ -192,7 +192,7 @@ A configuration file named [config.js](./config.js) allows you customize various
 
   ---
 
-  ***rules***
+  ***rules*** **Section**
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
@@ -200,7 +200,7 @@ A configuration file named [config.js](./config.js) allows you customize various
 
   ---
 
-  ***penalties***
+  ***penalties*** **Section**
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
@@ -208,7 +208,7 @@ A configuration file named [config.js](./config.js) allows you customize various
 
   ---
 
-  ***timing***
+  ***timing*** **Section**
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
