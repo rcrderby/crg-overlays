@@ -90,7 +90,7 @@ To make this overlay available to your video streaming team, you need to downloa
 1. Navigate to the [Releases page](https://github.com/rcrderby/crg-overlays/releases "Releases Page") of this repository.
 2. Click on one of the **Source code** links in the **Assets** section of the latest release to download a compressed/zipped copy of the overlay files.
 3. Extract the `.zip` or `tar.gz` file you downloaded.
-4. From the extracted files, locate the `penalties`folder; you will copy this folder to your instance of CRG.
+4. From the extracted files, locate the `penalties` folder; you will copy this folder to your instance of CRG.
 
 **Copy the overlay files to CRG:**
 
@@ -138,7 +138,7 @@ The logo will display in the game information area of the overlay once you refre
 
 ## Configuration
 
-A configuration file named [config.js](./config.js) allows you customize various overlay settings.  Please note that some settings are safe to change, and others are best left at their default values:
+A configuration file named [config.js](./config.js) allows you to customize various overlay settings.  Please note that some settings are safe to change, and others are best left at their default values:
 
 - :white_check_mark: - Safe to change
 - :warning: - Proceed with caution
@@ -254,6 +254,6 @@ A configuration file named [config.js](./config.js) allows you customize various
 <!-- Footnotes -->
 
 [^1]: Replace `<crg-ip-address>` with the IP address of your CRG instance.
-[^2]: The overlay will constrain your logo to a 70px x 700px container and apply a drop shadow.  
+[^2]: The overlay will constrain your logo to a 70px x 70px container and apply a drop shadow.  
 Logos with a 1:1 aspect ratio and a transparent background will produce the best appearance.
 [^3]: See the [Mozilla Color Reference Documentation](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/named-color#value "Mozilla Color Reference Documentation") for value examples.
