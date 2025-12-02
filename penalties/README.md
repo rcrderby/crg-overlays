@@ -150,13 +150,13 @@ A configuration file named [config.js](./config.js) allows you to customize vari
 - `config.titleBannerText` to adjust the title banner text (default is `PENALTIES`).
 - `config.titleBannerBackgroundColor` and `titleBannerForegroundColor` set the title banner box background and text colors respectively.
 
+> [!NOTE]
+> Changes to `config.js` require a page refresh to take effect.
+
 <details>
   <summary>
     Configuration File Reference
   </summary>
-
-> [!NOTE]
-> Changes to `config.js` require a page refresh to take effect.
 
   ***debug*** **Section**
 
