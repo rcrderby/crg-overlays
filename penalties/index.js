@@ -406,57 +406,43 @@ window.shouldHideComingUp = function(_k) {
 ** Custom Logo Helper Function **
 ********************************/
 
-// Load a custom logo if available
+// Load a custom logo if available - also adds has-logo class for grid layout
 function loadCustomLogo() {
 
   // Check if the logo path is configured
   if (!CONFIG.bannerLogoPath || CONFIG.bannerLogoPath === '') {
-
-    // Apply padding when no logo is present
-    $('#teams-scores').css({
-      'padding-left': CONFIG.gameInfoPaddingWithoutLogo + 'px',
-      'padding-right': CONFIG.gameInfoPaddingWithoutLogo + 'px'
-    });
     
     if (DEBUG) {
-      console.log('No custom logo available, using default padding:', CONFIG.gameInfoPaddingWithoutLogo);
+      console.log('No custom logo configured.');
     }
     return;
   }
 
   const logoImg = new Image();
   const $customLogo = $('#custom-logo');
+  const $customLogoSpace = $('#custom-logo-space');
+  const $teamsScores = $('#teams-scores');
 
-  // Show the logo and apply the appropriate padding when the logo loads successfully
+  // Show the logo and expand the grid columns when the logo successfully loads
   logoImg.onload = function() {
     $customLogo.attr('src', CONFIG.bannerLogoPath);
-    $customLogo.addClass('visible');
-    
-    // Apply padding when the logo is present
-    $('#teams-scores').css({
-      'padding-left': CONFIG.gameInfoPaddingWithLogo + 'px',
-      'padding-right': CONFIG.gameInfoPaddingWithLogo + 'px'
-    });
+    $customLogoSpace.addClass('visible');
+    $teamsScores.addClass('has-logo');
     
     if (DEBUG) {
-      console.log('Custom logo loaded:', CONFIG.bannerLogoPath);
-      console.log('Adding padding:', CONFIG.gameInfoPaddingWithLogo);
+      console.log(`Custom logo loaded: ${CONFIG.bannerLogoPath}.`);
+      console.log('Grid column 5 expanded for balanced layout.');
     }
   };
 
-  // Hide the logo and apply default padding when there is no logo or it fails to load
+  // Keep logo hidden and grid collapsed if it fails to load
   logoImg.onerror = function() {
-    $customLogo.removeClass('visible');
-    
-    // Apply padding for no logo
-    $('#teams-scores').css({
-      'padding-left': CONFIG.gameInfoPaddingWithoutLogo + 'px',
-      'padding-right': CONFIG.gameInfoPaddingWithoutLogo + 'px'
-    });
+    $customLogoSpace.removeClass('visible');
+    $teamsScores.removeClass('has-logo');
     
     if (DEBUG) {
-      console.log('Custom logo failed to load:', CONFIG.bannerLogoPath);
-      console.log('Using default padding:', CONFIG.gameInfoPaddingWithoutLogo);
+      console.log(`Custom logo failed to load: ${CONFIG.bannerLogoPath}.`);
+      console.log('Grid column 5 remains collapsed.');
     }
   };
 
