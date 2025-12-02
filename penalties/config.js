@@ -30,7 +30,6 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
   config: {
     // Path to an optional custom logo in the game information section
-    // Set to null or empty string to disable
     bannerLogoPath: 'logos/banner-logo.png',
 
     // Skater flags to filter from roster display (Not Skating, Bench Alt Captain, Bench Staff)
@@ -39,7 +38,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Default roster shadow properties
     defaultRosterShadowProperties: '.5px .5px 1px',
 
-    // Loading overlay text
+    // Text displayed on the "loading" screen
     loadingOverlayText: 'Loading game data...',
 
     // Title banner background color
@@ -48,14 +47,14 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Title banner text/foreground color
     titleBannerForegroundColor: '#ffffff',
 
-    // Title banner shadow visibility
+    // Title banner box shadow visibility
     titleBannerShadow: true,
 
-    // Overall overlay scale (percentage: 100 = full size, 90 = 90% size, etc.)
-    overlayScale: 100,
+    // Title banner text
+    titleBannerText: 'PENALTIES',
 
-    // Penalties title text
-    penaltiesTitleText: 'PENALTIES'
+    // Overlay scale size - percentage: 100 = full size, 90 = 90% size, etc. (1% to 200%)
+    overlayScale: 100
   },
 
   /****************
