@@ -72,6 +72,18 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // CSS Selector for the visible custom logo space container
     customLogoSpaceVisibleSelectorSuffix: 'visible',
 
+    // CSS Selector for the loading overlay fade out
+    loadingOverlayFadeOutSuffixSelector: 'fade-out',
+
+    // CSS Selector for the loading overlay
+    loadingOverlaySelector: '#loading-overlay',
+
+    // CSS Selector for the loading overlay text
+    loadingOverlayTextSelector: '.loading-text',
+
+    // CSS Selector for the penalties title H1 text
+    penaltiesTitleH1Selector: '#penalties-title h1',
+
     // CSS Selector for the team scores custom logo padding container
     teamsScoresHasLogoSelectorSuffix: 'has-logo',
 
