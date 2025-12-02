@@ -147,7 +147,7 @@ A configuration file named [config.js](./config.js) allows you customize various
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
-  | debug | Enable debug logging to browser console (set to "true" for troubleshooting) | boolean | `false` | :white_check_mark: |
+  | `debug` | Enable debug logging to browser console (set to "true" for troubleshooting) | boolean | `false` | :white_check_mark: |
 
   ---
 
@@ -155,15 +155,15 @@ A configuration file named [config.js](./config.js) allows you customize various
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
-  | bannerLogoPath | // Path to an optional custom logo in the game information section | string | `logos/banner-logo.png` | :warning: |
-  | filteredSkaterFlags | Skater flags to filter from roster display (Not Skating, Bench Alt Captain, Bench Staff) | `['ALT', 'B', 'BA']` | :x: |
-  | defaultRosterShadowProperties | Default roster shadow properties | string | `.5px .5px 1px` | :x: |
-  | loadingOverlayText | Text displayed on the "loading" screen | string | `Loading game data...` | :white_check_mark: |
-  | titleBannerBackgroundColor | Title banner background color | string | `#666666` [^3] | :white_check_mark: |
-  | titleBannerBackgroundColor | Title banner text/foreground color | string | `#ffffff` | :white_check_mark: |
-  | titleBannerShadow | Title banner box shadow visibility | boolean | `true` | :white_check_mark: |
-  | penaltiesTitleText | Title banner text | string | `PENALTIES` | :white_check_mark: |
-  | overlayScale | Overlay scale size - percentage: 100 = full size, 90 = 90% size, etc. (1% to 200%) | integer | `100` | :white_check_mark: |
+  | `bannerLogoPath` | // Path to an optional custom logo in the game information section | string | `logos/banner-logo.png` | :warning: |
+  | `filteredSkaterFlags` | Skater flags to filter from roster display (Not Skating, Bench Alt Captain, Bench Staff) | `['ALT', 'B', 'BA']` | :x: |
+  | `defaultRosterShadowProperties` | Default roster shadow properties | string | `.5px .5px 1px` | :x: |
+  | `loadingOverlayText` | Text displayed on the "loading" screen | string | `Loading game data...` | :white_check_mark: |
+  | `titleBannerBackgroundColor` | Title banner background color | string | `#666666` [^3] | :white_check_mark: |
+  | `titleBannerBackgroundColor` | Title banner text/foreground color | string | `#ffffff` | :white_check_mark: |
+  | `titleBannerShadow` | Title banner box shadow visibility | boolean | `true` | :white_check_mark: |
+  | `penaltiesTitleText` | Title banner text | string | `PENALTIES` | :white_check_mark: |
+  | `overlayScale` | Overlay scale size - percentage: 100 = full size, 90 = 90% size, etc. (1% to 200%) | integer | `100` | :white_check_mark: |
 
   ---
 
@@ -171,16 +171,16 @@ A configuration file named [config.js](./config.js) allows you customize various
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
-  | customLogoSelector | CSS Selector for the custom logo container | string | `#custom-logo` | :x: |
-  | customLogoSpaceSelector | CSS Selector for the custom logo space container | string | `#custom-logo-space` | :x: |
-  | customLogoSpaceVisibleSelectorSuffix | CSS Selector for the visible custom logo space container container | string | `visible` | :x: |
-  | loadingOverlayFadeOutSuffixSelector | CSS Selector for the loading overlay fade out | string | `fade-out` | :x: |
-  | loadingOverlaySelector | CSS Selector for the loading overlay | string | `#loading-overlay` | :x: |
-  | loadingOverlayTextSelector | CSS Selector for the loading overlay text | string | `.loading-text` | :x: |
-  | penaltiesTitleH1Selector | CSS Selector for the penalties title H1 text | string | `#penalties-title h1` | :x: |
-  | teamsScoresHasLogoSelectorSuffix | CSS Selector for the team scores custom logo padding container | string | `has-logo` | :x: |
-  | teamsScoresSelector | CSS Selector for the team scores container | string | `#teams-scores` | :x: |
-  | textShadow | CSS Variable for text shadows | string | `var(--team-penalties-default-text-shadow)` | :x: |
+  | `customLogoSelector` | CSS Selector for the custom logo container | string | `#custom-logo` | :x: |
+  | `customLogoSpaceSelector` | CSS Selector for the custom logo space container | string | `#custom-logo-space` | :x: |
+  | `customLogoSpaceVisibleSelectorSuffix` | CSS Selector for the visible custom logo space container container | string | `visible` | :x: |
+  | `loadingOverlayFadeOutSuffixSelector` | CSS Selector for the loading overlay fade out | string | `fade-out` | :x: |
+  | `loadingOverlaySelector` | CSS Selector for the loading overlay | string | `#loading-overlay` | :x: |
+  | `loadingOverlayTextSelector` | CSS Selector for the loading overlay text | string | `.loading-text` | :x: |
+  | `penaltiesTitleH1Selector` | CSS Selector for the penalties title H1 text | string | `#penalties-title h1` | :x: |
+  | `teamsScoresHasLogoSelectorSuffix` | CSS Selector for the team scores custom logo padding container | string | `has-logo` | :x: |
+  | `teamsScoresSelector` | CSS Selector for the team scores container | string | `#teams-scores` | :x: |
+  | `textShadow` | CSS Variable for text shadows | string | `var(--team-penalties-default-text-shadow)` | :x: |
 
   ---
 
@@ -188,7 +188,7 @@ A configuration file named [config.js](./config.js) allows you customize various
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
-  | altCaptainFlag | Character displayed next to alternate captain names | string | `A` | :x: |
+  | `altCaptainFlag` | Character displayed next to alternate captain names | string | `A` | :x: |
 
   ---
 
@@ -196,7 +196,7 @@ A configuration file named [config.js](./config.js) allows you customize various
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
-  | fouloutPenaltyCount | Number of penalties that result in a foulout | integer | `7` | :x: |
+  | `fouloutPenaltyCount` | Number of penalties that result in a foulout | integer | `7` | :x: |
 
   ---
 
@@ -204,7 +204,7 @@ A configuration file named [config.js](./config.js) allows you customize various
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
-  | fouloutCode | Penalty codes for fouled out players | string | `FO` | :x: |
+  | `fouloutCode` | Penalty codes for fouled out players | string | `FO` | :x: |
 
   ---
 
@@ -212,7 +212,7 @@ A configuration file named [config.js](./config.js) allows you customize various
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
-  | initWebSocket | Delay before initializing display after WebSocket connects (ms) | integer | `100` | :x: |
+  | `initWebSocket` | Delay before initializing display after WebSocket connects (ms) | integer | `100` | :x: |
 
 </details>
 
