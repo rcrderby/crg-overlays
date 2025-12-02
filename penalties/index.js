@@ -419,15 +419,15 @@ function loadCustomLogo() {
   }
 
   const logoImg = new Image();
-  const $customLogo = $('#custom-logo');
-  const $customLogoSpace = $('#custom-logo-space');
-  const $teamsScores = $('#teams-scores');
+  const $customLogo = $(CLASSES.customLogoSelector);
+  const $customLogoSpace = $(CLASSES.customLogoSpaceSelector);
+  const $teamsScores = $(CLASSES.teamsScoresSelector);
 
   // Show the logo and expand the grid columns when the logo successfully loads
   logoImg.onload = function() {
     $customLogo.attr('src', CONFIG.bannerLogoPath);
-    $customLogoSpace.addClass('visible');
-    $teamsScores.addClass('has-logo');
+    $customLogoSpace.addClass(CLASSES.customLogoSpaceVisibleSelectorSuffix);
+    $teamsScores.addClass(CONFIG.teamsScoresHasLogoSelectorSuffix);
     
     if (DEBUG) {
       console.log(`Custom logo loaded: ${CONFIG.bannerLogoPath}.`);
@@ -437,8 +437,8 @@ function loadCustomLogo() {
 
   // Keep logo hidden and grid collapsed if it fails to load
   logoImg.onerror = function() {
-    $customLogoSpace.removeClass('visible');
-    $teamsScores.removeClass('has-logo');
+    $customLogoSpace.removeClass(CLASSES.customLogoSpaceVisibleSelectorSuffix);
+    $teamsScores.removeClass(CLASSES.teamsScoresHasLogoSelectorSuffix);
     
     if (DEBUG) {
       console.log(`Custom logo failed to load: ${CONFIG.bannerLogoPath}.`);
