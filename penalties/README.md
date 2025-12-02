@@ -129,6 +129,37 @@ To add a custom logo to the left side game information area of the overlay:
 
 The logo will display in the game information area of the overlay once you refresh your browser.
 
+## Configuration
+
+A configuration file named [./config.js](./config.js) allows you customize various overlay settings:
+
+<details>
+  <summary>
+    :heavy_plus_sign: config.js Reference
+  </summary>
+
+  Settings Adjustment Key:
+
+- :white_check_mark: - Safe to change
+- :warning: - Proceed with caution
+- :x: - Not Recommended
+
+  ***debug***
+
+  | Setting | Description | Type | Default | Adjustable |
+  | - | - | - | - | - |
+  | debug | Enable verbose browser console logging | boolean | `false` | :white_check_mark: |
+
+  ---
+
+  ***config***
+
+  | Setting | Description | Type | Default | Adjustable |
+  | - | - | - | - | - |
+  | bannerLogoPath | Path to custom logo | string | `logos/banner-logo.png` | :warning: |
+
+</details>
+
 <!-- Footnotes -->
 
 [^1]: Replace `<crg-ip-address>` with the IP address of your CRG instance.
