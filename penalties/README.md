@@ -141,7 +141,6 @@ A configuration file named [config.js](./config.js) allows you customize various
 <details>
   <summary>
     Configuration File Reference
-    <br>
   </summary>
 
   ***debug*** **Section**
