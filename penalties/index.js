@@ -427,7 +427,7 @@ function loadCustomLogo() {
   logoImg.onload = function() {
     $customLogo.attr('src', CONFIG.bannerLogoPath);
     $customLogoSpace.addClass(CLASSES.customLogoSpaceVisibleSelectorSuffix);
-    $teamsScores.addClass(CONFIG.teamsScoresHasLogoSelectorSuffix);
+    $teamsScores.addClass(CLASSES.teamsScoresHasLogoSelectorSuffix);
     
     if (DEBUG) {
       console.log(`Custom logo loaded: ${CONFIG.bannerLogoPath}.`);
