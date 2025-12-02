@@ -158,7 +158,12 @@ A configuration file named [config.js](./config.js) allows you customize various
   | bannerLogoPath | Path to custom logo | string | `logos/banner-logo.png` | :warning: |
   | filteredSkaterFlags | Flags that filter players from the roster display | array of strings | `['ALT', 'B', 'BA']` | :x: |
   | defaultRosterShadowProperties | CSS shadow settings for rosters | string | `.5px .5px 1px` | :x: |
-  | loadingOverlayText | Text displayed on "loading" screen | string | `Loading game data...` | :x: |
+  | loadingOverlayText | Text displayed on the "loading" screen | string | `Loading game data...` | :white_check_mark: |
+  | titleBannerBackgroundColor | Title banner background color | string | `#666666` [^3] | :white_check_mark: |
+  | titleBannerBackgroundColor | Title banner text color | string | `#ffffff` | :white_check_mark: |
+  | titleBannerShadow | Add shadow to title banner box | boolean | `true` | :white_check_mark: |
+  | overlayScale | Scale to size the overlay to (1% to 200%) | integer | `100` | :white_check_mark: |
+  | penaltiesTitleText | Title banner text | string | `PENALTIES` | :white_check_mark: |
 
 </details>
 
@@ -167,3 +172,4 @@ A configuration file named [config.js](./config.js) allows you customize various
 [^1]: Replace `<crg-ip-address>` with the IP address of your CRG instance.
 [^2]: The overlay will constrain your logo to a 70px x 700px container and apply a drop shadow.  
 Logos with a 1:1 aspect ratio and a transparent background will produce the best appearance.
+[^3]: See color reference at TODO.
