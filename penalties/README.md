@@ -156,6 +156,9 @@ A configuration file named [config.js](./config.js) allows you customize various
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
   | bannerLogoPath | Path to custom logo | string | `logos/banner-logo.png` | :warning: |
+  | filteredSkaterFlags | Flags that filter players from the roster display | array of strings | `['ALT', 'B', 'BA']` | :x: |
+  | defaultRosterShadowProperties | CSS shadow settings for rosters | string | `.5px .5px 1px` | :x: |
+  | loadingOverlayText | Text displayed on "loading" screen | string | `Loading game data...` | :x: |
 
 </details>
 
