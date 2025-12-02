@@ -20,7 +20,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
   ********************/
 
   debug: {
-    // Enable debug logging to browser console (set to "true" for troubleshooting)
+    // Enable debug logging to browser console (set to `true` for troubleshooting)
     enabled: false
   },
 
@@ -41,10 +41,10 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Text displayed on the "loading" screen
     loadingOverlayText: 'Loading game data...',
 
-    // Title banner background color, or 'transparent'
+    // Title banner background color, or `transparent`
     titleBannerBackgroundColor: '#666666',
   
-    // Title banner text/foreground color, or 'transparent'
+    // Title banner text/foreground color, or `transparent`
     titleBannerForegroundColor: '#ffffff',
 
     // Title banner box shadow visibility
