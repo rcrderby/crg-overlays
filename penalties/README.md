@@ -138,6 +138,12 @@ A configuration file named [config.js](./config.js) allows you customize various
 - :warning: - Proceed with caution
 - :x: - Not Recommended
 
+### Common Customizations
+
+- `config.overlayScale` to adjust the overlay size - typically between 80% and 120% (default is `100`).
+- `config.titleBannerText` to adjust the title banner text (default is `PENALTIES`).
+- `config.titleBannerBackgroundColor` and `titleBannerForegroundColor` set the title banner box background and text colors respectively.
+
 <details>
   <summary>
     Configuration File Reference
