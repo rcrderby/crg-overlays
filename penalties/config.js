@@ -20,7 +20,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
   ********************/
 
   debug: {
-    // Enable debug logging to browser console (set to "true" for troubleshooting)
+    // Enable debug logging to browser console (set to `true` for troubleshooting)
     enabled: false
   },
 
@@ -30,7 +30,6 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
   config: {
     // Path to an optional custom logo in the game information section
-    // Set to null or empty string to disable
     bannerLogoPath: 'logos/banner-logo.png',
 
     // Skater flags to filter from roster display (Not Skating, Bench Alt Captain, Bench Staff)
@@ -39,23 +38,23 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Default roster shadow properties
     defaultRosterShadowProperties: '.5px .5px 1px',
 
-    // Loading overlay text
+    // Text displayed on the "loading" screen
     loadingOverlayText: 'Loading game data...',
 
-    // Title banner background color
+    // Title banner background color hex value, color name, or `transparent`
     titleBannerBackgroundColor: '#666666',
   
-    // Title banner text/foreground color
+    // Title banner text/foreground color hex value, color name, or `transparent`
     titleBannerForegroundColor: '#ffffff',
 
-    // Title banner shadow visibility
+    // Title banner box shadow visibility
     titleBannerShadow: true,
 
-    // Overall overlay scale (percentage: 100 = full size, 90 = 90% size, etc.)
-    overlayScale: 100,
+    // Title banner text
+    titleBannerText: 'PENALTIES',
 
-    // Penalties title text
-    penaltiesTitleText: 'PENALTIES'
+    // Overlay scale size - percentage: 100 = full size, 90 = 90% size, etc. (1% to 200%)
+    overlayScale: 100
   },
 
   /****************
@@ -63,6 +62,34 @@ window.AppConfig.PenaltiesOverlayConfig = {
   ****************/
 
   classes: {
+    // CSS Selector for the custom logo container
+    customLogoSelector: '#custom-logo',
+
+    // CSS Selector for the custom logo space container
+    customLogoSpaceSelector: '#custom-logo-space',
+
+    // CSS Selector for the visible custom logo space container
+    customLogoSpaceVisibleSelectorSuffix: 'visible',
+
+    // CSS Selector for the loading overlay fade out
+    loadingOverlayFadeOutSuffixSelector: 'fade-out',
+
+    // CSS Selector for the loading overlay
+    loadingOverlaySelector: '#loading-overlay',
+
+    // CSS Selector for the loading overlay text
+    loadingOverlayTextSelector: '.loading-text',
+
+    // CSS Selector for the penalties title H1 text
+    penaltiesTitleH1Selector: '#penalties-title h1',
+
+    // CSS Selector for the team scores custom logo padding container
+    teamsScoresHasLogoSelectorSuffix: 'has-logo',
+
+    // CSS Selector for the team scores container
+    teamsScoresSelector: '#teams-scores',
+
+    // CSS Variable for text shadows
     textShadow: 'var(--team-penalties-default-text-shadow)'
   },
 
@@ -78,7 +105,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
     captainFlag: 'C',    
 
     // Prefix used for default team names
-    defaultTeamNamePrefix: 'Team ',
+    defaultTeamNamePrefix: 'Team',
 
     // Prefix used for default period label
     defaultPeriodLabelPrefix: 'Period',
@@ -137,7 +164,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
   ***********************/
 
   penalties: {
-    // Penalty codes for fouled out players
+    // Penalty code for fouled out players
     fouloutCode: 'FO',
   
     // Penalty code for players removed by the head referee

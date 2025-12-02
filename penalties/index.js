@@ -75,7 +75,7 @@ function setOverlayScale() {
     console.warn('overlayScale not defined in config - using default 100%.');
   } else if (typeof overlayScaleConfig !== 'number' || isNaN(overlayScaleConfig)) {
     console.warn(`Invalid overlayScale value "${overlayScaleConfig}" (must be numeric) - using default 100%.`);
-  } else if (overlayScaleConfig <= 0 || overlayScaleConfig > 200) {
+  } else if (overlayScaleConfig < 1 || overlayScaleConfig > 200) {
     console.warn(`Invalid overlayScale value ${overlayScaleConfig} (must be between 1 and 200) - using default 100%.`);
   } else {
     // Round scale to two decimal points
@@ -302,7 +302,7 @@ window.getTeamNameWithDefault = function(k, alternateName) {
   }
   
   // Use "Team N" third
-  return LABELS.defaultTeamNamePrefix + teamNum;
+  return `${LABELS.defaultTeamNamePrefix} ${teamNum}`;
 };
 
 // Determine if the period clock should be hidden
@@ -419,15 +419,15 @@ function loadCustomLogo() {
   }
 
   const logoImg = new Image();
-  const $customLogo = $('#custom-logo');
-  const $customLogoSpace = $('#custom-logo-space');
-  const $teamsScores = $('#teams-scores');
+  const $customLogo = $(CLASSES.customLogoSelector);
+  const $customLogoSpace = $(CLASSES.customLogoSpaceSelector);
+  const $teamsScores = $(CLASSES.teamsScoresSelector);
 
   // Show the logo and expand the grid columns when the logo successfully loads
   logoImg.onload = function() {
     $customLogo.attr('src', CONFIG.bannerLogoPath);
-    $customLogoSpace.addClass('visible');
-    $teamsScores.addClass('has-logo');
+    $customLogoSpace.addClass(CLASSES.customLogoSpaceVisibleSelectorSuffix);
+    $teamsScores.addClass(CONFIG.teamsScoresHasLogoSelectorSuffix);
     
     if (DEBUG) {
       console.log(`Custom logo loaded: ${CONFIG.bannerLogoPath}.`);
@@ -437,8 +437,8 @@ function loadCustomLogo() {
 
   // Keep logo hidden and grid collapsed if it fails to load
   logoImg.onerror = function() {
-    $customLogoSpace.removeClass('visible');
-    $teamsScores.removeClass('has-logo');
+    $customLogoSpace.removeClass(CLASSES.customLogoSpaceVisibleSelectorSuffix);
+    $teamsScores.removeClass(CLASSES.teamsScoresHasLogoSelectorSuffix);
     
     if (DEBUG) {
       console.log(`Custom logo failed to load: ${CONFIG.bannerLogoPath}.`);
@@ -518,20 +518,20 @@ $(function() {
   setOverlayScale()
 
   // Set the loading overlay text
-  $('.loading-text').text(CONFIG.loadingOverlayText);
+  $(CLASSES.loadingOverlayTextSelector).text(CONFIG.loadingOverlayText);
 
   // Apply title banner colors from config.js
   formatTitleBanner();
 
-  // Set the penalties title
-  $('#penalties-title h1').text(CONFIG.penaltiesTitleText);
+  // Set the title banner text
+  $(CLASSES.penaltiesTitleH1Selector).text(CONFIG.titleBannerText);
 
   // Attempt to load a custom logo
   loadCustomLogo();
 
   // Hide the loading overlay after the minimum display time
   setTimeout(function() {
-    $('#loading-overlay').addClass('fade-out');
+    $(CLASSES.loadingOverlaySelector).addClass(CLASSES.loadingOverlayFadeOutSuffixSelector);
   }, TIMING.minLoadDisplayMs);
 
   // Initialize the WebSocket connection

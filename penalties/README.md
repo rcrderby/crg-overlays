@@ -5,6 +5,7 @@
 - [Features](#features "Overlay Features")
 - [Compatibility](#compatibility "Overlay CRG Compatibility")
 - [Usage](#usage "Overlay Usage Instructions")
+- [Configuration](#configuration "Configuration File Reference")
 
 ## Preview
 
@@ -89,7 +90,7 @@ To make this overlay available to your video streaming team, you need to downloa
 1. Navigate to the [Releases page](https://github.com/rcrderby/crg-overlays/releases "Releases Page") of this repository.
 2. Click on one of the **Source code** links in the **Assets** section of the latest release to download a compressed/zipped copy of the overlay files.
 3. Extract the `.zip` or `tar.gz` file you downloaded.
-4. From the extracted files, locate the `penalties`folder; you will copy this folder to your instance of CRG.
+4. From the extracted files, locate the `penalties` folder; you will copy this folder to your instance of CRG.
 
 **Copy the overlay files to CRG:**
 
@@ -109,11 +110,17 @@ To make this overlay available to your video streaming team, you need to downloa
 
 Provide this information to your video streaming team to give them access to the overlay:
 
-| Setting    | Value                                                    |
-| ---------- | -------------------------------------------------------- |
-| Resolution | 1920 x 1080                                              |
-| Background | Transparent                                              |
-| URL        | `https://<crg-ip-address>:8000/custom/overlay/penalties` |
+| Setting | Value |
+| - | - |
+| URL | `https://<crg-ip-address>:8000/custom/overlay/penalties/`[^1] |
+| Width | `1920` |
+| Height | `1080` |
+| Control audio via OBS | Unchecked |
+| Use custom frame rate | Unchecked |
+| Custom CSS | Blank |
+| Shutdown source when not visible | Unchecked |
+| Refresh browser when scene becomes active | Unchecked |
+| Page permissions | `Read access to OBS status information` |
 
 ### Optional Custom Logo
 
@@ -129,8 +136,124 @@ To add a custom logo to the left side game information area of the overlay:
 
 The logo will display in the game information area of the overlay once you refresh your browser.
 
+## Configuration
+
+A configuration file named [config.js](./config.js) allows you to customize various overlay settings.  Please note that some settings are safe to change, and others are best left at their default values:
+
+- :white_check_mark: - Safe to change
+- :warning: - Proceed with caution
+- :x: - Not Recommended
+
+### Common Customizations
+
+- `config.overlayScale` to adjust the overlay size - typically between 80% and 120% (default is `100`).
+- `config.titleBannerText` to adjust the title banner text (default is `PENALTIES`).
+- `config.titleBannerBackgroundColor` and `titleBannerForegroundColor` set the title banner box background and text colors respectively.
+
+> [!NOTE]
+> Changes to `config.js` require a page refresh to take effect.
+
+<details>
+  <summary>
+    Configuration File Reference
+  </summary>
+
+  ***debug*** **Section**
+
+  | Setting | Description | Type | Default | Adjustable |
+  | - | - | - | - | - |
+  | `debug` | Enable debug logging to browser console (set to `true` for troubleshooting) | boolean | `false` | :white_check_mark: |
+
+  ---
+
+  ***config*** **Section**
+
+  | Setting | Description | Type | Default | Adjustable |
+  | - | - | - | - | - |
+  | `bannerLogoPath` | Path to an optional custom logo in the game information section | string | `logos/banner-logo.png` | :warning: |
+  | `filteredSkaterFlags` | Skater flags to filter from roster display (Not Skating, Bench Alt Captain, Bench Staff) | array of strings | `['ALT', 'B', 'BA']` | :x: |
+  | `defaultRosterShadowProperties` | Default roster shadow properties | string | `.5px .5px 1px` | :x: |
+  | `loadingOverlayText` | Text displayed on the "loading" screen | string | `Loading game data...` | :white_check_mark: |
+  | `titleBannerBackgroundColor` | Title banner background color hex value, color name, or `transparent` | string | `#666666`[^3] | :white_check_mark: |
+  | `titleBannerForegroundColor` | Title banner text/foreground color hex value, color name, or `transparent` | string | `#ffffff`[^3] | :white_check_mark: |
+  | `titleBannerShadow` | Title banner box shadow visibility | boolean | `true` | :white_check_mark: |
+  | `penaltiesTitleText` | Title banner text | string | `PENALTIES` | :white_check_mark: |
+  | `overlayScale` | Overlay scale size - percentage: 100 = full size, 90 = 90% size, etc. (1% to 200%) | integer | `100` | :white_check_mark: |
+
+  ---
+
+  ***classes*** **Section**
+
+  | Setting | Description | Type | Default | Adjustable |
+  | - | - | - | - | - |
+  | `customLogoSelector` | CSS Selector for the custom logo container | string | `#custom-logo` | :x: |
+  | `customLogoSpaceSelector` | CSS Selector for the custom logo space container | string | `#custom-logo-space` | :x: |
+  | `customLogoSpaceVisibleSelectorSuffix` | CSS Selector for the visible custom logo space container container | string | `visible` | :x: |
+  | `loadingOverlayFadeOutSuffixSelector` | CSS Selector for the loading overlay fade out | string | `fade-out` | :x: |
+  | `loadingOverlaySelector` | CSS Selector for the loading overlay | string | `#loading-overlay` | :x: |
+  | `loadingOverlayTextSelector` | CSS Selector for the loading overlay text | string | `.loading-text` | :x: |
+  | `penaltiesTitleH1Selector` | CSS Selector for the penalties title H1 text | string | `#penalties-title h1` | :x: |
+  | `teamsScoresHasLogoSelectorSuffix` | CSS Selector for the team scores custom logo padding container | string | `has-logo` | :x: |
+  | `teamsScoresSelector` | CSS Selector for the team scores container | string | `#teams-scores` | :x: |
+  | `textShadow` | CSS Variable for text shadows | string | `var(--team-penalties-default-text-shadow)` | :x: |
+
+  ---
+
+  ***labels*** **Section**
+
+  | Setting | Description | Type | Default | Adjustable |
+  | - | - | - | - | - |
+  | `altCaptainFlag` | Character displayed next to alternate captain names | string | `A` | :warning: |
+  | `captainFlag` | Character displayed next to team captain names | string | `C` | :warning: |
+  | `defaultTeamNamePrefix` | Prefix used for default team names | string | `Team` | :warning: |
+  | `defaultPeriodLabelPrefix` | Prefix used for default period label | string | `Period` | :warning: |
+  | `expelledDisplay` | Text displayed for expelled skaters | string | `EXP` | :warning: |
+  | `fouloutDisplay` | Text displayed for fouled out skaters | string | `FO` | :warning: |
+  | `preFirstPeriodLabel` | Label shown before P1 when IGRF start time is missing or in the past | string | `Period 1` | :warning: |
+  | `removedDisplay` | Text displayed for removed skaters | string | `RE` | :warning: |
+  | `timeout.untyped` | Label for untyped timeout | string | `Timeout` | :white_check_mark: |
+  | `timeout.official` | Label for official timeout | string | `Official Timeout` | :white_check_mark: |
+  | `timeout.team` | Label for team timeout | string | `Team Timeout` | :white_check_mark: |
+  | `timeout.review` | Label for official review | string | `Official Review` | :white_check_mark: |
+  | `timeoutOwner.official` | Timeout owner indicator for official | string | `O` | :x: |
+  | `timeoutOwner.team1` | Timeout owner indicator for team 1 | string | `_1` | :x: |
+  | `timeoutOwner.team2` | Timeout owner indicator for team 2 | string | `_2` | :x: |
+
+  ---
+
+  ***rules*** **Section**
+
+  | Setting | Description | Type | Default | Adjustable |
+  | - | - | - | - | - |
+  | `fouloutPenaltyCount` | Number of penalties that result in a foulout | integer | `7` | :x: |
+  | `numPeriods` | Override a custom number of periods | integer | `2` | :x: |
+  | `numTeams` | Override a custom number of teams | integer | `2` | :x: |
+  | `warningPenaltyCount5` | Penalty count that triggers the first warning color | integer | `5` | :warning: |
+  | `warningPenaltyCount6` | Penalty count that triggers second warning color | integer | `6` | :warning: |
+
+  ---
+
+  ***penalties*** **Section**
+
+  | Setting | Description | Type | Default | Adjustable |
+  | - | - | - | - | - |
+  | `fouloutCode` | Penalty codes for fouled out players | string | `FO` | :x: |
+  | `removedCode` | Penalty code for players removed by the head referee | string | `RE` | :x: |
+
+  ---
+
+  ***timing*** **Section**
+
+  | Setting | Description | Type | Default | Adjustable |
+  | - | - | - | - | - |
+  | `initWebSocket` | Delay before initializing display after WebSocket connects (ms) | integer | `100` | :x: |
+  | `minLoadDisplayMs` | Minimum time to show loading screen (ms) | integer | `500` | :x: |
+
+</details>
+
 <!-- Footnotes -->
 
 [^1]: Replace `<crg-ip-address>` with the IP address of your CRG instance.
-[^2]: The overlay will constrain your logo to a 70px x 700px container and apply a drop shadow.  
+[^2]: The overlay will constrain your logo to a 70px x 70px container and apply a drop shadow.  
 Logos with a 1:1 aspect ratio and a transparent background will produce the best appearance.
+[^3]: See the [Mozilla Color Reference Documentation](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/named-color#value "Mozilla Color Reference Documentation") for value examples.
