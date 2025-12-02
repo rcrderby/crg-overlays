@@ -105,7 +105,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
     captainFlag: 'C',    
 
     // Prefix used for default team names
-    defaultTeamNamePrefix: 'Team ',
+    defaultTeamNamePrefix: 'Team',
 
     // Prefix used for default period label
     defaultPeriodLabelPrefix: 'Period',
