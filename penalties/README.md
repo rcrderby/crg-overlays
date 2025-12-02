@@ -147,7 +147,7 @@ A configuration file named [config.js](./config.js) allows you customize various
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
-  | debug | Enable verbose browser console logging | boolean | `false` | :white_check_mark: |
+  | debug | Enable debug logging to browser console (set to "true" for troubleshooting) | boolean | `false` | :white_check_mark: |
 
   ---
 
@@ -155,15 +155,15 @@ A configuration file named [config.js](./config.js) allows you customize various
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
-  | bannerLogoPath | Path to custom logo | string | `logos/banner-logo.png` | :warning: |
-  | filteredSkaterFlags | Flags that filter players from the roster display | array of strings | `['ALT', 'B', 'BA']` | :x: |
-  | defaultRosterShadowProperties | CSS shadow settings for rosters | string | `.5px .5px 1px` | :x: |
+  | bannerLogoPath | // Path to an optional custom logo in the game information section | string | `logos/banner-logo.png` | :warning: |
+  | filteredSkaterFlags | Skater flags to filter from roster display (Not Skating, Bench Alt Captain, Bench Staff) | `['ALT', 'B', 'BA']` | :x: |
+  | defaultRosterShadowProperties | Default roster shadow properties | string | `.5px .5px 1px` | :x: |
   | loadingOverlayText | Text displayed on the "loading" screen | string | `Loading game data...` | :white_check_mark: |
   | titleBannerBackgroundColor | Title banner background color | string | `#666666` [^3] | :white_check_mark: |
-  | titleBannerBackgroundColor | Title banner text color | string | `#ffffff` | :white_check_mark: |
-  | titleBannerShadow | Add shadow to title banner box | boolean | `true` | :white_check_mark: |
-  | overlayScale | Scale to size the overlay to (1% to 200%) | integer | `100` | :white_check_mark: |
+  | titleBannerBackgroundColor | Title banner text/foreground color | string | `#ffffff` | :white_check_mark: |
+  | titleBannerShadow | Title banner box shadow visibility | boolean | `true` | :white_check_mark: |
   | penaltiesTitleText | Title banner text | string | `PENALTIES` | :white_check_mark: |
+  | overlayScale | Overlay scale size - percentage: 100 = full size, 90 = 90% size, etc. (1% to 200%) | integer | `100` | :white_check_mark: |
 
   ---
 
