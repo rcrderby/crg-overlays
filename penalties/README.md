@@ -131,18 +131,16 @@ The logo will display in the game information area of the overlay once you refre
 
 ## Configuration
 
-A configuration file named [./config.js](./config.js) allows you customize various overlay settings:
-
-<details>
-  <summary>
-    :heavy_plus_sign: config.js Reference
-  </summary>
-
-  Settings Adjustment Key:
+A configuration file named [config.js](./config.js) allows you customize various overlay settings.  Please note that some settings are safe to change, and others are best left at their default values:
 
 - :white_check_mark: - Safe to change
 - :warning: - Proceed with caution
 - :x: - Not Recommended
+
+<details>
+  <summary>
+    Configuration File Reference
+  </summary>
 
   ***debug***
 
