@@ -41,10 +41,10 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Text displayed on the "loading" screen
     loadingOverlayText: 'Loading game data...',
 
-    // Title banner background color
+    // Title banner background color, or 'transparent'
     titleBannerBackgroundColor: '#666666',
   
-    // Title banner text/foreground color
+    // Title banner text/foreground color, or 'transparent'
     titleBannerForegroundColor: '#ffffff',
 
     // Title banner box shadow visibility
