@@ -63,6 +63,22 @@ window.AppConfig.PenaltiesOverlayConfig = {
   ****************/
 
   classes: {
+    // CSS Selector for the custom logo container
+    customLogoSelector: '#custom-logo',
+
+    // CSS Selector for the custom logo space container
+    customLogoSpaceSelector: '#custom-logo-space',
+
+    // CSS Selector for the visible custom logo space container
+    customLogoSpaceVisibleSelectorSuffix: 'visible',
+
+    // CSS Selector for the team scores custom logo padding container
+    teamsScoresHasLogoSelectorSuffix: 'has-logo',
+
+    // CSS Selector for the team scores container
+    teamsScoresSelector: '#teams-scores',
+
+    // CSS Variable for text shadows
     textShadow: 'var(--team-penalties-default-text-shadow)'
   },
 
