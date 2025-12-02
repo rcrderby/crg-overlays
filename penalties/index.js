@@ -518,20 +518,20 @@ $(function() {
   setOverlayScale()
 
   // Set the loading overlay text
-  $('.loading-text').text(CONFIG.loadingOverlayText);
+  $(CLASSES.loadingOverlayTextSelector).text(CONFIG.loadingOverlayText);
 
   // Apply title banner colors from config.js
   formatTitleBanner();
 
   // Set the penalties title
-  $('#penalties-title h1').text(CONFIG.penaltiesTitleText);
+  $(CLASSES.penaltiesTitleH1Selector).text(CONFIG.penaltiesTitleText);
 
   // Attempt to load a custom logo
   loadCustomLogo();
 
   // Hide the loading overlay after the minimum display time
   setTimeout(function() {
-    $('#loading-overlay').addClass('fade-out');
+    $(CLASSES.loadingOverlaySelector).addClass(CLASSES.loadingOverlayFadeOutSuffixSelector);
   }, TIMING.minLoadDisplayMs);
 
   // Initialize the WebSocket connection
