@@ -155,8 +155,8 @@ A configuration file named [config.js](./config.js) allows you customize various
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
-  | `bannerLogoPath` | // Path to an optional custom logo in the game information section | string | `logos/banner-logo.png` | :warning: |
-  | `filteredSkaterFlags` | Skater flags to filter from roster display (Not Skating, Bench Alt Captain, Bench Staff) | `['ALT', 'B', 'BA']` | :x: |
+  | `bannerLogoPath` | Path to an optional custom logo in the game information section | string | `logos/banner-logo.png` | :warning: |
+  | `filteredSkaterFlags` | Skater flags to filter from roster display (Not Skating, Bench Alt Captain, Bench Staff) | array of strings | `['ALT', 'B', 'BA']` | :x: |
   | `defaultRosterShadowProperties` | Default roster shadow properties | string | `.5px .5px 1px` | :x: |
   | `loadingOverlayText` | Text displayed on the "loading" screen | string | `Loading game data...` | :white_check_mark: |
   | `titleBannerBackgroundColor` | Title banner background color | string | `#666666` [^3] | :white_check_mark: |
