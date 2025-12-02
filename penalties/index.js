@@ -302,7 +302,7 @@ window.getTeamNameWithDefault = function(k, alternateName) {
   }
   
   // Use "Team N" third
-  return LABELS.defaultTeamNamePrefix + teamNum;
+  return `${LABELS.defaultTeamNamePrefix} ${teamNum}`;
 };
 
 // Determine if the period clock should be hidden
