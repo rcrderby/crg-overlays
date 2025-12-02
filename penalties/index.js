@@ -75,7 +75,7 @@ function setOverlayScale() {
     console.warn('overlayScale not defined in config - using default 100%.');
   } else if (typeof overlayScaleConfig !== 'number' || isNaN(overlayScaleConfig)) {
     console.warn(`Invalid overlayScale value "${overlayScaleConfig}" (must be numeric) - using default 100%.`);
-  } else if (overlayScaleConfig <= 0 || overlayScaleConfig > 200) {
+  } else if (overlayScaleConfig < 1 || overlayScaleConfig > 200) {
     console.warn(`Invalid overlayScale value ${overlayScaleConfig} (must be between 1 and 200) - using default 100%.`);
   } else {
     // Round scale to two decimal points
