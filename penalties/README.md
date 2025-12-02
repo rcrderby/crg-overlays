@@ -188,14 +188,14 @@ A configuration file named [config.js](./config.js) allows you customize various
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
-  | `altCaptainFlag` | Character displayed next to alternate captain names | string | `A` | :x: |
-  | `captainFlag` | Character displayed next to team captain names | string | `C` | :x: |
-  | `defaultTeamNamePrefix` | Prefix used for default team names | string | `Team` | :x: |
-  | `defaultPeriodLabelPrefix` | Prefix used for default period label | string | `Period` | :x: |
-  | `expelledDisplay` | Text displayed for expelled skaters | string | `EXP` | :x: |
-  | `fouloutDisplay` | Text displayed for fouled out skaters | string | `FO` | :x: |
-  | `preFirstPeriodLabel` | Label shown before P1 when IGRF start time is missing or in the past | string | `Period 1` | :x: |
-  | `removedDisplay` | Text displayed for removed skaters | string | `RE` | :x: |
+  | `altCaptainFlag` | Character displayed next to alternate captain names | string | `A` | :warning: |
+  | `captainFlag` | Character displayed next to team captain names | string | `C` | :warning: |
+  | `defaultTeamNamePrefix` | Prefix used for default team names | string | `Team` | :warning: |
+  | `defaultPeriodLabelPrefix` | Prefix used for default period label | string | `Period` | :warning: |
+  | `expelledDisplay` | Text displayed for expelled skaters | string | `EXP` | :warning: |
+  | `fouloutDisplay` | Text displayed for fouled out skaters | string | `FO` | :warning: |
+  | `preFirstPeriodLabel` | Label shown before P1 when IGRF start time is missing or in the past | string | `Period 1` | :warning: |
+  | `removedDisplay` | Text displayed for removed skaters | string | `RE` | :warning: |
   | `timeout.untyped` | Label for untyped timeout | string | `Timeout` | :white_check_mark: |
   | `timeout.official` | Label for official timeout | string | `Official Timeout` | :white_check_mark: |
   | `timeout.team` | Label for team timeout | string | `Team Timeout` | :white_check_mark: |
@@ -213,8 +213,8 @@ A configuration file named [config.js](./config.js) allows you customize various
   | `fouloutPenaltyCount` | Number of penalties that result in a foulout | integer | `7` | :x: |
   | `numPeriods` | Override a custom number of periods | integer | `2` | :x: |
   | `numTeams` | Override a custom number of teams | integer | `2` | :x: |
-  | `warningPenaltyCount5` | Penalty count that triggers the first warning color | integer | `5` | :x: |
-  | `warningPenaltyCount6` | Penalty count that triggers second warning color | integer | `6` | :x: |
+  | `warningPenaltyCount5` | Penalty count that triggers the first warning color | integer | `5` | :warning: |
+  | `warningPenaltyCount6` | Penalty count that triggers second warning color | integer | `6` | :warning: |
 
   ---
 
