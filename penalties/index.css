@@ -584,16 +584,15 @@ body {
 
 #custom-logo-space {
   align-items: center;
-  display: flex;
-  flex-shrink: 0;
+  display: none;
+  grid-column: 1;
   height: var(--size-custom-logo);
   justify-content: center;
-  left: var(--padding-game-details);
-  max-height: var(--size-custom-logo);
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
   width: var(--size-custom-logo);
+}
+
+#custom-logo-space.visible {
+  display: flex;
 }
 
 .custom-logo {
@@ -601,29 +600,47 @@ body {
   max-height: 100%;
   max-width: 100%;
   object-fit: contain;
-  opacity: 0;
-}
-
-.custom-logo.visible {
-  opacity: 1;
 }
 
 /********************************
 ** Team information and scores **
 ********************************/
 
+/* 5-column Grid: logo, team1, clock, team2, balance space */
 #teams-scores {
-  align-items: flex-start;
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: center;
-  width: 100%;
+  align-items: center;
+  column-gap: var(--gap-game-details);
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr 0;
 }
 
-.team-score-block {
-  flex: 0 0 var(--width-team-score);
-  text-align: center;
+/* When the logo is visible, add the balance column */
+#teams-scores.has-logo {
+  grid-template-columns: auto 1fr auto 1fr var(--size-custom-logo);
 }
+
+/* Base team score block styles */
+.team-score-block {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  width: var(--width-team-score);
+}
+
+/* Column 2: Team 1 - right-aligned */
+.team-score-block:nth-of-type(1) {
+  grid-column: 2;
+  justify-self: end;
+}
+
+/* Column 4: Team 2 - left-aligned */
+.team-score-block:nth-of-type(2) {
+  grid-column: 4;
+  justify-self: start;
+}
+
+/* Column 5 is empty, to balance column 1 (logo) */
 
 .team-name {
   font-size: var(--font-team-name-size);
@@ -651,6 +668,7 @@ body {
   display: flex;
   flex: 0 0 var(--width-vs-clock-container);
   flex-direction: column;
+  grid-column: 3;
   justify-content: flex-start;
 }
 
