@@ -5,6 +5,7 @@
 - [Features](#features "Overlay Features")
 - [Compatibility](#compatibility "Overlay CRG Compatibility")
 - [Usage](#usage "Overlay Usage Instructions")
+- [Configuration](#configuration "Configuration File Reference")
 
 ## Preview
 
