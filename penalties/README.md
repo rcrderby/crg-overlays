@@ -116,7 +116,7 @@ Provide this information to your video streaming team to give them access to the
 | Width | `1920` |
 | Height | `1080` |
 | Control audio via OBS | Unchecked |
-| Use custom frame rate | Unchecked  |
+| Use custom frame rate | Unchecked |
 | Custom CSS | Blank |
 | Shutdown source when not visible | Unchecked |
 | Refresh browser when scene becomes active | Unchecked |
