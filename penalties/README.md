@@ -159,8 +159,8 @@ A configuration file named [config.js](./config.js) allows you customize various
   | `filteredSkaterFlags` | Skater flags to filter from roster display (Not Skating, Bench Alt Captain, Bench Staff) | array of strings | `['ALT', 'B', 'BA']` | :x: |
   | `defaultRosterShadowProperties` | Default roster shadow properties | string | `.5px .5px 1px` | :x: |
   | `loadingOverlayText` | Text displayed on the "loading" screen | string | `Loading game data...` | :white_check_mark: |
-  | `titleBannerBackgroundColor` | Title banner background color | string | `#666666` [^3] | :white_check_mark: |
-  | `titleBannerBackgroundColor` | Title banner text/foreground color | string | `#ffffff` [^3] | :white_check_mark: |
+  | `titleBannerBackgroundColor` | Title banner background color | string | `#666666`[^3] | :white_check_mark: |
+  | `titleBannerBackgroundColor` | Title banner text/foreground color | string | `#ffffff`[^3] | :white_check_mark: |
   | `titleBannerShadow` | Title banner box shadow visibility | boolean | `true` | :white_check_mark: |
   | `penaltiesTitleText` | Title banner text | string | `PENALTIES` | :white_check_mark: |
   | `overlayScale` | Overlay scale size - percentage: 100 = full size, 90 = 90% size, etc. (1% to 200%) | integer | `100` | :white_check_mark: |
