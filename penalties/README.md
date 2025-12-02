@@ -110,17 +110,17 @@ To make this overlay available to your video streaming team, you need to downloa
 
 Provide this information to your video streaming team to give them access to the overlay:
 
-| Setting    | Value                                                         |
-| ---------- | ------------------------------------------------------------- |
-| URL        | `https://<crg-ip-address>:8000/custom/overlay/penalties/`[^1] |
-| Width      | `1920`                                                        |
-| Height     | `1080`                                                        |
-| Control audio via OBS | Unchecked                                          |
-| Use custom frame rate | Unchecked                                          |
-| Custom CSS | Blank                                                         |
-| Shutdown source when not visible | Unchecked                               |
-| Refresh browser when scene becomes active | Unchecked                      |
-| Page permissions | `Read access to OBS status information`                 |
+| Setting | Value |
+| - | - |
+| URL | `https://<crg-ip-address>:8000/custom/overlay/penalties/`[^1] |
+| Width | `1920` |
+| Height | `1080` |
+| Control audio via OBS | Unchecked |
+| Use custom frame rate | Unchecked  |
+| Custom CSS | Blank |
+| Shutdown source when not visible | Unchecked |
+| Refresh browser when scene becomes active | Unchecked |
+| Page permissions | `Read access to OBS status information` |
 
 ### Optional Custom Logo
 
