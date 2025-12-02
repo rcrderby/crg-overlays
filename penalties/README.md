@@ -182,6 +182,14 @@ A configuration file named [config.js](./config.js) allows you customize various
   | teamsScoresSelector | CSS Selector for the team scores container | string | `#teams-scores` | :x: |
   | textShadow | CSS Variable for text shadows | string | `var(--team-penalties-default-text-shadow)` | :x: |
 
+  ---
+
+  ***labels***
+
+  | Setting | Description | Type | Default | Adjustable |
+  | - | - | - | - | - |
+  | altCaptainFlag | Character displayed next to alternate captain names | string | `A` | :x: |
+
 </details>
 
 <!-- Footnotes -->
