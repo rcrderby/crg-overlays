@@ -144,6 +144,9 @@ A configuration file named [config.js](./config.js) allows you customize various
 - :warning: - Proceed with caution
 - :x: - Not Recommended
 
+> [!NOTE]
+> Changes to `config.js` require a page refresh to take effect.
+
 ### Common Customizations
 
 - `config.overlayScale` to adjust the overlay size - typically between 80% and 120% (default is `100`).
