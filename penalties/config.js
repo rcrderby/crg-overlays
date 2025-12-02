@@ -164,7 +164,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
   ***********************/
 
   penalties: {
-    // Penalty codes for fouled out players
+    // Penalty code for fouled out players
     fouloutCode: 'FO',
   
     // Penalty code for players removed by the head referee
