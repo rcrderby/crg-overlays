@@ -221,4 +221,4 @@ A configuration file named [config.js](./config.js) allows you customize various
 [^1]: Replace `<crg-ip-address>` with the IP address of your CRG instance.
 [^2]: The overlay will constrain your logo to a 70px x 700px container and apply a drop shadow.  
 Logos with a 1:1 aspect ratio and a transparent background will produce the best appearance.
-[^3]: See color reference at TODO.
+[^3]: See the [Mozilla Color Reference Documentation](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/named-color#value "Mozilla Color Reference Documentation") for value examples.
