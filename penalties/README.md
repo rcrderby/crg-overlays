@@ -165,6 +165,23 @@ A configuration file named [config.js](./config.js) allows you customize various
   | overlayScale | Scale to size the overlay to (1% to 200%) | integer | `100` | :white_check_mark: |
   | penaltiesTitleText | Title banner text | string | `PENALTIES` | :white_check_mark: |
 
+  ---
+
+  ***classes***
+
+  | Setting | Description | Type | Default | Adjustable |
+  | - | - | - | - | - |
+  | customLogoSelector | CSS Selector for the custom logo container | string | `#custom-logo` | :x: |
+  | customLogoSpaceSelector | CSS Selector for the custom logo space container | string | `#custom-logo-space` | :x: |
+  | customLogoSpaceVisibleSelectorSuffix | CSS Selector for the visible custom logo space container container | string | `visible` | :x: |
+  | loadingOverlayFadeOutSuffixSelector | CSS Selector for the loading overlay fade out | string | `fade-out` | :x: |
+  | loadingOverlaySelector | CSS Selector for the loading overlay | string | `#loading-overlay` | :x: |
+  | loadingOverlayTextSelector | CSS Selector for the loading overlay text | string | `.loading-text` | :x: |
+  | penaltiesTitleH1Selector | CSS Selector for the penalties title H1 text | string | `#penalties-title h1` | :x: |
+  | teamsScoresHasLogoSelectorSuffix | CSS Selector for the team scores custom logo padding container | string | `has-logo` | :x: |
+  | teamsScoresSelector | CSS Selector for the team scores container | string | `#teams-scores` | :x: |
+  | textShadow | CSS Variable for text shadows | string | `var(--team-penalties-default-text-shadow)` | :x: |
+
 </details>
 
 <!-- Footnotes -->
