@@ -155,8 +155,8 @@ A configuration file named [config.js](./config.js) allows you to customize vari
     Configuration File Reference
   </summary>
 
-  > [!NOTE]
-  > Changes to `config.js` require a page refresh to take effect.
+> [!NOTE]
+> Changes to `config.js` require a page refresh to take effect.
 
   ***debug*** **Section**
 
