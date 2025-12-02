@@ -190,6 +190,30 @@ A configuration file named [config.js](./config.js) allows you customize various
   | - | - | - | - | - |
   | altCaptainFlag | Character displayed next to alternate captain names | string | `A` | :x: |
 
+  ---
+
+  ***rules***
+
+  | Setting | Description | Type | Default | Adjustable |
+  | - | - | - | - | - |
+  | fouloutPenaltyCount | Number of penalties that result in a foulout | integer | `7` | :x: |
+
+  ---
+
+  ***penalties***
+
+  | Setting | Description | Type | Default | Adjustable |
+  | - | - | - | - | - |
+  | fouloutCode | Penalty codes for fouled out players | string | `FO` | :x: |
+
+  ---
+
+  ***timing***
+
+  | Setting | Description | Type | Default | Adjustable |
+  | - | - | - | - | - |
+  | initWebSocket | Delay before initializing display after WebSocket connects (ms) | integer | `100` | :x: |
+
 </details>
 
 <!-- Footnotes -->
