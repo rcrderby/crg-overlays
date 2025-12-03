@@ -133,9 +133,7 @@ You can adjust the size of the overlay to fit your broadcast display with the `s
 | Scale down 10% (90%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=90` |
 
 > [!TIP]
-> The allowed `scale` parameter range is `1` to `200`.
-
-<sub>See the <code>overlayScale</code> setting in the <a href=#configuration title="Configuration Section">Configuration Section</a> for details.</sub>
+> The allowed `scale` parameter range is `1` to `200`. See the `overlayScale` setting in the [Configuration Section](#configuration "Configuration Section") for details.
 
 ### Optional Custom Logo
 
