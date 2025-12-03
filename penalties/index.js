@@ -93,7 +93,9 @@ function logUrlParameters() {
   }
   
   if (Object.keys(params).length > 0) {
-    console.log(`URL parameters detected: ${JSON.stringify(params)}`);
+    if (DEBUG) {
+      console.log(`URL parameters detected: ${JSON.stringify(params)}`);
+    }
     
     // Warn about unrecognized parameters
     for (const key of Object.keys(params)) {
@@ -577,6 +579,9 @@ $(function() {
   if (DEBUG) {
     console.log('Initializing Penalties Overlay...');
   }
+
+  // Log URL parameters
+  logUrlParameters();
 
   // Set the overlay scale percentage
   setOverlayScale()
