@@ -53,7 +53,8 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Title banner text
     titleBannerText: 'PENALTIES',
 
-    // Overlay scale size - percentage: 100 = full size, 90 = 90% size, etc. (1% to 200%)
+    // Overlay scale size percentage: 100 = full size, 90 = 90% size, etc. (1 to 200)
+    // The `scale` URL parameter overrides this value
     overlayScale: 100
   },
 
