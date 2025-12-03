@@ -28,7 +28,10 @@ MD026:
 MD029: false                  # Ordered list item prefix
 MD033:                        # Allow specific inline HTML tags
   allowed_elements:
+    - a
+    - code
     - details
+    - sub
     - summary
 MD036: false                  # Emphasis used instead of a heading
 
