@@ -112,7 +112,7 @@ Provide this information to your video streaming team to give them access to the
 
 | Setting | Value |
 | - | - |
-| URL | `https://<crg-ip-address>:8000/custom/overlay/penalties/`[^1] |
+| URL | `https://<crg-ip-address>:8000/custom/overlay/penalties`[^1] |
 | Width | `1920` |
 | Height | `1080` |
 | Control audio via OBS | Unchecked |
@@ -121,6 +121,21 @@ Provide this information to your video streaming team to give them access to the
 | Shutdown source when not visible | Unchecked |
 | Refresh browser when scene becomes active | Unchecked |
 | Page permissions | `Read access to OBS status information` |
+
+#### Size Adjustments
+
+You can adjust the size of the overlay to fit your broadcast display with the `scale` URL parameter.  For example:
+
+| Size | URL |
+| - | - |
+| Default size (100%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=100` |
+| Scale up 4.55% (104.55%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=104.55` |
+| Scale down 10% (90%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=90` |
+
+> [!TIP]
+> The allowed `scale` parameter range is `1` to `200`.
+
+<sub>See the <code>overlayScale</code> setting in the <a href=#configuration title="Configuration Section">Configuration Section</a> for details.</sub>
 
 ### Optional Custom Logo
 
@@ -178,7 +193,7 @@ A configuration file named [config.js](./config.js) allows you to customize vari
   | `titleBannerForegroundColor` | Title banner text/foreground color hex value, color name, or `transparent` | string | `#ffffff`[^3] | :white_check_mark: |
   | `titleBannerShadow` | Title banner box shadow visibility | boolean | `true` | :white_check_mark: |
   | `penaltiesTitleText` | Title banner text | string | `PENALTIES` | :white_check_mark: |
-  | `overlayScale` | Overlay scale size - percentage: 100 = full size, 90 = 90% size, etc. (1% to 200%) | integer | `100` | :white_check_mark: |
+  | `overlayScale` | Overlay scale size percentage: 100 = full size, 90 = 90% size, etc. (1 to 200) - the [`scale` URL parameter](#size-adjustments "Size Adjustments Section") overrides this value | int or float | `100` | :white_check_mark: |
 
   ---
 
