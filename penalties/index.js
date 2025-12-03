@@ -61,25 +61,89 @@ const RULES = PenaltiesOverlayConfig.rules;
 const PENALTIES = PenaltiesOverlayConfig.penalties;
 const TIMING = PenaltiesOverlayConfig.timing;
 
+/****************************
+** URL Parameter Functions **
+****************************/
+
+// Allowed URL parameters
+const ALLOWED_URL_PARAMS = [
+  'scale'
+];
+
+// Parse and validate URL parameters
+function getUrlParameter(name) {
+  if (!ALLOWED_URL_PARAMS.includes(name)) {
+    if (DEBUG) {
+      console.warn(`Debug warning: attempted to retrieve unapproved URL parameter "${name}".`);
+    }
+    return null;
+  }
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(name);
+}
+
+// Log URL parameters
+function logUrlParameters() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const params = {};
+  
+  for (const [k, v] of urlParams.entries()) {
+    params[k] = v;
+  }
+  
+  if (Object.keys(params).length > 0) {
+    console.log(`URL parameters detected: ${JSON.stringify(params)}`);
+    
+    // Warn about unrecognized parameters
+    for (const key of Object.keys(params)) {
+      if (!ALLOWED_URL_PARAMS.includes(key)) {
+        console.warn(`Ignoring unrecognized URL parameter "${key}".`);
+      }
+    }
+  }
+}
+
 /*************************************
 ** Overlay Display Format Functions **
 *************************************/
 
+// Validate and set the overlay scale value
 function setOverlayScale() {
-  // Set overlay scale from config with validation
   let overlayScalePercent = 100; // Default to 100%
+  let scaleSource = 'default';
+  let validationPassed = false;
   
-  // Validate overlayScale config.js value
-  const overlayScaleConfig = CONFIG.overlayScale
-  if (typeof overlayScaleConfig === 'undefined' || overlayScaleConfig === null) {
-    console.warn('overlayScale not defined in config - using default 100%.');
-  } else if (typeof overlayScaleConfig !== 'number' || isNaN(overlayScaleConfig)) {
-    console.warn(`Invalid overlayScale value "${overlayScaleConfig}" (must be numeric) - using default 100%.`);
-  } else if (overlayScaleConfig < 1 || overlayScaleConfig > 200) {
-    console.warn(`Invalid overlayScale value ${overlayScaleConfig} (must be between 1 and 200) - using default 100%.`);
+  // Check for URL parameter first to take precedence over the config.js setting
+  const urlScale = getUrlParameter('scale');
+  const configScale = CONFIG.overlayScale;
+  
+  // Determine which scale value to use
+  let scaleToValidate;
+  if (urlScale !== null) {
+    scaleToValidate = parseFloat(urlScale);
+    scaleSource = 'URL parameter';
+  } else {
+    scaleToValidate = configScale;
+    scaleSource = 'config.js';
+  }
+  
+  // Validate the scale value
+  if (typeof scaleToValidate === 'undefined' || scaleToValidate === null) {
+    console.warn(`Overlay scale not defined in ${scaleSource} - using default (100%).`);
+  } else if (typeof scaleToValidate !== 'number' || isNaN(scaleToValidate)) {
+    console.warn(`Invalid overlay scale value "${scaleToValidate}" in ${scaleSource} (must be numeric) - using default (100%).`);
+  } else if (scaleToValidate < 1 || scaleToValidate > 200) {
+    console.warn(`Invalid overlay scale value ${scaleToValidate} in ${scaleSource} (must be in range 1-200) - using default (100%).`);
   } else {
     // Round scale to two decimal points
-    overlayScalePercent = Math.round(overlayScaleConfig * 100) / 100;
+    overlayScalePercent = Math.round(scaleToValidate * 100) / 100;
+    validationPassed = true;
+  }
+  
+  // Reset scale source if validation failed
+  if (!validationPassed) {
+    scaleSource = 'default';
   }
   
   // Convert percentage to decimal for CSS transform
@@ -87,7 +151,7 @@ function setOverlayScale() {
   document.documentElement.style.setProperty('--overlay-scale', overlayScale);
 
   if (DEBUG) {
-    console.log(`Overlay scaled to ${overlayScalePercent}%.`);
+    console.log(`Overlay scaled to ${overlayScalePercent}% (from ${scaleSource}).`);
   }
 }
 
