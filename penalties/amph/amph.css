@@ -35,12 +35,15 @@
   0% {
     transform: translateY(-50%) translateX(100%);
   }
+
   15% {
     transform: translateY(-50%) translateX(30%);
   }
+
   85% {
     transform: translateY(-50%) translateX(30%);
   }
+  
   100% {
     transform: translateY(-50%) translateX(100%);
   }
