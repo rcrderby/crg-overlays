@@ -35,8 +35,10 @@ The overlay gets the information and settings it needs from CRG, so you can just
   - Logos automatically resize to fit 100px x 100px containers.
 - Displays rosters for each team that include player numbers, names, assigned penalty codes, and total penalty count for each player.
   - Indicates team captains with a "C" and alternate captains with an "A".
-  - Hides roster names that:
-    - Are marked as "Not Skating", "Bench Alt Captain", or "Bench Staff".
+  - Hides roster names that are marked as:
+    - "Bench Alt Captain"
+    - "Bench Staff".
+    - "Not Skating"
   - Uses each team's custom "whiteboard" background, text, and glow colors if set.
     - Defaults to black backgrounds with white text if not set.
 - Highlights player penalty counts with different color backgrounds at specific thresholds.
@@ -155,13 +157,13 @@ A configuration file named [config.js](./config.js) allows you to customize vari
 
 - :white_check_mark: - Safe to change
 - :warning: - Proceed with caution
-- :x: - Not Recommended
+- :x: - Not recommended
 
 ### Common Customizations
 
 - `config.overlayScale` to adjust the overlay size - typically between 80% and 120% (default is `100`).
 - `config.titleBannerText` to adjust the title banner text (default is `PENALTIES`).
-- `config.titleBannerBackgroundColor` and `titleBannerForegroundColor` set the title banner box background and text colors respectively.
+- `config.titleBannerBackgroundColor` and `titleBannerForegroundColor` set the title banner box background and text colors, respectively.
 
 > [!WARNING]
 > Changes to `config.js` require a page refresh to take effect.
