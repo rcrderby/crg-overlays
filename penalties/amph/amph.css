@@ -1,0 +1,50 @@
+/* CSS for amph.js */
+
+/**************
+** Variables **
+**************/
+
+:root {
+  --amph-container-size: 80px;
+  --amph-animation-duration: 3000ms;
+}
+
+#amph-container {
+  height: var(--amph-container-size);
+  opacity: 1;
+  pointer-events: none;
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%) translateX(100%);
+  width: var(--amph-container-size);
+  z-index: 100;
+}
+
+#amph-container.peek {
+  animation: peek-from-right var(--amph-animation-duration) ease-in-out;
+}
+
+#amph-image {
+  height: 100%;
+  object-fit: contain;
+  width: 100%;
+}
+
+@keyframes peek-from-right {
+  0% {
+    transform: translateY(-50%) translateX(100%);
+  }
+
+  15% {
+    transform: translateY(-50%) translateX(30%);
+  }
+
+  85% {
+    transform: translateY(-50%) translateX(30%);
+  }
+  
+  100% {
+    transform: translateY(-50%) translateX(100%);
+  }
+}

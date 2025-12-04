@@ -571,6 +571,24 @@ window.isTimeoutVisible = function(_k, timeoutRunning) {
   return timeoutRunning === true;
 };
 
+/****************
+** Amph Module **
+*****************/
+
+// Attempt to load the amph module
+function loadAmphModule() {
+  const script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src = 'amph/amph.js';
+  script.async = true;
+  
+  // Silent failure
+  script.onerror = function() {
+  };
+  
+  document.head.appendChild(script);
+}
+
 /*******************************
 ** Application Initialization **
 *******************************/
@@ -585,6 +603,9 @@ $(function() {
 
   // Set the overlay scale percentage
   setOverlayScale()
+
+  // Load amph module
+  loadAmphModule();
 
   // Set the loading overlay text
   $(CLASSES.loadingOverlayTextSelector).text(CONFIG.loadingOverlayText);
