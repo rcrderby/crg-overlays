@@ -67,6 +67,7 @@ const TIMING = PenaltiesOverlayConfig.timing;
 
 // Allowed URL parameters
 const ALLOWED_URL_PARAMS = [
+  'anchor',
   'scale'
 ];
 
@@ -154,6 +155,59 @@ function setOverlayScale() {
 
   if (DEBUG) {
     console.log(`Overlay scaled to ${overlayScalePercent}% (from ${scaleSource}).`);
+  }
+}
+
+// Overlay anchor values mapped to CSS transform origins
+const OVERLAY_ANCHORS = {
+  top: 'top center',
+  center: 'center center',
+  bottom: 'bottom center'
+};
+
+// Validate and set the overlay anchor value
+function setOverlayAnchor() {
+  let overlayAnchor = 'top'; // Default to the top of the frame
+  let anchorSource = 'default';
+  let validationPassed = false;
+
+  // Check for URL parameter first to take precedence over the config.js setting
+  const urlAnchor = getUrlParameter('anchor');
+  const configAnchor = CONFIG.overlayAnchor;
+
+  // Determine which anchor value to use
+  let anchorToValidate;
+  if (urlAnchor !== null) {
+    anchorToValidate = urlAnchor;
+    anchorSource = 'URL parameter';
+  } else {
+    anchorToValidate = configAnchor;
+    anchorSource = 'config.js';
+  }
+
+  // Validate the anchor value
+  const allowedAnchors = Object.keys(OVERLAY_ANCHORS);
+  if (typeof anchorToValidate === 'undefined' || anchorToValidate === null) {
+    console.warn(`Overlay anchor not defined in ${anchorSource} - using default (top).`);
+  } else if (typeof anchorToValidate !== 'string') {
+    console.warn(`Invalid overlay anchor value "${anchorToValidate}" in ${anchorSource} (must be a string) - using default (top).`);
+  } else if (!allowedAnchors.includes(anchorToValidate.toLowerCase())) {
+    console.warn(`Invalid overlay anchor value "${anchorToValidate}" in ${anchorSource} (must be one of ${allowedAnchors.join(', ')}) - using default (top).`);
+  } else {
+    overlayAnchor = anchorToValidate.toLowerCase();
+    validationPassed = true;
+  }
+
+  // Reset anchor source if validation failed
+  if (!validationPassed) {
+    anchorSource = 'default';
+  }
+
+  // Convert the anchor name to a CSS transform origin
+  document.documentElement.style.setProperty('--overlay-origin', OVERLAY_ANCHORS[overlayAnchor]);
+
+  if (DEBUG) {
+    console.log(`Overlay anchored to ${overlayAnchor} (from ${anchorSource}).`);
   }
 }
 
@@ -602,7 +656,10 @@ $(function() {
   logUrlParameters();
 
   // Set the overlay scale percentage
-  setOverlayScale()
+  setOverlayScale();
+
+  // Set the point the overlay scales from
+  setOverlayAnchor();
 
   // Load amph module
   loadAmphModule();
