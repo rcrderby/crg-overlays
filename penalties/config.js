@@ -55,7 +55,11 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
     // Overlay scale size percentage: 100 = full size, 90 = 90% size, etc. (1 to 200)
     // The `scale` URL parameter overrides this value
-    overlayScale: 100
+    overlayScale: 100,
+
+    // Point the overlay scales from: `top`, `center`, or `bottom`
+    // The `anchor` URL parameter overrides this value
+    overlayAnchor: 'top'
   },
 
   /****************
