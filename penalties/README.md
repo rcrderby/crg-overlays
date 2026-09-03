@@ -137,6 +137,23 @@ You can adjust the size of the overlay to fit your broadcast display with the `s
 > [!TIP]
 > The allowed `scale` parameter range is `1` to `200`. See the `overlayScale` setting in the [Configuration Section](#configuration "Configuration Section") for details.
 
+#### Position Adjustments
+
+The overlay scales from the top of the frame by default, so scaling down leaves empty space at the bottom.  Use the `anchor` URL parameter to change the point it scales from.  For example:
+
+| Anchor | URL |
+| - | - |
+| Top of the frame (default) | `https://<crg-ip-address>:8000/custom/overlay/penalties?anchor=top` |
+| Middle of the frame | `https://<crg-ip-address>:8000/custom/overlay/penalties?anchor=center` |
+| Bottom of the frame | `https://<crg-ip-address>:8000/custom/overlay/penalties?anchor=bottom` |
+
+You can combine the `anchor` and `scale` parameters to fit your needs:
+
+`https://<crg-ip-address>:8000/custom/overlay/penalties?scale=90&anchor=bottom`
+
+> [!TIP]
+> The allowed `anchor` parameter values are `top`, `center`, and `bottom`. See the `overlayAnchor` setting in the [Configuration Section](#configuration "Configuration Section") for details.
+
 ### Optional Custom Logo
 
 To add a custom logo to the left side game information area of the overlay:
@@ -162,6 +179,7 @@ A configuration file named [config.js](./config.js) allows you to customize vari
 ### Common Customizations
 
 - `config.overlayScale` to adjust the overlay size - typically between 80% and 120% (default is `100`).
+- `config.overlayAnchor` to set the point the overlay scales from - `top`, `center`, or `bottom` (default is `top`).
 - `config.titleBannerText` to adjust the title banner text (default is `PENALTIES`).
 - `config.titleBannerBackgroundColor` and `titleBannerForegroundColor` set the title banner box background and text colors, respectively.
 
@@ -194,6 +212,7 @@ A configuration file named [config.js](./config.js) allows you to customize vari
   | `titleBannerShadow` | Title banner box shadow visibility | boolean | `true` | :white_check_mark: |
   | `penaltiesTitleText` | Title banner text | string | `PENALTIES` | :white_check_mark: |
   | `overlayScale` | Overlay scale size percentage: 100 = full size, 90 = 90% size, etc. (1 to 200) - the [`scale` URL parameter](#size-adjustments "Size Adjustments Section") overrides this value | int or float | `100` | :white_check_mark: |
+  | `overlayAnchor` | Point the overlay scales from: `top`, `center`, or `bottom` - the [`anchor` URL parameter](#position-adjustments "Position Adjustments Section") overrides this value | string | `top` | :white_check_mark: |
 
   ---
 
