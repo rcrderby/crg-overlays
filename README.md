@@ -14,8 +14,8 @@ After placing custom overlay files on an instance of CRG, a video streaming team
 
 Click a link in the table below to access specific overlay details and usage instructions:
 
-| Name       | Description   |
-| ---------- | ------------- |
+| Name                                                   | Description                                                                                  |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
 | [Penalties](./penalties/README.md "Penalties Overlay") | A viewer-friendly and customizable display of team rosters, penalties, and game information. |
 
 ## Disclaimer
