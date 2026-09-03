@@ -11,9 +11,21 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Cancel superseded runs on a branch; never cancel main runs so the
+# post-merge run always completes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   run-lint:
     name: Run Lint
+    # Same-repo pushes are already covered by the 'push' event, so only
+    # run the pull_request event for forks (their branches are not in
+    # this repo and so never trigger 'push')
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
 
     steps:
@@ -28,7 +40,7 @@ jobs:
       # Super Linter action documentation
       # https://github.com/marketplace/actions/super-linter
       - name: Lint Code Base
-        uses: super-linter/super-linter@v8.7.0
+        uses: super-linter/super-linter/slim@v8.7.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_ALL_CODEBASE: false
