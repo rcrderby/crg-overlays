@@ -892,7 +892,7 @@ body {
   position: absolute;
 }
 
-/* Trace: a gradient ring travelling around the overlay border */
+/* Trace: a gradient ring traveling around the overlay border */
 @keyframes overlay-trace {
   to {
     --overlay-trace-angle: 360deg;
