@@ -196,7 +196,7 @@ The overlay bundles four font pairings and uses `saira` as its default.  Use the
 
 #### Penalty Code Key
 
-The overlay lists the penalty codes in play below the rosters, with the plain-English description CRG holds for each one.  Only codes that skaters on screen have actually received appear, and the list rebuilds when a new code shows up during a game.  Use the `key` URL parameter to hide it:
+The overlay lists definitions for any penalty codes in use during a game.  Use the `key` URL parameter to hide it:
 
 | Key | URL |
 | - | - |
@@ -204,7 +204,7 @@ The overlay lists the penalty codes in play below the rosters, with the plain-En
 | Hidden | `https://<crg-ip-address>:8000/custom/overlay/penalties?key=false` |
 
 > [!NOTE]
-> The descriptions come from your CRG ruleset, so they follow whatever penalty definitions your game uses.  Foul-out and expulsion markers have no description in CRG and never appear in the key.
+> CRG provides penalty code definitions from the active ruleset.  Codes with no definition do not appear in the key.
 
 ### Optional Custom Logo
 
