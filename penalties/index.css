@@ -72,7 +72,9 @@
   --font-team-name-size: 25px;
   --font-clock-label-size: 16px;
   --font-heading-size: 12px;
-  --font-penalty-code-key-size: 14px;
+  --font-penalty-code-key-code-size: 19px;
+  --font-penalty-code-key-label-size: 12px;
+  --font-penalty-code-key-size: 15px;
   --font-roster-penalties-size: 18px;
   --font-captain-size: 15px;
   --font-loading-size: 32px;
@@ -94,7 +96,8 @@
   /* Opacity */
   --opacity-captain-indicator: 0.85;
   --opacity-column-heading: 0.7;
-  --opacity-penalty-code-key: 0.75;
+  --opacity-penalty-code-key: 0.84;
+  --opacity-penalty-code-key-label: 0.62;
   --opacity-version-watermark: 0.3;
 
   /* Padding */
@@ -105,6 +108,8 @@
   --padding-penalties: 5px;
   --padding-game-info-columns: 16px;
   --padding-game-info-event: 20px;
+  --padding-penalty-code-key-item: 17px;
+  --padding-penalty-code-key-label: 10px;
   --padding-penalty-count-vertical: 2px;
   --padding-penalty-count-horizontal: 6px;
   --padding-row-bottom: 4px;
@@ -123,6 +128,7 @@
   --radius-border-penalty-count: 3px;
   --width-border-overlay: 1px;
   --width-border-rosters-penalties: 1px;
+  --width-penalty-code-key-label: 190px;
   --width-border-team-panel: 2px;
   --width-game-info-center: 330px;
   --width-game-info-side: 190px;
@@ -137,8 +143,9 @@
   --gap-between-teams: 30px;
   --gap-clock-label: 1px;
   --gap-game-details: 18px;
+  --gap-penalty-code-key: 8px;
+  --gap-penalty-code-key-rows: 4px;
   --gap-tournament-divider: 10px;
-  --gap-penalty-code-key: 16px;
   --gap-roster-columns: 10px;
   --margin-bottom-row: 4px;
   --penalty-code-spacing: 0.5em;
@@ -522,17 +529,11 @@ body {
 *****************************/
 
 #penalty-code-key {
-  align-items: baseline;
+  border-top: var(--width-border-rosters-penalties) solid var(--overlay-border);
   color: var(--overlay-fg);
-  column-gap: var(--gap-penalty-code-key);
   display: none;
-  font-size: var(--font-penalty-code-key-size);
-  justify-content: center;
   margin: 0 auto var(--margin-penalty-code-key-bottom);
-  opacity: var(--opacity-penalty-code-key);
-  overflow: hidden;
   text-shadow: var(--shadow-text);
-  white-space: nowrap;
   width: var(--content-width);
 }
 
@@ -540,14 +541,45 @@ body {
   display: flex;
 }
 
+.code-key-label {
+  align-items: center;
+  border-right: var(--width-border-rosters-penalties) solid var(--overlay-border);
+  display: flex;
+  flex: none;
+  font-size: var(--font-penalty-code-key-label-size);
+  font-weight: bold;
+  justify-content: center;
+  letter-spacing: 0.12em;
+  opacity: var(--opacity-penalty-code-key-label);
+  padding: 0 var(--padding-penalty-code-key-label);
+  text-align: center;
+  text-transform: uppercase;
+  width: var(--width-penalty-code-key-label);
+}
+
+.code-key-items {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  min-width: 0;
+  row-gap: var(--gap-penalty-code-key-rows);
+}
+
 .code-key-item {
-  overflow: hidden;
-  text-overflow: ellipsis;
+  align-items: baseline;
+  column-gap: var(--gap-penalty-code-key);
+  display: flex;
+  font-size: var(--font-penalty-code-key-size);
+  opacity: var(--opacity-penalty-code-key);
+  padding: 0 var(--padding-penalty-code-key-item);
+  white-space: nowrap;
 }
 
 .code-key-code {
+  font-size: var(--font-penalty-code-key-code-size);
   font-weight: bold;
-  margin-right: var(--margin-captain-left);
+  opacity: 1;
 }
 
 /*****************************

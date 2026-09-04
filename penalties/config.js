@@ -38,6 +38,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Default roster shadow properties
     defaultRosterShadowProperties: '.5px .5px 1px',
 
+    // Heading shown beside the penalty code key
+    penaltyCodeKeyLabel: 'Penalty codes',
+
     // Text displayed on the "loading" screen
     loadingOverlayText: 'Loading game data...',
 
@@ -178,7 +181,10 @@ window.AppConfig.PenaltiesOverlayConfig = {
     fouloutCode: 'FO',
   
     // Penalty code for players removed by the head referee
-    removedCode: 'RE'
+    removedCode: 'RE',
+
+    // Penalty code CRG uses when the code is not known
+    unknownCode: '?'
   },
 
   /********************
