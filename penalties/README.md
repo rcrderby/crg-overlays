@@ -194,6 +194,18 @@ The overlay bundles four font pairings and uses `saira` as its default.  Use the
 > [!NOTE]
 > The overlay loads these fonts from its own `fonts` folder rather than from a web font service, so the fonts work correctly on a scoreboard computer with no Internet connection.  All of the fonts use the SIL Open Font License; see [`fonts/OFL.txt`](./fonts/OFL.txt) for details.
 
+#### Penalty Code Key
+
+The overlay lists the penalty codes in play below the rosters, with the plain-English description CRG holds for each one.  Only codes that skaters on screen have actually received appear, and the list rebuilds when a new code shows up during a game.  Use the `key` URL parameter to hide it:
+
+| Key | URL |
+| - | - |
+| Visible (default) | `https://<crg-ip-address>:8000/custom/overlay/penalties?key=true` |
+| Hidden | `https://<crg-ip-address>:8000/custom/overlay/penalties?key=false` |
+
+> [!NOTE]
+> The descriptions come from your CRG ruleset, so they follow whatever penalty definitions your game uses.  Foul-out and expulsion markers have no description in CRG and never appear in the key.
+
 ### Optional Custom Logo
 
 To add a custom logo to the left side game information area of the overlay:
@@ -223,6 +235,7 @@ A configuration file named [config.js](./config.js) allows you to customize vari
 - `config.overlayAnchor` to set the point the overlay scales from - `top`, `center`, or `bottom` (default is `top`).
 - `config.overlayOpacity` to adjust how much of the video shows through the overlay background - between 0 and 100 (default is `98`).
 - `config.overlayFont` to set the font pairing - `saira`, `league-gothic`, `anton`, or `bricolage` (default is `saira`).
+- `config.penaltyCodeKey` to show or hide the penalty code key - `true` or `false` (default is `true`).
 - `config.titleBannerText` to adjust the title text (default is `PENALTIES`).
 
 > [!WARNING]
@@ -255,6 +268,7 @@ A configuration file named [config.js](./config.js) allows you to customize vari
   | `overlayWidth` | Overlay width percentage of the video frame (50 to 100) - the [`width` URL parameter](#width-adjustments "Width Adjustments Section") overrides this value | int or float | `85` | :white_check_mark: |
   | `overlayOpacity` | Overlay background opacity percentage: 100 is solid, 0 is invisible (0 to 100) - the [`opacity` URL parameter](#background-opacity "Background Opacity Section") overrides this value | int or float | `98` | :white_check_mark: |
   | `overlayFont` | Font pairing: `saira`, `league-gothic`, `anton`, or `bricolage` - the [`font` URL parameter](#font-selection "Font Selection Section") overrides this value | string | `saira` | :white_check_mark: |
+  | `penaltyCodeKey` | Penalty code key visibility below the rosters - the [`key` URL parameter](#penalty-code-key "Penalty Code Key Section") overrides this value | boolean | `true` | :white_check_mark: |
 
   ---
 

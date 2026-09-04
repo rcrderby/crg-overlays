@@ -62,7 +62,11 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
     // Overlay width percentage of the video frame (50 to 100)
     // The `width` URL parameter overrides this value
-    overlayWidth: 85
+    overlayWidth: 85,
+
+    // Show a key of the penalty codes in play below the rosters
+    // The `key` URL parameter overrides this value
+    penaltyCodeKey: true
 
   },
 
@@ -88,6 +92,12 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
     // CSS Selector for the loading overlay text
     loadingOverlayTextSelector: '.loading-text',
+
+    // CSS Selector for the penalty code key container
+    penaltyCodeKeySelector: '#penalty-code-key',
+
+    // CSS Selector for the visible penalty code key
+    penaltyCodeKeyVisibleSelectorSuffix: 'visible',
 
     // CSS Selector for the penalties title H1 text
     penaltiesTitleH1Selector: '#penalties-title h1',
@@ -188,5 +198,8 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
     // Minimum time to show loading screen (ms)
     minLoadDisplayMs: 500,
+
+    // Delay before rebuilding the penalty code key after an update (ms)
+    penaltyCodeKeyRebuild: 50,
   }
 };
