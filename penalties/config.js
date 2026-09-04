@@ -47,6 +47,10 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Title banner
     titleBannerText: 'PENALTIES',
 
+    // Background animation: `trace`, `organic`, `shine`, or `off`
+    // The `background` URL parameter overrides this value
+    backgroundAnimation: 'trace',
+
     // Point the overlay scales from: `top`, `center`, or `bottom`
     // The `anchor` URL parameter overrides this value
     overlayAnchor: 'top',
@@ -69,7 +73,11 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
     // Show a key of the active penalty codes below the rosters
     // The `key` URL parameter overrides this value
-    penaltyCodeKey: true
+    penaltyCodeKey: true,
+
+    // Timeout banner animation: `glow`, `pulse`, `shine`, or `off`
+    // The `timeout` URL parameter overrides this value
+    timeoutAnimation: 'glow'
 
   },
 

@@ -127,6 +127,7 @@
   --height-roster-penalties-line: 28px;
   --radius-border-penalty-count: 3px;
   --width-border-overlay: 1px;
+  --width-border-overlay-trace: 2px;
   --width-border-rosters-penalties: 1px;
   --width-penalty-code-key-label: 190px;
   --width-border-team-panel: 2px;
@@ -151,6 +152,8 @@
   --penalty-code-spacing: 0.5em;
 
   /* Transitions */
+  --duration-animation-background: 10s;
+  --duration-animation-timeout: 5s;
   --transition-background: 0.3s ease;
   --transition-fade: 0.5s ease;
 }
@@ -824,4 +827,207 @@ body {
 
 .timeout-banner.visible.position-team2 {
   grid-column: 3;
+}
+
+/**************************
+** Overlay animations **
+**************************/
+
+@property --overlay-trace-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* Motion layers sit above the overlay background and below its content */
+#overlay-motion {
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+
+#overlay-motion i {
+  display: none;
+  inset: 0;
+  position: absolute;
+}
+
+/* Trace: a gradient ring travelling around the overlay border */
+@keyframes overlay-trace {
+  to {
+    --overlay-trace-angle: 360deg;
+  }
+}
+
+.background-trace #overlay-motion i:first-child {
+  animation: overlay-trace var(--duration-animation-background) linear infinite;
+  background: linear-gradient(
+    var(--overlay-trace-angle),
+    rgb(255 255 255 / 14%),
+    rgb(232 238 250 / 62%)
+  ) border-box;
+  border: var(--width-border-overlay-trace) solid transparent;
+  display: block;
+  mask: linear-gradient(#000000 0 0) content-box, linear-gradient(#000000 0 0);
+  mask-composite: exclude;
+}
+
+/* Organic: two soft pools of light drifting across the panel */
+@keyframes overlay-organic-near {
+  from {
+    transform: translate3d(-7%, -5%, 0) scale(1);
+  }
+
+  to {
+    transform: translate3d(9%, 6%, 0) scale(1.18);
+  }
+}
+
+@keyframes overlay-organic-far {
+  from {
+    transform: translate3d(8%, 4%, 0) scale(1.12);
+  }
+
+  to {
+    transform: translate3d(-6%, -7%, 0) scale(1);
+  }
+}
+
+.background-organic #overlay-motion i:first-child {
+  animation: overlay-organic-near
+    calc(var(--duration-animation-background) * 1.9) ease-in-out infinite
+    alternate;
+  background: radial-gradient(
+    38% 52% at 30% 36%,
+    rgb(232 238 250 / 9%),
+    rgb(0 0 0 / 0%) 66%
+  );
+  display: block;
+}
+
+.background-organic #overlay-motion i:last-child {
+  animation: overlay-organic-far
+    calc(var(--duration-animation-background) * 2.7) ease-in-out infinite
+    alternate;
+  background: radial-gradient(
+      34% 46% at 72% 64%,
+      rgb(216 222 236 / 8%),
+      rgb(0 0 0 / 0%) 66%
+    ),
+    radial-gradient(
+      30% 42% at 52% 20%,
+      rgb(240 244 252 / 6%),
+      rgb(0 0 0 / 0%) 68%
+    );
+  display: block;
+}
+
+/* Shine: a single band of light crossing the panel diagonally */
+@keyframes overlay-shine {
+  from {
+    background-position: -3400px -3400px;
+  }
+
+  to {
+    background-position: 3400px 3400px;
+  }
+}
+
+.background-shine #overlay-motion i:first-child {
+  animation: overlay-shine var(--duration-animation-background) linear infinite;
+  background-image: linear-gradient(
+    135deg,
+    rgb(255 255 255 / 0%) 38%,
+    rgb(232 238 250 / 11%) 50%,
+    rgb(255 255 255 / 0%) 62%
+  );
+  background-repeat: no-repeat;
+  background-size: 3200px 3200px;
+  display: block;
+}
+
+/*****************************
+** Timeout banner animations **
+*****************************/
+
+/* Glow: the banner color breathes, whatever color it is */
+@keyframes timeout-glow {
+  0%,
+  100% {
+    filter: brightness(0.88);
+  }
+
+  50% {
+    filter: brightness(1.18);
+  }
+}
+
+.timeout-glow .timeout-banner.visible {
+  animation: timeout-glow var(--duration-animation-timeout) ease-in-out infinite;
+}
+
+/* Pulse: an outline expanding away from the banner */
+@keyframes timeout-pulse {
+  0% {
+    outline-color: rgb(226 72 88 / 0%);
+    outline-offset: 0;
+    outline-width: 1px;
+  }
+
+  10% {
+    outline-color: rgb(226 72 88 / 75%);
+  }
+
+  50%,
+  100% {
+    outline-color: rgb(226 72 88 / 0%);
+    outline-offset: 4px;
+    outline-width: 7px;
+  }
+}
+
+.timeout-pulse .timeout-banner.visible {
+  animation: timeout-pulse calc(var(--duration-animation-timeout) * 0.8) ease
+    infinite;
+  outline: 1px solid rgb(226 72 88 / 75%);
+  outline-offset: 0;
+}
+
+/* Shine: a band of light crossing the banner */
+@keyframes timeout-shine {
+  from {
+    background-position: 150% 0;
+  }
+
+  to {
+    background-position: -150% 0;
+  }
+}
+
+.timeout-shine .timeout-banner.visible::after {
+  animation: timeout-shine var(--duration-animation-timeout) linear infinite;
+  background-image: linear-gradient(
+    105deg,
+    rgb(255 255 255 / 0%) 35%,
+    rgb(255 255 255 / 24%) 50%,
+    rgb(255 255 255 / 0%) 65%
+  );
+  background-repeat: no-repeat;
+  background-size: 200% 100%;
+  content: '';
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+/* Viewers who ask for reduced motion get none of it */
+@media (prefers-reduced-motion: reduce) {
+  #overlay-motion i,
+  .timeout-banner.visible,
+  .timeout-banner.visible::after {
+    animation: none !important;
+    outline: none !important;
+  }
 }

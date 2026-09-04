@@ -194,6 +194,26 @@ The overlay bundles four font pairings and uses `saira` as its default.  Use the
 > [!NOTE]
 > The overlay loads these fonts from its own `fonts` folder rather than from a web font service, so the fonts work correctly on a scoreboard computer with no Internet connection.  All of the fonts use the SIL Open Font License; see [`fonts/OFL.txt`](./fonts/OFL.txt) for details.
 
+#### Animation Options
+
+The overlay animates its background and its timeout banner.  Use the `background` and `timeout` URL parameters to change or disable either one:
+
+| Background | Effect | URL |
+| - | - | - |
+| `trace` (default) | A gradient travels around the overlay border | `https://<crg-ip-address>:8000/custom/overlay/penalties?background=trace` |
+| `organic` | Soft pools of light drift across the panel | `https://<crg-ip-address>:8000/custom/overlay/penalties?background=organic` |
+| `shine` | A single band of light crosses diagonally | `https://<crg-ip-address>:8000/custom/overlay/penalties?background=shine` |
+| `off` | No background animation | `https://<crg-ip-address>:8000/custom/overlay/penalties?background=off` |
+
+| Timeout banner | Effect | URL |
+| - | - | - |
+| `glow` (default) | The banner color breathes | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=glow` |
+| `pulse` | An outline expands away from the banner | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=pulse` |
+| `shine` | A band of light crosses the banner | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=shine` |
+| `off` | No timeout banner animation | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=off` |
+
+> [!NOTE]
+> A viewer whose system asks for reduced motion sees no animation at all, whatever these settings say.
 #### Penalty Code Key
 
 The overlay lists definitions for any penalty codes in use during a game.  Use the `key` URL parameter to hide it:
@@ -235,6 +255,8 @@ A configuration file named [config.js](./config.js) allows you to customize vari
 - `config.overlayAnchor` to set the point the overlay scales from - `top`, `center`, or `bottom` (default is `top`).
 - `config.overlayOpacity` to adjust how much of the video shows through the overlay background - between 0 and 100 (default is `98`).
 - `config.overlayFont` to set the font pairing - `saira`, `league-gothic`, `anton`, or `bricolage` (default is `saira`).
+- `config.backgroundAnimation` to set the background animation - `trace`, `organic`, `shine`, or `off` (default is `trace`).
+- `config.timeoutAnimation` to set the timeout banner animation - `glow`, `pulse`, `shine`, or `off` (default is `glow`).
 - `config.penaltyCodeKey` to show or hide the penalty code key - `true` or `false` (default is `true`).
 - `config.titleBannerText` to adjust the title text (default is `PENALTIES`).
 
@@ -268,6 +290,8 @@ A configuration file named [config.js](./config.js) allows you to customize vari
   | `overlayWidth` | Overlay width percentage of the video frame (50 to 100) - the [`width` URL parameter](#width-adjustments "Width Adjustments Section") overrides this value | int or float | `85` | :white_check_mark: |
   | `overlayOpacity` | Overlay background opacity percentage: 100 is solid, 0 is invisible (0 to 100) - the [`opacity` URL parameter](#background-opacity "Background Opacity Section") overrides this value | int or float | `98` | :white_check_mark: |
   | `overlayFont` | Font pairing: `saira`, `league-gothic`, `anton`, or `bricolage` - the [`font` URL parameter](#font-selection "Font Selection Section") overrides this value | string | `saira` | :white_check_mark: |
+  | `backgroundAnimation` | Background animation: `trace`, `organic`, `shine`, or `off` - the [`background` URL parameter](#animation-options "Animation Options Section") overrides this value | string | `trace` | :white_check_mark: |
+  | `timeoutAnimation` | Timeout banner animation: `glow`, `pulse`, `shine`, or `off` - the [`timeout` URL parameter](#animation-options "Animation Options Section") overrides this value | string | `glow` | :white_check_mark: |
   | `penaltyCodeKey` | Penalty code key visibility below the rosters - the [`key` URL parameter](#penalty-code-key "Penalty Code Key Section") overrides this value | boolean | `true` | :white_check_mark: |
   | `penaltyCodeKeyLabel` | Heading shown beside the penalty code key | string | `Penalty codes` | :white_check_mark: |
 

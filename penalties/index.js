@@ -97,10 +97,12 @@ const OVERLAY_VERSION = '4.0.0';
 // Allowed URL parameters
 const ALLOWED_URL_PARAMS = [
   'anchor',
+  'background',
   'font',
   'key',
   'opacity',
   'scale',
+  'timeout',
   'width'
 ];
 
@@ -235,6 +237,86 @@ function setOverlayWidth() {
   if (DEBUG) {
     console.log(`Overlay width set to ${overlayWidthPercent}% of the video frame (from ${widthSource}).`);
   }
+}
+
+// Animation option names mapped to the classes that drive them
+const BACKGROUND_ANIMATIONS = {
+  trace: 'background-trace',
+  organic: 'background-organic',
+  shine: 'background-shine',
+  off: ''
+};
+
+const TIMEOUT_ANIMATIONS = {
+  glow: 'timeout-glow',
+  pulse: 'timeout-pulse',
+  shine: 'timeout-shine',
+  off: ''
+};
+
+// Validate an animation setting and apply its class to the overlay
+function setAnimation(settingName, urlParam, configValue, animations, defaultName) {
+  let animation = defaultName;
+  let animationSource = 'default';
+  let validationPassed = false;
+
+  // Check for URL parameter first to take precedence over the config.js setting
+  const urlAnimation = getUrlParameter(urlParam);
+
+  // Determine which animation value to use
+  let animationToValidate;
+  if (urlAnimation !== null) {
+    animationToValidate = urlAnimation;
+    animationSource = 'URL parameter';
+  } else {
+    animationToValidate = configValue;
+    animationSource = 'config.js';
+  }
+
+  // Validate the animation value
+  const allowedAnimations = Object.keys(animations);
+  if (typeof animationToValidate === 'undefined' || animationToValidate === null) {
+    console.warn(`${settingName} not defined in ${animationSource} - using default (${defaultName}).`);
+  } else if (typeof animationToValidate !== 'string') {
+    console.warn(`Invalid ${settingName} value "${animationToValidate}" in ${animationSource} (must be a string) - using default (${defaultName}).`);
+  } else if (!allowedAnimations.includes(animationToValidate.toLowerCase())) {
+    console.warn(`Invalid ${settingName} value "${animationToValidate}" in ${animationSource} (must be one of ${allowedAnimations.join(', ')}) - using default (${defaultName}).`);
+  } else {
+    animation = animationToValidate.toLowerCase();
+    validationPassed = true;
+  }
+
+  // Reset the source if validation failed
+  if (!validationPassed) {
+    animationSource = 'default';
+  }
+
+  // Remove any previously applied class before applying the chosen one
+  const overlay = document.getElementById('overlay');
+  if (overlay) {
+    for (const className of Object.values(animations)) {
+      if (className !== '') {
+        overlay.classList.remove(className);
+      }
+    }
+    if (animations[animation] !== '') {
+      overlay.classList.add(animations[animation]);
+    }
+  }
+
+  if (DEBUG) {
+    console.log(`${settingName} set to ${animation} (from ${animationSource}).`);
+  }
+}
+
+// Validate and set the background animation
+function setBackgroundAnimation() {
+  setAnimation('Background animation', 'background', CONFIG.backgroundAnimation, BACKGROUND_ANIMATIONS, 'trace');
+}
+
+// Validate and set the timeout banner animation
+function setTimeoutAnimation() {
+  setAnimation('Timeout animation', 'timeout', CONFIG.timeoutAnimation, TIMEOUT_ANIMATIONS, 'glow');
 }
 
 // Penalty code key state
@@ -1080,6 +1162,11 @@ $(function() {
   // Set the font pairing
   setOverlayFont();
 
+  // Set the background animation
+  setBackgroundAnimation();
+
+  // Set the timeout banner animation
+  setTimeoutAnimation();
   // Set the penalty code key visibility
   setPenaltyCodeKey();
 
