@@ -258,11 +258,8 @@ A configuration file named [config.js](./config.js) allows you to customize vari
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
-  | `fouloutPenaltyCount` | Number of penalties that result in a foulout | integer | `7` | :x: |
-  | `numPeriods` | Override a custom number of periods | integer | `2` | :x: |
-  | `numTeams` | Override a custom number of teams | integer | `2` | :x: |
-  | `warningPenaltyCount5` | Penalty count that triggers the first warning color | integer | `5` | :warning: |
-  | `warningPenaltyCount6` | Penalty count that triggers second warning color | integer | `6` | :warning: |
+  | `warningPenaltyOffsets.first` | Number of penalties before the first foulout warning color | integer | `2` | :warning: |
+  | `warningPenaltyOffsets.second` | Number of penalties before the second foulout warning color | integer | `1` | :warning: |
 
   ---
 
@@ -280,6 +277,8 @@ A configuration file named [config.js](./config.js) allows you to customize vari
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
   | `initWebSocket` | Delay before initializing display after WebSocket connects (ms) | integer | `100` | :x: |
+  | `loadCheckInterval` | How often to check if the game rules arrived (ms) | integer | `100` | :x: |
+  | `maxLoadWaitMs` | Longest time to wait for the game rules to arrive (ms) | integer | `5000` | :warning: |
   | `minLoadDisplayMs` | Minimum time to show loading screen (ms) | integer | `500` | :x: |
 
 </details>
