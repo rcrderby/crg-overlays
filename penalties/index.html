@@ -65,130 +65,116 @@
     <!-- Rosters and Penalties Container -->
     <div id="rosters-penalties-container">
 
-      <!-- Team 1 (Home) Rosters and Penalties -->
+      <!-- Team 1 (Home) Roster and Penalties -->
       <div id="team1-rosters-penalties" sbContext="Team(1)">
         <div class="roster-penalties-container">
-          <div class="roster-penalty-row">
 
-            <!-- Team 1 Roster Column -->
-            <div id="team1-roster"
-                 class="roster"
-                 sbcss="background-color: Color(whiteboard.bg) |
-                        border-color: Color(whiteboard.fg) |
-                        color: Color(whiteboard.fg) |
-                        text-shadow: Color(whiteboard.glow): glowColorToShadow">
+          <div id="team1-roster"
+               class="roster"
+               sbcss="background-color: Color(whiteboard.bg) |
+                      border-color: Color(whiteboard.fg) |
+                      color: Color(whiteboard.fg) |
+                      text-shadow: Color(whiteboard.glow): glowColorToShadow">
 
-              <!-- Roster lines for each player -->
-              <div class="roster-line"
-                   sbAttr="roster-number: RosterNumber | name-text: Name"
-                   sbClass="sbHide: Flags: shouldHideSkater"
-                   sbForeach="Skater:: roster-number: resort=RosterNumber">
-                <div class="roster-number" sbDisplay="RosterNumber"></div>
-                <div class="roster-name">
-                  <span class="name-text" sbDisplay="Name"></span>
-                  <span class="captain-indicator" sbDisplay="Flags: showCaptainIndicator"></span>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Team 1 Penalties Column -->
-            <div class="penalties-column">
-              <div id="team1-penalties">
-                <div class="penalty-line"
-                     sbAttr="roster-number: RosterNumber"
-                     sbClass="sbHide: Flags: shouldHideSkater"
-                     sbForeach="Skater:: roster-number: resort=RosterNumber">
-
-                  <!-- Penalty codes display -->
-                  <div class="penalty-codes">
-                    <span sbAttr="penalty-number: Number"
-                          sbDisplay="Code"
-                          sbClass="sbHide: Code, Number: shouldHidePenaltyCode"
-                          sbForeach="Penalty">
-                    </span>
-                  </div>
-
-                  <!-- Penalty count with status detection (Penalty(0).Code registers WebSocket channel) -->
-                  <div class="penalty-count"
-                       sbClass="penalty-count-warning-1: PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): isPenaltyCountWarning1 | 
-                                penalty-count-warning-2: PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): isPenaltyCountWarning2 | 
-                                penalty-count-exp-fo-re: PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): isPenaltyCountExpFoRe"
-                       sbDisplay="PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): getPenaltyCountDisplay">
-                  </div>
-                </div>
-              </div>
-
-              <!-- Team 1 penalty total -->
-              <div id="team1-total" class="penalty-total">
-                <span class="total-label">Total:</span>
-                <span class="total-count" sbDisplay="TotalPenalties"></span>
-              </div>
+            <!-- Column headings -->
+            <div class="roster-headings">
+              <div class="heading-number">Number</div>
+              <div class="heading-name">Player</div>
+              <div class="heading-penalties">Penalties</div>
+              <div class="heading-count">Total</div>
             </div>
 
+            <!-- Roster lines for each player -->
+            <div class="roster-line"
+                 sbAttr="roster-number: RosterNumber | name-text: Name"
+                 sbClass="sbHide: Flags: shouldHideSkater"
+                 sbForeach="Skater:: roster-number: resort=RosterNumber">
+              <div class="roster-number" sbDisplay="RosterNumber"></div>
+              <div class="roster-name">
+                <span class="name-text" sbDisplay="Name"></span>
+                <span class="captain-indicator" sbDisplay="Flags: showCaptainIndicator"></span>
+              </div>
+
+              <!-- Penalty codes display -->
+              <div class="penalty-codes">
+                <span sbAttr="penalty-number: Number"
+                      sbDisplay="Code"
+                      sbClass="sbHide: Code, Number: shouldHidePenaltyCode"
+                      sbForeach="Penalty">
+                </span>
+              </div>
+
+              <!-- Penalty count with status detection (Penalty(0).Code registers WebSocket channel) -->
+              <div class="penalty-count"
+                   sbClass="penalty-count-warning-1: PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): isPenaltyCountWarning1 | 
+                            penalty-count-warning-2: PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): isPenaltyCountWarning2 | 
+                            penalty-count-exp-fo-re: PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): isPenaltyCountExpFoRe"
+                   sbDisplay="PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): getPenaltyCountDisplay">
+              </div>
+            </div>
+          </div>
+
+          <!-- Team 1 penalty total -->
+          <div id="team1-total" class="penalty-total">
+            <span class="total-label">Total penalties</span>
+            <span class="total-count" sbDisplay="TotalPenalties"></span>
           </div>
         </div>
       </div>
 
-      <!-- Team 2 (Away) Rosters and Penalties -->
+      <!-- Team 2 (Away) Roster and Penalties -->
       <div id="team2-rosters-penalties" sbContext="Team(2)">
         <div class="roster-penalties-container">
-          <div class="roster-penalty-row">
 
-            <!-- Team 2 Roster Column -->
-            <div id="team2-roster"
-                 class="roster"
-                 sbcss="background-color: Color(whiteboard.bg) |
-                        border-color: Color(whiteboard.fg) |
-                        color: Color(whiteboard.fg) |
-                        text-shadow: Color(whiteboard.glow): glowColorToShadow">
+          <div id="team2-roster"
+               class="roster"
+               sbcss="background-color: Color(whiteboard.bg) |
+                      border-color: Color(whiteboard.fg) |
+                      color: Color(whiteboard.fg) |
+                      text-shadow: Color(whiteboard.glow): glowColorToShadow">
 
-              <!-- Roster lines for each player -->
-              <div class="roster-line"
-                   sbAttr="roster-number: RosterNumber | name-text: Name"
-                   sbClass="sbHide: Flags: shouldHideSkater"
-                   sbForeach="Skater:: roster-number: resort=RosterNumber">
-                <div class="roster-number" sbDisplay="RosterNumber"></div>
-                <div class="roster-name">
-                  <span class="name-text" sbDisplay="Name"></span>
-                  <span class="captain-indicator" sbDisplay="Flags: showCaptainIndicator"></span>
-                </div>
-              </div>
+            <!-- Column headings -->
+            <div class="roster-headings">
+              <div class="heading-number">Number</div>
+              <div class="heading-name">Player</div>
+              <div class="heading-penalties">Penalties</div>
+              <div class="heading-count">Total</div>
             </div>
 
-            <!-- Team 2 Penalties Column -->
-            <div class="penalties-column">
-              <div id="team2-penalties">
-                <div class="penalty-line"
-                     sbAttr="roster-number: RosterNumber"
-                     sbClass="sbHide: Flags: shouldHideSkater"
-                     sbForeach="Skater:: roster-number: resort=RosterNumber">
-                  
-                  <!-- Penalty codes display -->
-                  <div class="penalty-codes">
-                    <span sbAttr="penalty-number: Number"
-                          sbDisplay="Code"
-                          sbClass="sbHide: Code, Number: shouldHidePenaltyCode"
-                          sbForeach="Penalty">
-                    </span>
-                  </div>
-
-                  <!-- Penalty count with status detection (Penalty(0).Code registers WebSocket channel) -->
-                  <div class="penalty-count"
-                       sbClass="penalty-count-warning-1: PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): isPenaltyCountWarning1 | 
-                                penalty-count-warning-2: PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): isPenaltyCountWarning2 | 
-                                penalty-count-exp-fo-re: PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): isPenaltyCountExpFoRe"
-                       sbDisplay="PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): getPenaltyCountDisplay">
-                  </div>
-                </div>
+            <!-- Roster lines for each player -->
+            <div class="roster-line"
+                 sbAttr="roster-number: RosterNumber | name-text: Name"
+                 sbClass="sbHide: Flags: shouldHideSkater"
+                 sbForeach="Skater:: roster-number: resort=RosterNumber">
+              <div class="roster-number" sbDisplay="RosterNumber"></div>
+              <div class="roster-name">
+                <span class="name-text" sbDisplay="Name"></span>
+                <span class="captain-indicator" sbDisplay="Flags: showCaptainIndicator"></span>
               </div>
 
-              <!-- Team 2 penalty total -->
-              <div id="team2-total" class="penalty-total">
-                <span class="total-label">Total:</span>
-                <span class="total-count" sbDisplay="TotalPenalties"></span>
+              <!-- Penalty codes display -->
+              <div class="penalty-codes">
+                <span sbAttr="penalty-number: Number"
+                      sbDisplay="Code"
+                      sbClass="sbHide: Code, Number: shouldHidePenaltyCode"
+                      sbForeach="Penalty">
+                </span>
+              </div>
+
+              <!-- Penalty count with status detection (Penalty(0).Code registers WebSocket channel) -->
+              <div class="penalty-count"
+                   sbClass="penalty-count-warning-1: PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): isPenaltyCountWarning1 | 
+                            penalty-count-warning-2: PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): isPenaltyCountWarning2 | 
+                            penalty-count-exp-fo-re: PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): isPenaltyCountExpFoRe"
+                   sbDisplay="PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): getPenaltyCountDisplay">
               </div>
             </div>
+          </div>
 
+          <!-- Team 2 penalty total -->
+          <div id="team2-total" class="penalty-total">
+            <span class="total-label">Total penalties</span>
+            <span class="total-count" sbDisplay="TotalPenalties"></span>
           </div>
         </div>
       </div>
