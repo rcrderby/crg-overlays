@@ -9,8 +9,8 @@
   --overlay-width: 1920px;
   --overlay-height: 1080px;
   --overlay-padding: 12px;
-  --overlay-inset-horizontal: 38px;
   --overlay-inset-vertical: 32px;
+  --overlay-width-ratio: 0.85;
   --overlay-bg-color: 13 12 17;
   --overlay-opacity: 98%;
   --overlay-bg: rgb(var(--overlay-bg-color) / var(--overlay-opacity));
@@ -239,13 +239,13 @@ body {
   display: flex;
   flex-direction: column;
   height: calc(var(--overlay-height) - (2 * var(--overlay-inset-vertical)));
-  margin: var(--overlay-inset-vertical) var(--overlay-inset-horizontal);
+  margin: var(--overlay-inset-vertical) auto;
   padding: var(--overlay-padding);
   position: relative;
   transform: scale(var(--overlay-scale, 1));
   transform-origin: var(--overlay-origin, top center);
   transition: opacity var(--transition-fade);
-  width: calc(var(--overlay-width) - (2 * var(--overlay-inset-horizontal)));
+  width: calc(var(--overlay-width) * var(--overlay-width-ratio));
 }
 
 #overlay.hidden {
