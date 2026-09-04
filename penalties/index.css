@@ -69,7 +69,8 @@
   --timeout-banner-text-shadow: var(--shadow-text);
 
   /* Fonts */
-  --font-family: arial, sans-serif;
+  --font-family: 'Saira', arial, sans-serif;
+  --font-family-display: 'Saira Condensed', 'Arial Narrow', arial, sans-serif;
   --font-penalties-title-size: 40px;
   --font-score-size: 34px;
   --font-clock-size: 30px;
@@ -320,6 +321,7 @@ body {
 
 #penalties-title h1 {
   color: var(--title-banner-fg);
+  font-family: var(--font-family-display);
   font-size: var(--font-penalties-title-size);
   font-weight: bold;
   text-shadow: var(--shadow-text-title);

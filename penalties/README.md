@@ -154,6 +154,20 @@ You can combine the `anchor` and `scale` parameters to fit your needs:
 > [!TIP]
 > The allowed `anchor` parameter values are `top`, `center`, and `bottom`. See the `overlayAnchor` setting in the [Configuration Section](#configuration "Configuration Section") for details.
 
+#### Font Selection
+
+The overlay bundles four font pairings and uses `saira` as its default.  Use the `font` URL parameter to choose another font:
+
+| Pairing | Headings | Body text | URL |
+| - | - | - | - |
+| `saira` (default) | Saira Condensed | Saira | `https://<crg-ip-address>:8000/custom/overlay/penalties?font=saira` |
+| `league-gothic` | League Gothic | Barlow | `https://<crg-ip-address>:8000/custom/overlay/penalties?font=league-gothic` |
+| `anton` | Anton | Chivo | `https://<crg-ip-address>:8000/custom/overlay/penalties?font=anton` |
+| `bricolage` | Bricolage Grotesque | Barlow Condensed | `https://<crg-ip-address>:8000/custom/overlay/penalties?font=bricolage` |
+
+> [!NOTE]
+> The overlay loads these fonts from its own `fonts` folder rather than from a web font service, so the fonts work correctly on a scoreboard computer with no Internet connection.  All of the fonts use the SIL Open Font License; see [`fonts/OFL.txt`](./fonts/OFL.txt) for details.
+
 ### Optional Custom Logo
 
 To add a custom logo to the left side game information area of the overlay:
@@ -180,6 +194,7 @@ A configuration file named [config.js](./config.js) allows you to customize vari
 
 - `config.overlayScale` to adjust the overlay size - typically between 80% and 120% (default is `100`).
 - `config.overlayAnchor` to set the point the overlay scales from - `top`, `center`, or `bottom` (default is `top`).
+- `config.overlayFont` to set the font pairing - `saira`, `league-gothic`, `anton`, or `bricolage` (default is `saira`).
 - `config.titleBannerText` to adjust the title banner text (default is `PENALTIES`).
 - `config.titleBannerBackgroundColor` and `titleBannerForegroundColor` set the title banner box background and text colors, respectively.
 
@@ -213,6 +228,7 @@ A configuration file named [config.js](./config.js) allows you to customize vari
   | `penaltiesTitleText` | Title banner text | string | `PENALTIES` | :white_check_mark: |
   | `overlayScale` | Overlay scale size percentage: 100 = full size, 90 = 90% size, etc. (1 to 200) - the [`scale` URL parameter](#size-adjustments "Size Adjustments Section") overrides this value | int or float | `100` | :white_check_mark: |
   | `overlayAnchor` | Point the overlay scales from: `top`, `center`, or `bottom` - the [`anchor` URL parameter](#position-adjustments "Position Adjustments Section") overrides this value | string | `top` | :white_check_mark: |
+  | `overlayFont` | Font pairing: `saira`, `league-gothic`, `anton`, or `bricolage` - the [`font` URL parameter](#font-selection "Font Selection Section") overrides this value | string | `saira` | :white_check_mark: |
 
   ---
 
