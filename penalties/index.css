@@ -46,8 +46,8 @@
   --penalties-border: var(--team-penalties-default-border-color);
 
   /* Penalty highlight colors */
-  --penalty-warning-5: #b8860b;          /* Dark yellow */
-  --penalty-warning-6: #cc6600;          /* Dark orange */
+  --penalty-warning-1: #b8860b;          /* Dark yellow */
+  --penalty-warning-2: #cc6600;          /* Dark orange */
   --penalty-warning-exp-fo-re: #8b0000;  /* Dark red */
 
   /* Game information area colors */
@@ -499,12 +499,12 @@ body {
 ** Penalty count warning colors **
 *********************************/
 
-.penalty-count-5 {
-  background-color: var(--penalty-warning-5);
+.penalty-count-warning-1 {
+  background-color: var(--penalty-warning-1);
 }
 
-.penalty-count-6 {
-  background-color: var(--penalty-warning-6);
+.penalty-count-warning-2 {
+  background-color: var(--penalty-warning-2);
 }
 
 .penalty-count-exp-fo-re {
