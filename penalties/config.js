@@ -64,7 +64,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // The `width` URL parameter overrides this value
     overlayWidth: 85,
 
-    // Show a key of the penalty codes in play below the rosters
+    // Show a key of the active penalty codes below the rosters
     // The `key` URL parameter overrides this value
     penaltyCodeKey: true
 
