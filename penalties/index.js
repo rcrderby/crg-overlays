@@ -87,6 +87,9 @@ const RULES = PenaltiesOverlayConfig.rules;
 const PENALTIES = PenaltiesOverlayConfig.penalties;
 const TIMING = PenaltiesOverlayConfig.timing;
 
+// Overlay version to display as a watermark and log to the console
+const OVERLAY_VERSION = '4.0.0';
+
 /****************************
 ** URL Parameter Functions **
 ****************************/
@@ -306,53 +309,6 @@ function setOverlayFont() {
   }
 }
 
-// Format title banner with values from config.js
-function formatTitleBanner() {
-
-  // Apply valid background colors
-  if (
-    CONFIG.titleBannerBackgroundColor && 
-    CSS.supports('color', CONFIG.titleBannerBackgroundColor)
-  ) {
-    document.documentElement.style.setProperty(
-      '--title-banner-bg', 
-      CONFIG.titleBannerBackgroundColor
-    );
-  } else if (CONFIG.titleBannerBackgroundColor) {
-    console.warn(
-      `Invalid title banner background color: "${CONFIG.titleBannerBackgroundColor}" - using CSS default.`
-    );
-  }
-  
-  // Apply valid foreground colors
-  if (
-    CONFIG.titleBannerForegroundColor && 
-    CSS.supports('color', CONFIG.titleBannerForegroundColor)
-  ) {
-    document.documentElement.style.setProperty(
-      '--title-banner-fg', 
-      CONFIG.titleBannerForegroundColor
-    );
-  } else if (CONFIG.titleBannerForegroundColor) {
-    console.warn(
-      `Invalid title banner text color: "${CONFIG.titleBannerForegroundColor}" - using CSS default.`
-    );
-  }
-
-  // Control title banner shadow visibility
-  if (typeof CONFIG.titleBannerShadow === 'boolean') {
-    if (CONFIG.titleBannerShadow === false) {
-      document.documentElement.style.setProperty(
-        '--title-banner-shadow',
-        'none'
-      );
-    }
-  } else if (typeof CONFIG.titleBannerShadow !== 'undefined') {
-    console.warn(
-      `Invalid title banner shadow value: "${CONFIG.titleBannerShadow}" - using CSS default.`
-    );
-  }
-}
 
 /******************************
 ** General Utility Functions **
@@ -752,6 +708,26 @@ window.isTimeoutVisible = function(_k, timeoutRunning) {
 };
 
 /*******************************
+** Version Watermark Function **
+*******************************/
+
+// Show the version so a deployment can be identified from a screenshot
+function setOverlayVersion() {
+  const overlay = document.getElementById('overlay');
+  const versionElement = document.getElementById('overlay-version');
+
+  if (overlay) {
+    overlay.dataset.version = OVERLAY_VERSION;
+  }
+
+  if (versionElement) {
+    versionElement.textContent = `v${OVERLAY_VERSION}`;
+  }
+
+  console.log(`Penalties Overlay v${OVERLAY_VERSION}`);
+}
+
+/*******************************
 ** Loading Overlay Functions **
 *******************************/
 
@@ -834,14 +810,14 @@ $(function() {
   // Set the font pairing
   setOverlayFont();
 
+  // Show the overlay version
+  setOverlayVersion();
+
   // Load amph module
   loadAmphModule();
 
   // Set the loading overlay text
   $(CLASSES.loadingOverlayTextSelector).text(CONFIG.loadingOverlayText);
-
-  // Apply title banner colors from config.js
-  formatTitleBanner();
 
   // Set the title banner text
   $(CLASSES.penaltiesTitleH1Selector).text(CONFIG.titleBannerText);
