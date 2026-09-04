@@ -573,12 +573,12 @@ window.shouldHidePenaltyCode = function(k, code, penaltyNumber) {
 ** Game Information Utility Functions **
 ***************************************/
 
-// Prepend " - Game " to the game number if present
+// Prepend a dot divider and " Game " to the game number if present
 window.prependGameNo = function(_k, gameNum) {
   if (!gameNum || gameNum === '' || gameNum === '0') {
     return '';
   }
-  return ` - Game ${gameNum}`;
+  return ` \u00b7 Game ${gameNum}`;
 };
 
 // Display team names with fallback mechanisms to prevent a blank name
