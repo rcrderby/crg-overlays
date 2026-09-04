@@ -194,7 +194,13 @@
 
     <!-- Game Information Section -->
     <div id="game-info">
-      <div class="game-info-wrapper">
+
+      <!-- Custom logo space -->
+      <div id="custom-logo-space">
+        <img id="custom-logo" class="custom-logo" src="" />
+      </div>
+
+      <div id="game-info-main">
 
         <!-- Tournament Information -->
         <div id="tournament-info"
@@ -203,123 +209,117 @@
           <span sbDisplay="EventInfo(GameNo): prependGameNo"></span>
         </div>
 
-        <div id="game-details">
-          
-          <!-- Custom logo space -->
-          <div id="custom-logo-space">
-            <img id="custom-logo" class="custom-logo" src="" />
+        <div id="teams-scores">
+
+          <!-- Team 1 (Home) -->
+          <div class="team-score-block" sbContext="Team(1)">
+            <div class="team-name"
+                 sbDisplay="AlternateName(whiteboard), Name: getTeamNameWithDefault"></div>
+            <div class="score" sbDisplay="Score"></div>
           </div>
 
-          <div id="teams-scores">
+          <!-- Game state label -->
+          <div id="vs-clock-container">
 
-            <!-- Team 1 (Home) -->
-            <div class="team-score-block" sbContext="Team(1)">
-              <div class="team-name" 
-                  sbDisplay="AlternateName(whiteboard), Name: getTeamNameWithDefault"></div>
-              <div class="score" sbDisplay="Score"></div>
+            <!-- Period Clock Label -->
+            <div class="clock-label"
+                 sbClass="sbHide: Clock(Intermission).Running,
+                                  OfficialScore,
+                                  InOvertime,
+                                  CurrentPeriodNumber: shouldHidePeriodClock"
+                 sbDisplay="CurrentPeriodNumber: getPeriodLabel">
             </div>
 
-            <!-- vs. and Clock Container -->
-            <div id="vs-clock-container">
-              <div class="vs-text">vs.</div>
-              <div id="clock-container">
+            <!-- Intermission Label -->
+            <div class="clock-label"
+                 sbPrefix="#: ScoreBoard.Settings.Setting(ScoreBoard.Intermission : )"
+                 sbClass="sbHide: Clock(Intermission).Running,
+                                  OfficialScore,
+                                  InOvertime,
+                                  CurrentPeriodNumber,
+                                  Rule(Period.Number): shouldHideIntermissionClock"
+                 sbDisplay="CurrentPeriodNumber, Rule(Period.Number), #.*: getIntermissionLabel">
+            </div>
 
-                <!-- Period Clock -->
-                <div id="period-clock" 
-                     sbClass="sbHide: Clock(Intermission).Running,
-                                      OfficialScore,
-                                      InOvertime,
-                                      CurrentPeriodNumber: shouldHidePeriodClock"
-                     sbDisplay="Clock(Period).Time: sbToLongTime">
-                </div>
+            <!-- Unofficial Score Label -->
+            <div class="clock-label"
+                 sbPrefix="#: ScoreBoard.Settings.Setting(ScoreBoard.Intermission : )"
+                 sbClass="sbHide: CurrentPeriodNumber,
+                                  Clock(Intermission).Running,
+                                  OfficialScore,
+                                  InOvertime,
+                                  Rule(Period.Number): shouldHideUnofficialScore"
+                 sbDisplay="#.Unofficial">
+            </div>
 
-                <!-- Intermission Clock -->
-                <div id="intermission-clock"
-                     sbClass="sbHide: Clock(Intermission).Running,
-                                      OfficialScore,
-                                      InOvertime,
-                                      CurrentPeriodNumber,
-                                      Rule(Period.Number): shouldHideIntermissionClock"
-                     sbDisplay="Clock(Intermission).Time: sbToLongTime">
-                </div>
-              </div>
+            <!-- Official Score Label -->
+            <div class="clock-label"
+                 sbPrefix="#: ScoreBoard.Settings.Setting(ScoreBoard.Intermission : )"
+                 sbClass="sbHide: OfficialScore: invertBoolean"
+                 sbDisplay="#.Official">
+            </div>
 
-              <!-- Clock Labels for each game state -->
-              
-              <!-- Period Clock Label -->
-              <div class="clock-label"
+            <!-- Overtime Label -->
+            <div class="clock-label"
+                 sbClass="sbHide: InOvertime: invertBoolean">
+                 Overtime
+            </div>
+
+            <!-- Coming Up Label -->
+            <div class="clock-label"
+                 sbClass="sbHide: CurrentPeriodNumber,
+                                  Clock(Intermission).Running,
+                                  OfficialScore,
+                                  InOvertime: shouldHideComingUp">
+                 Coming Up
+            </div>
+
+            <div id="clock-container">
+
+              <!-- Period Clock -->
+              <div id="period-clock"
                    sbClass="sbHide: Clock(Intermission).Running,
                                     OfficialScore,
                                     InOvertime,
                                     CurrentPeriodNumber: shouldHidePeriodClock"
-                   sbDisplay="CurrentPeriodNumber: getPeriodLabel">
+                   sbDisplay="Clock(Period).Time: sbToLongTime">
               </div>
 
-              <!-- Intermission Label -->
-              <div class="clock-label"
-                   sbPrefix="#: ScoreBoard.Settings.Setting(ScoreBoard.Intermission : )"
+              <!-- Intermission Clock -->
+              <div id="intermission-clock"
                    sbClass="sbHide: Clock(Intermission).Running,
                                     OfficialScore,
                                     InOvertime,
                                     CurrentPeriodNumber,
                                     Rule(Period.Number): shouldHideIntermissionClock"
-                   sbDisplay="CurrentPeriodNumber, Rule(Period.Number), #.*: getIntermissionLabel">
-              </div>
-
-              <!-- Unofficial Score Label -->
-              <div class="clock-label"
-                   sbPrefix="#: ScoreBoard.Settings.Setting(ScoreBoard.Intermission : )"
-                   sbClass="sbHide: CurrentPeriodNumber,
-                                    Clock(Intermission).Running,
-                                    OfficialScore,
-                                    InOvertime,
-                                    Rule(Period.Number): shouldHideUnofficialScore"
-                   sbDisplay="#.Unofficial">
-              </div>
-
-              <!-- Official Score Label -->
-              <div class="clock-label"
-                   sbPrefix="#: ScoreBoard.Settings.Setting(ScoreBoard.Intermission : )"
-                   sbClass="sbHide: OfficialScore: invertBoolean"
-                   sbDisplay="#.Official">
-              </div>
-
-              <!-- Overtime Label -->
-              <div class="clock-label"
-                   sbClass="sbHide: InOvertime: invertBoolean">
-                   Overtime
-              </div>
-
-              <!-- Coming Up Label -->
-              <div class="clock-label"
-                   sbClass="sbHide: CurrentPeriodNumber,
-                                    Clock(Intermission).Running,
-                                    OfficialScore,
-                                    InOvertime: shouldHideComingUp">
-                   Coming Up
+                   sbDisplay="Clock(Intermission).Time: sbToLongTime">
               </div>
             </div>
+          </div>
 
-            <!-- Team 2 (Away) -->
-            <div class="team-score-block" sbContext="Team(2)">
-              <div class="team-name" 
-                  sbDisplay="AlternateName(whiteboard), Name: getTeamNameWithDefault"></div>
-              <div class="score" sbDisplay="Score"></div>
-            </div>
-
+          <!-- Team 2 (Away) -->
+          <div class="team-score-block" sbContext="Team(2)">
+            <div class="team-name"
+                 sbDisplay="AlternateName(whiteboard), Name: getTeamNameWithDefault"></div>
+            <div class="score" sbDisplay="Score"></div>
           </div>
 
         </div>
+
+        <!-- Timeout Banner -->
+        <div id="timeout-banner-row">
+          <div class="timeout-banner"
+               sbClass="visible: Clock(Timeout).Running: isTimeoutVisible |
+                        position-center: TimeoutOwner: isPositionCenter |
+                        position-team1: TimeoutOwner: isPositionTeam1 |
+                        position-team2: TimeoutOwner: isPositionTeam2"
+               sbDisplay="TimeoutOwner, OfficialReview: getTimeoutText">
+          </div>
+        </div>
       </div>
 
-      <!-- Timeout Banner -->
-      <div class="timeout-banner"
-          sbClass="visible: Clock(Timeout).Running: isTimeoutVisible | 
-                   position-center: TimeoutOwner: isPositionCenter |
-                   position-team1: TimeoutOwner: isPositionTeam1 |
-                   position-team2: TimeoutOwner: isPositionTeam2"
-          sbDisplay="TimeoutOwner, OfficialReview: getTimeoutText">
-      </div>
+      <!-- Balances the logo column so the center column stays centered -->
+      <div id="game-info-balance"></div>
     </div>
 
   </div>
