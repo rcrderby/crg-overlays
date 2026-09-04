@@ -898,14 +898,14 @@ $(function() {
   // Set the overlay scale percentage
   setOverlayScale();
 
+  // Set the overlay width
+  setOverlayWidth();
+
   // Set the point the overlay scales from
   setOverlayAnchor();
 
   // Set the overlay background opacity
   setOverlayOpacity();
-
-  // Set the overlay width
-  setOverlayWidth();
 
   // Set the font pairing
   setOverlayFont();

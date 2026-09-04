@@ -56,7 +56,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // The `opacity` URL parameter overrides this value
     overlayOpacity: 98,
     
-    // Overlay scale size percentage: 100 fills the frame, 90 = 90% size, etc. (1 to 100)
+    // Overlay scale percentage: 100 = full scale, 90 = 90% scale, etc. (1 to 100)
     // The `scale` URL parameter overrides this value
     overlayScale: 100,
 
