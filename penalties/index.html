@@ -107,10 +107,10 @@
 
                   <!-- Penalty count with status detection (Penalty(0).Code registers WebSocket channel) -->
                   <div class="penalty-count"
-                       sbClass="penalty-count-5: PenaltyCount, Penalty(0).Code: isPenaltyCount5 | 
-                                penalty-count-6: PenaltyCount, Penalty(0).Code: isPenaltyCount6 | 
-                                penalty-count-exp-fo-re: PenaltyCount, Penalty(0).Code: isPenaltyCountExpFoRe"
-                       sbDisplay="PenaltyCount, Penalty(0).Code: getPenaltyCountDisplay">
+                       sbClass="penalty-count-warning-1: PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): isPenaltyCountWarning1 | 
+                                penalty-count-warning-2: PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): isPenaltyCountWarning2 | 
+                                penalty-count-exp-fo-re: PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): isPenaltyCountExpFoRe"
+                       sbDisplay="PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): getPenaltyCountDisplay">
                   </div>
                 </div>
               </div>
@@ -171,10 +171,10 @@
 
                   <!-- Penalty count with status detection (Penalty(0).Code registers WebSocket channel) -->
                   <div class="penalty-count"
-                       sbClass="penalty-count-5: PenaltyCount, Penalty(0).Code: isPenaltyCount5 | 
-                                penalty-count-6: PenaltyCount, Penalty(0).Code: isPenaltyCount6 | 
-                                penalty-count-exp-fo-re: PenaltyCount, Penalty(0).Code: isPenaltyCountExpFoRe"
-                       sbDisplay="PenaltyCount, Penalty(0).Code: getPenaltyCountDisplay">
+                       sbClass="penalty-count-warning-1: PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): isPenaltyCountWarning1 | 
+                                penalty-count-warning-2: PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): isPenaltyCountWarning2 | 
+                                penalty-count-exp-fo-re: PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): isPenaltyCountExpFoRe"
+                       sbDisplay="PenaltyCount, Penalty(0).Code, /ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout): getPenaltyCountDisplay">
                   </div>
                 </div>
               </div>
@@ -237,7 +237,8 @@
                      sbClass="sbHide: Clock(Intermission).Running,
                                       OfficialScore,
                                       InOvertime,
-                                      CurrentPeriodNumber: shouldHideIntermissionClock"
+                                      CurrentPeriodNumber,
+                                      Rule(Period.Number): shouldHideIntermissionClock"
                      sbDisplay="Clock(Intermission).Time: sbToLongTime">
                 </div>
               </div>
@@ -259,8 +260,9 @@
                    sbClass="sbHide: Clock(Intermission).Running,
                                     OfficialScore,
                                     InOvertime,
-                                    CurrentPeriodNumber: shouldHideIntermissionClock"
-                   sbDisplay="CurrentPeriodNumber, #.*: getIntermissionLabel">
+                                    CurrentPeriodNumber,
+                                    Rule(Period.Number): shouldHideIntermissionClock"
+                   sbDisplay="CurrentPeriodNumber, Rule(Period.Number), #.*: getIntermissionLabel">
               </div>
 
               <!-- Unofficial Score Label -->
@@ -269,7 +271,8 @@
                    sbClass="sbHide: CurrentPeriodNumber,
                                     Clock(Intermission).Running,
                                     OfficialScore,
-                                    InOvertime: shouldHideUnofficialScore"
+                                    InOvertime,
+                                    Rule(Period.Number): shouldHideUnofficialScore"
                    sbDisplay="#.Unofficial">
               </div>
 

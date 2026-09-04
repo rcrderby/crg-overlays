@@ -334,6 +334,31 @@ window.glowColorToShadow = function(_k, glowColor) {
   return `${CONFIG.defaultRosterShadowProperties} ${glowColor}`;
 };
 
+/**************************
+** Game Rule Functions **
+**************************/
+
+// WebSocket Channels to read the active ruleset
+const RULE_FOULOUT_COUNT = 'ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout)';
+const RULE_PERIOD_COUNT = 'ScoreBoard.CurrentGame.Rule(Period.Number)';
+
+// Number of penalties that result in a foulout
+function getFouloutCount() {
+  return parseInt(WS.state[RULE_FOULOUT_COUNT]);
+}
+
+// Number of periods in the game
+function getPeriodCount() {
+  return parseInt(WS.state[RULE_PERIOD_COUNT]);
+}
+
+// Penalty count that triggers a warning color, counted back from a foulout
+function getWarningCount(offset) {
+  const warningCount = getFouloutCount() - offset;
+
+  return warningCount >= 1 ? warningCount : null;
+}
+
 /************************************
 ** Penalty Count Helper Functions **
 ************************************/
@@ -365,20 +390,22 @@ function checkPenaltyStatus(k) {
   return { isExpelled, isRemoved };
 }
 
-// Determine if a player should have CSS formatting for 5 penalties 
-window.isPenaltyCount5 = function(k, penaltyCount) {
+// Determine if a player should have CSS formatting for the first penalty warning color
+window.isPenaltyCountWarning1 = function(k, penaltyCount) {
   const count = parseInt(penaltyCount) || 0;
   const { isExpelled, isRemoved } = checkPenaltyStatus(k);
-  
-  return count === RULES.warningPenaltyCount5 && !isExpelled && !isRemoved;
+  const warningCount = getWarningCount(RULES.warningPenaltyOffsets.first);
+
+  return count === warningCount && !isExpelled && !isRemoved;
 };
 
-// Determine if a player should have CSS formatting for 6 penalties
-window.isPenaltyCount6 = function(k, penaltyCount) {
+// Determine if a player should have CSS formatting for the second penalty warning color
+window.isPenaltyCountWarning2 = function(k, penaltyCount) {
   const count = parseInt(penaltyCount) || 0;
   const { isExpelled, isRemoved } = checkPenaltyStatus(k);
-  
-  return count === RULES.warningPenaltyCount6 && !isExpelled && !isRemoved;
+  const warningCount = getWarningCount(RULES.warningPenaltyOffsets.second);
+
+  return count === warningCount && !isExpelled && !isRemoved;
 };
 
 // Determine if a player should have CSS formatting for expulsion, foulout, or removal
@@ -386,7 +413,9 @@ window.isPenaltyCountExpFoRe = function(k, penaltyCount) {
   const count = parseInt(penaltyCount) || 0;
   const { isExpelled, isRemoved } = checkPenaltyStatus(k);
   
-  return isRemoved || isExpelled || count >= RULES.fouloutPenaltyCount;
+  const fouloutCount = getFouloutCount();
+
+  return isRemoved || isExpelled || (fouloutCount >= 1 && count >= fouloutCount);
 };
 
 // Determine the text to show for a player's penalty count
@@ -394,9 +423,11 @@ window.getPenaltyCountDisplay = function(k, penaltyCount) {
   const count = parseInt(penaltyCount) || 0;
   const { isExpelled, isRemoved } = checkPenaltyStatus(k);
   
+  const fouloutCount = getFouloutCount();
+
   if (isRemoved) return LABELS.removedDisplay;
   if (isExpelled) return LABELS.expelledDisplay;
-  if (count >= RULES.fouloutPenaltyCount) return LABELS.fouloutDisplay;
+  if (fouloutCount >= 1 && count >= fouloutCount) return LABELS.fouloutDisplay;
   
   return count > 0 ? count : '';
 };
@@ -487,7 +518,7 @@ window.shouldHideIntermissionClock = function(_k, intermissionRunning) {
   // After the last period
   const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
 
-  return !isIntermission || isOfficial || isOvertime || (period >= RULES.numPeriods);
+  return !isIntermission || isOfficial || isOvertime || (period >= getPeriodCount());
 };
 
 /************************
@@ -519,7 +550,7 @@ window.getIntermissionLabel = function(_k, periodNumber) {
     return preGame || '';
   }
   // Between periods
-  else if (period < RULES.numPeriods) {
+  else if (period < getPeriodCount()) {
     return intermission || '';
   }
   // After the final period, don't show the intermission label, "Unofficial" or "Official" labels will show instead
@@ -535,7 +566,7 @@ window.shouldHideUnofficialScore = function(_k) {
   const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
   const isOvertime = WS.state['ScoreBoard.CurrentGame.InOvertime'] === true;
   
-  return period < RULES.numPeriods || !isIntermission || isOfficial || isOvertime;
+  return period < getPeriodCount() || !isIntermission || isOfficial || isOvertime;
 };
 
 // Hide the "Coming Up" label
@@ -651,6 +682,50 @@ window.isTimeoutVisible = function(_k, timeoutRunning) {
   return timeoutRunning === true;
 };
 
+/*******************************
+** Loading Overlay Functions **
+*******************************/
+
+// Display the loading overlay until the ruleset data arrives
+function hideLoadingOverlayWhenReady() {
+  const startTime = Date.now();
+
+  const hideLoadingOverlay = function(reason) {
+    $(CLASSES.loadingOverlaySelector).addClass(CLASSES.loadingOverlayFadeOutSuffixSelector);
+
+    if (DEBUG) {
+      console.log(`Loading overlay hidden (${reason}).`);
+    }
+  };
+
+  const checkForRules = function() {
+    const elapsed = Date.now() - startTime;
+    const rulesArrived = typeof WS !== 'undefined' &&
+      [RULE_FOULOUT_COUNT, RULE_PERIOD_COUNT].every(
+        channel => typeof WS.state[channel] !== 'undefined'
+      );
+
+    // Always show the loading overlay for the minimum display time
+    if (elapsed < TIMING.minLoadDisplayMs) {
+      setTimeout(checkForRules, TIMING.loadCheckInterval);
+    } else if (rulesArrived) {
+      hideLoadingOverlay('game rules received');
+
+    // Display the overlay rather than leave a loading screen active indefinitely
+    } else if (elapsed >= TIMING.maxLoadWaitMs) {
+      console.warn(
+        `Game rules did not arrive within ${TIMING.maxLoadWaitMs}ms - ` +
+        'displaying the overlay without them.'
+      );
+      hideLoadingOverlay('timed out waiting for game rules');
+    } else {
+      setTimeout(checkForRules, TIMING.loadCheckInterval);
+    }
+  };
+
+  checkForRules();
+}
+
 /****************
 ** Amph Module **
 *****************/
@@ -702,10 +777,8 @@ $(function() {
   // Attempt to load a custom logo
   loadCustomLogo();
 
-  // Hide the loading overlay after the minimum display time
-  setTimeout(function() {
-    $(CLASSES.loadingOverlaySelector).addClass(CLASSES.loadingOverlayFadeOutSuffixSelector);
-  }, TIMING.minLoadDisplayMs);
+  // Hide the loading overlay after the ruleset is available
+  hideLoadingOverlayWhenReady();
 
   // Initialize the WebSocket connection
   function initWebSocket() {
