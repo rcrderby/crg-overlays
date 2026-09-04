@@ -67,14 +67,17 @@
 
       <!-- Team 1 (Home) Roster and Penalties -->
       <div id="team1-rosters-penalties" sbContext="Team(1)">
-        <div class="roster-penalties-container">
+        <div class="roster-penalties-container"
+             sbcss="border-color: Color(whiteboard.bg)">
 
-          <div id="team1-roster"
-               class="roster"
+          <div class="team-heading"
                sbcss="background-color: Color(whiteboard.bg) |
-                      border-color: Color(whiteboard.fg) |
                       color: Color(whiteboard.fg) |
-                      text-shadow: Color(whiteboard.glow): glowColorToShadow">
+                      text-shadow: Color(whiteboard.glow): glowColorToShadow"
+               sbDisplay="AlternateName(whiteboard), Name: getTeamNameWithDefault">
+          </div>
+
+          <div id="team1-roster" class="roster">
 
             <!-- Column headings -->
             <div class="roster-headings">
@@ -124,14 +127,17 @@
 
       <!-- Team 2 (Away) Roster and Penalties -->
       <div id="team2-rosters-penalties" sbContext="Team(2)">
-        <div class="roster-penalties-container">
+        <div class="roster-penalties-container"
+             sbcss="border-color: Color(whiteboard.bg)">
 
-          <div id="team2-roster"
-               class="roster"
+          <div class="team-heading"
                sbcss="background-color: Color(whiteboard.bg) |
-                      border-color: Color(whiteboard.fg) |
                       color: Color(whiteboard.fg) |
-                      text-shadow: Color(whiteboard.glow): glowColorToShadow">
+                      text-shadow: Color(whiteboard.glow): glowColorToShadow"
+               sbDisplay="AlternateName(whiteboard), Name: getTeamNameWithDefault">
+          </div>
+
+          <div id="team2-roster" class="roster">
 
             <!-- Column headings -->
             <div class="roster-headings">
@@ -179,6 +185,9 @@
         </div>
       </div>
     </div>
+
+    <!-- Overlay version -->
+    <div id="overlay-version"></div>
 
     <!-- Game Information Section -->
     <div id="game-info">
