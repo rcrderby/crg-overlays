@@ -154,6 +154,19 @@ You can combine the `anchor` and `scale` parameters to fit your needs:
 > [!TIP]
 > The allowed `anchor` parameter values are `top`, `center`, and `bottom`. See the `overlayAnchor` setting in the [Configuration Section](#configuration "Configuration Section") for details.
 
+#### Background Opacity
+
+Use the `opacity` URL parameter to adjust how visible the video stream is through the overlay background:
+
+| Opacity | URL |
+| - | - |
+| Default (98%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?opacity=98` |
+| Lightly translucent (85%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?opacity=85` |
+| Heavily translucent (60%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?opacity=60` |
+
+> [!TIP]
+> The allowed `opacity` parameter range is `0` to `100`, where `100` is solid and `0` is invisible.  This affects the overlay background only; player names and penalty codes stay fully opaque.  See the `overlayOpacity` setting in the [Configuration Section](#configuration "Configuration Section") for details.
+
 #### Font Selection
 
 The overlay bundles four font pairings and uses `saira` as its default.  Use the `font` URL parameter to choose another font:
@@ -194,6 +207,7 @@ A configuration file named [config.js](./config.js) allows you to customize vari
 
 - `config.overlayScale` to adjust the overlay size - typically between 80% and 120% (default is `100`).
 - `config.overlayAnchor` to set the point the overlay scales from - `top`, `center`, or `bottom` (default is `top`).
+- `config.overlayOpacity` to adjust how much of the video shows through the overlay background - between 0 and 100 (default is `98`).
 - `config.overlayFont` to set the font pairing - `saira`, `league-gothic`, `anton`, or `bricolage` (default is `saira`).
 - `config.titleBannerText` to adjust the title banner text (default is `PENALTIES`).
 - `config.titleBannerBackgroundColor` and `titleBannerForegroundColor` set the title banner box background and text colors, respectively.
@@ -228,6 +242,7 @@ A configuration file named [config.js](./config.js) allows you to customize vari
   | `penaltiesTitleText` | Title banner text | string | `PENALTIES` | :white_check_mark: |
   | `overlayScale` | Overlay scale size percentage: 100  = full size, 90 = 90% size, etc. (1 to 100) - the [`scale` URL parameter](#size-adjustments "Size Adjustments Section") overrides this value | int or float | `100` | :white_check_mark: |
   | `overlayAnchor` | Point the overlay scales from: `top`, `center`, or `bottom` - the [`anchor` URL parameter](#position-adjustments "Position Adjustments Section") overrides this value | string | `top` | :white_check_mark: |
+  | `overlayOpacity` | Overlay background opacity percentage: 100 is solid, 0 is invisible (0 to 100) - the [`opacity` URL parameter](#background-opacity "Background Opacity Section") overrides this value | int or float | `98` | :white_check_mark: |
   | `overlayFont` | Font pairing: `saira`, `league-gothic`, `anton`, or `bricolage` - the [`font` URL parameter](#font-selection "Font Selection Section") overrides this value | string | `saira` | :white_check_mark: |
 
   ---

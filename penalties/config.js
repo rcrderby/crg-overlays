@@ -44,17 +44,22 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Title banner
     titleBannerText: 'PENALTIES',
 
-    // Overlay scale size percentage: 100 fills the frame, 90 = 90% size, etc. (1 to 100)
-    // The `scale` URL parameter overrides this value
-    overlayScale: 100,
+    // Point the overlay scales from: `top`, `center`, or `bottom`
+    // The `anchor` URL parameter overrides this value
+    overlayAnchor: 'top',
 
     // Font pairing: `saira`, `league-gothic`, `anton`, or `bricolage`
     // The `font` URL parameter overrides this value
     overlayFont: 'saira',
+    
+    // Overlay background opacity percentage: 100 is solid, 0 is invisible (0 to 100)
+    // The `opacity` URL parameter overrides this value
+    overlayOpacity: 98,
+    
+    // Overlay scale size percentage: 100 fills the frame, 90 = 90% size, etc. (1 to 100)
+    // The `scale` URL parameter overrides this value
+    overlayScale: 100
 
-    // Point the overlay scales from: `top`, `center`, or `bottom`
-    // The `anchor` URL parameter overrides this value
-    overlayAnchor: 'top'
   },
 
   /****************
