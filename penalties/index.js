@@ -243,7 +243,7 @@ let penaltyCodeKeyPending = false;
 
 // Validate and set the penalty code key visibility
 function setPenaltyCodeKey() {
-  let showKey = true; // Default to visible
+  let showKey = true;
   let keySource = 'default';
   let validationPassed = false;
 
@@ -754,7 +754,7 @@ window.shouldHideComingUp = function(_k) {
 ** Penalty Code Key Helper Functions **
 ***********************************/
 
-// Collect the penalty codes carried by skaters the roster displays
+// Collect active penalty code definitions
 function getPenaltyCodesInPlay() {
   const codes = new Set();
   const hidden = {};
@@ -765,7 +765,7 @@ function getPenaltyCodesInPlay() {
       continue;
     }
 
-    // Skip skaters the roster filters out, so the key matches what is on screen
+    // Filter inactive players
     const skaterContext = stateKey.slice(0, stateKey.indexOf(').Penalty(') + 1);
     if (!(skaterContext in hidden)) {
       hidden[skaterContext] = window.shouldHideSkater(null, WS.state[skaterContext + '.Flags']);
@@ -787,18 +787,18 @@ function getPenaltyCodesInPlay() {
   return [...codes].sort();
 }
 
-// Read the plain-English cue CRG holds for a penalty code
+// Read the CRG cues for a penalty code
 function getPenaltyCodeCue(code) {
   const description = WS.state[PENALTY_CODE_PREFIX + code + ')'];
   if (typeof description !== 'string' || description.trim() === '') {
     return null;
   }
 
-  // CRG stores comma-separated alternatives, the first of which is the primary
+  // Retain only the first/primary cue
   return description.split(',')[0].trim();
 }
 
-// Rebuild the penalty code key from the codes currently in play
+// Constuct the penalty code key from active penalties
 function buildPenaltyCodeKey() {
   penaltyCodeKeyPending = false;
 
@@ -814,7 +814,7 @@ function buildPenaltyCodeKey() {
   for (const code of getPenaltyCodesInPlay()) {
     const cue = getPenaltyCodeCue(code);
 
-    // Skip codes CRG has no description for, rather than showing a bare letter
+    // Ignore codes without a description
     if (cue === null) {
       continue;
     }
