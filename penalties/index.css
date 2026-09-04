@@ -8,19 +8,23 @@
   /* Overlay values */
   --overlay-width: 1920px;
   --overlay-height: 1080px;
-  --overlay-padding: 8px;
-  --content-width: 65%;
+  --overlay-padding: 12px;
+  --overlay-inset-horizontal: 38px;
+  --overlay-inset-vertical: 32px;
+  --overlay-bg: rgb(13 12 17 / 88%);
+  --overlay-fg: white;
+  --overlay-border: rgb(255 255 255 / 16%);
+  --content-width: 100%;
 
   /* Shadows */
   --shadow-box: 0 2px 6px rgb(0 0 0 / 60%);
+  --shadow-overlay: 0 14px 44px rgb(0 0 0 / 55%);
   --shadow-text: .5px .5px 1px rgb(0 0 0 / 80%);
-  --shadow-text-title: 2px 2px 3px rgb(0 0 0 / 40%);
+  --shadow-text-title: 0 2px 12px rgb(0 0 0 / 85%), 0 0 3px rgb(0 0 0 / 90%);
   --shadow-drop-logo: drop-shadow(0 0 4px rgb(0 0 0 / 40%));
 
   /* Title banner */
-  --title-banner-bg: #666666;
-  --title-banner-fg: white;
-  --title-banner-shadow: var(--shadow-box);
+  --title-color: white;
 
   /* Team and penalty default colors */
   --team-penalties-default-fg-color: white;
@@ -29,21 +33,10 @@
   --team-penalties-default-text-shadow: var(--shadow-text);
 
   /* Team 1 (home) roster default colors */
-  --team1-fg: var(--team-penalties-default-fg-color);
-  --team1-bg: var(--team-penalties-default-bg-color);
-  --team1-border: var(--team-penalties-default-border-color);
-  --team1-text-shadow: var(--team-penalties-default-text-shadow);
 
   /* Team 2 (away) roster default colors */
-  --team2-fg: var(--team-penalties-default-fg-color);
-  --team2-bg: var(--team-penalties-default-bg-color);
-  --team2-border: var(--team-penalties-default-border-color);
-  --team2-text-shadow: var(--team-penalties-default-text-shadow);
 
   /* Team penalties default colors */
-  --penalties-fg: var(--team-penalties-default-fg-color);
-  --penalties-bg: var(--team-penalties-default-bg-color);
-  --penalties-border: var(--team-penalties-default-border-color);
 
   /* Penalty highlight colors */
   --penalty-warning-1: #b8860b;          /* Dark yellow */
@@ -71,7 +64,9 @@
   /* Fonts */
   --font-family: 'Saira', arial, sans-serif;
   --font-family-display: 'Saira Condensed', 'Arial Narrow', arial, sans-serif;
-  --font-penalties-title-size: 40px;
+  --font-penalties-title-size: 44px;
+  --font-team-heading-size: 26px;
+  --font-version-size: 11px;
   --font-score-size: 34px;
   --font-clock-size: 30px;
   --font-tournament-size: 20px;
@@ -85,8 +80,7 @@
   --font-timeout-banner-size: 18px;
 
   /* Logo sizes */
-  --offset-logo-horizontal: 120px;
-  --size-team-logo-max: 100px;
+  --size-team-logo-max: 92px;
   --size-custom-logo: 70px;
 
   /* Margins */
@@ -94,27 +88,28 @@
   --margin-team-name-bottom: 5px;
   --margin-clock-label-top: 5px;
   --margin-logo-container-bottom: 10px;
+  --offset-version-watermark: 6px;
   --margin-tournament-bottom: 4px;
   --margin-game-info-top: 5px;
 
   /* Opacity */
   --opacity-captain-indicator: 0.85;
   --opacity-column-heading: 0.7;
+  --opacity-version-watermark: 0.3;
 
   /* Padding */
   --padding-captain-indicator-left: 1px;
   --padding-roster: 5px;
+  --padding-team-heading-horizontal: 12px;
+  --padding-team-heading-vertical: 4px;
   --padding-penalties: 5px;
   --padding-tournament: 6px;
   --padding-game-details: 15px;
   --padding-penalty-count-vertical: 2px;
   --padding-penalty-count-horizontal: 6px;
   --padding-row-bottom: 4px;
-  --padding-teams-container-top-with-logos: 20px;
   --padding-timeout-banner-vertical: 8px;
   --padding-timeout-banner-horizontal: 20px;
-  --padding-title-banner-vertical: 10px;
-  --padding-title-banner-horizontal: 18px;
 
   /* Row dimensions and properties */
   --height-game-details-max: 110px;
@@ -124,7 +119,9 @@
   --height-roster-penalties-line: 1.5;
   --height-timeout-banner: 28px;
   --radius-border-penalty-count: 3px;
+  --width-border-overlay: 1px;
   --width-border-rosters-penalties: 1px;
+  --width-border-team-panel: 2px;
   --width-game-details-max: 800px;
   --width-game-details-min: 600px;
   --width-loading-error-max: 1100px;
@@ -140,7 +137,6 @@
   --gap-between-teams: 30px;
   --gap-game-details: 10px;
   --gap-roster-columns: 10px;
-  --gap-roster-penalties: 10px;
   --margin-bottom-row: 4px;
   --penalty-code-spacing: 0.5em;
 
@@ -234,14 +230,20 @@ body {
 *******************/
 
 #overlay {
+  background-color: var(--overlay-bg);
+  border: var(--width-border-overlay) solid var(--overlay-border);
+  color: var(--overlay-fg);
+  box-shadow: var(--shadow-overlay);
   display: flex;
   flex-direction: column;
-  height: var(--overlay-height);
+  height: calc(var(--overlay-height) - (2 * var(--overlay-inset-vertical)));
+  margin: var(--overlay-inset-vertical) var(--overlay-inset-horizontal);
   padding: var(--overlay-padding);
+  position: relative;
   transform: scale(var(--overlay-scale, 1));
   transform-origin: var(--overlay-origin, top center);
   transition: opacity var(--transition-fade);
-  width: var(--overlay-width);
+  width: calc(var(--overlay-width) - (2 * var(--overlay-inset-horizontal)));
 }
 
 #overlay.hidden {
@@ -253,14 +255,10 @@ body {
 ****************************/
 
 #teams-container {
-  align-items: flex-end;
+  align-items: center;
   display: flex;
   gap: var(--gap-between-teams);
-  justify-content: space-between;
-  margin: 0 auto;
-  margin-bottom: var(--margin-logo-container-bottom);
-  min-height: 50px;
-  padding-top: var(--padding-teams-container-top-with-logos);
+  margin: 0 auto var(--margin-logo-container-bottom);
   position: relative;
   width: var(--content-width);
 }
@@ -276,15 +274,6 @@ body {
   display: flex;
   height: var(--height-logo-container);
   justify-content: center;
-  margin-bottom: var(--margin-logo-container-bottom);
-}
-
-#team1-container .team-logo-container {
-  margin-left: calc(-1 * var(--offset-logo-horizontal));
-}
-
-#team2-container .team-logo-container {
-  margin-right: calc(-1 * var(--offset-logo-horizontal));
 }
 
 .team-logo {
@@ -305,23 +294,21 @@ body {
 ****************************/
 
 #penalties-title {
-  background-color: var(--title-banner-bg);
-  bottom: 0;
-  box-shadow: var(--title-banner-shadow);
   left: 50%;
   max-width: var(--width-penalties-title-max);
   min-width: 0;
-  padding: var(--padding-title-banner-vertical) var(--padding-title-banner-horizontal);
   position: absolute;
   text-align: center;
-  transform: translateX(-50%);
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 #penalties-title h1 {
-  color: var(--title-banner-fg);
+  color: var(--title-color);
+  letter-spacing: 0.1em;
   font-family: var(--font-family-display);
   font-size: var(--font-penalties-title-size);
-  font-weight: bold;
+  font-weight: 800;
   text-shadow: var(--shadow-text-title);
   margin: 0;
   overflow: hidden;
@@ -350,39 +337,54 @@ body {
 }
 
 .roster-penalties-container {
+  border: var(--width-border-team-panel) solid var(--team-penalties-default-border-color);
   display: flex;
-  gap: var(--gap-roster-penalties);
   flex: 1;
   flex-direction: column;
+  min-height: 0;
 }
 
 
+
+.team-heading {
+  background-color: var(--team-penalties-default-bg-color);
+  color: var(--team-penalties-default-fg-color);
+  font-size: var(--font-team-heading-size);
+  font-weight: bold;
+  overflow: hidden;
+  padding: var(--padding-team-heading-vertical) var(--padding-team-heading-horizontal);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*******************************
+** Overlay version watermark **
+*******************************/
+
+/* Legible when a screenshot is zoomed, ignorable at broadcast distance */
+#overlay-version {
+  bottom: var(--offset-version-watermark);
+  color: var(--title-color);
+  font-size: var(--font-version-size);
+  letter-spacing: 0.06em;
+  opacity: var(--opacity-version-watermark);
+  pointer-events: none;
+  position: absolute;
+  right: var(--offset-version-watermark);
+}
 
 /********************
 ** Rosters section **
 ********************/
 
 .roster {
-  box-shadow: var(--shadow-box);
   flex: 1;
   font-size: var(--font-roster-penalties-size);
   line-height: var(--height-roster-penalties-line);
+  min-height: 0;
   overflow-y: auto;
   padding: var(--padding-roster);
-}
-
-#team1-roster {
-  background-color: var(--team1-bg);
-  border: var(--width-border-rosters-penalties) solid var(--team1-border);
-  color: var(--team1-fg);
-  text-shadow: var(--team1-text-shadow);
-}
-
-#team2-roster {
-  background-color: var(--team2-bg);
-  border: var(--width-border-rosters-penalties) solid var(--team2-border);
-  color: var(--team2-fg);
-  text-shadow: var(--team2-text-shadow);
+  text-shadow: var(--shadow-text);
 }
 
 .roster-headings,
@@ -501,10 +503,7 @@ body {
 
 #team1-total,
 #team2-total {
-  background-color: var(--penalties-bg);
-  border: var(--width-border-rosters-penalties) solid var(--penalties-border);
-  box-shadow: var(--shadow-box);
-  color: var(--penalties-fg);
+  border-top: var(--width-border-rosters-penalties) solid var(--overlay-border);
   display: flex;
   font-size: var(--font-roster-penalties-size);
   font-weight: bold;
