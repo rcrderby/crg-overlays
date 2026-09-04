@@ -17,6 +17,11 @@
   --overlay-bg: rgb(var(--overlay-bg-color) / var(--overlay-opacity));
   --overlay-fg: white;
   --overlay-border: rgb(255 255 255 / 16%);
+  --panel-inner-highlight: rgb(255 255 255 / 22%);
+  --roster-band-headings: rgb(255 255 255 / 7%);
+  --roster-band-total: rgb(255 255 255 / 10%);
+  --roster-row-separator: rgb(255 255 255 / 13%);
+  --roster-rule: rgb(255 255 255 / 22%);
   --content-width: 100%;
 
   /* Shadows */
@@ -48,6 +53,9 @@
 
   /* Game information area colors */
   --clock-label-fg: rgb(255 255 255 / 82%);
+  --column-heading-fg: rgb(255 255 255 / 68%);
+  --penalty-code-fg: #e2e0e8;
+  --total-label-fg: rgb(255 255 255 / 86%);
 
   /* Loading overlay colors */
   --loading-bg: rgb(0 0 0 / 95%);
@@ -75,8 +83,9 @@
   --font-penalty-code-key-code-size: 19px;
   --font-penalty-code-key-label-size: 12px;
   --font-penalty-code-key-size: 15px;
+  --font-total-size: 21px;
   --font-roster-penalties-size: 18px;
-  --font-captain-size: 15px;
+  --font-captain-size: 13px;
   --font-loading-size: 32px;
   --font-timeout-banner-size: 18px;
 
@@ -94,18 +103,15 @@
   --margin-game-info-top: 5px;
 
   /* Opacity */
-  --opacity-captain-indicator: 0.85;
-  --opacity-column-heading: 0.7;
   --opacity-penalty-code-key: 0.84;
   --opacity-penalty-code-key-label: 0.62;
   --opacity-version-watermark: 0.3;
 
   /* Padding */
-  --padding-captain-indicator-left: 1px;
+  --padding-captain-indicator: 3px 6px;
   --padding-roster: 5px;
-  --padding-team-heading-horizontal: 12px;
-  --padding-team-heading-vertical: 4px;
-  --padding-penalties: 5px;
+  --padding-roster-columns: 14px;
+  --padding-team-heading-horizontal: 16px;
   --padding-game-info-columns: 16px;
   --padding-game-info-event: 20px;
   --padding-penalty-code-key-item: 17px;
@@ -123,14 +129,19 @@
   --height-timeout-banner-row: 40px;
   --height-logo-container: 100px;
   --height-penalty-count-line: 20px;
+  --height-column-headings: 24px;
   --height-roster-row: 28px;
+  --height-team-heading: 46px;
+  --height-total-row: 38px;
   --height-roster-penalties-line: 28px;
+  --radius-border-captain-indicator: 3px;
   --radius-border-penalty-count: 3px;
   --width-border-overlay: 1px;
   --width-border-overlay-trace: 2px;
   --width-border-rosters-penalties: 1px;
   --width-penalty-code-key-label: 190px;
   --width-border-team-panel: 2px;
+  --width-border-total-row: 3px;
   --width-game-info-center: 330px;
   --width-game-info-side: 190px;
   --width-loading-error-max: 1100px;
@@ -351,6 +362,7 @@ body {
 
 .roster-penalties-container {
   border: var(--width-border-team-panel) solid var(--team-penalties-default-border-color);
+  box-shadow: inset 0 0 0 var(--width-border-rosters-penalties) var(--panel-inner-highlight);
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -362,10 +374,15 @@ body {
 .team-heading {
   background-color: var(--team-penalties-default-bg-color);
   color: var(--team-penalties-default-fg-color);
+  align-items: center;
+  border-bottom: var(--width-border-rosters-penalties) solid var(--roster-rule);
+  display: flex;
+  flex: none;
   font-size: var(--font-team-heading-size);
   font-weight: bold;
+  height: var(--height-team-heading);
   overflow: hidden;
-  padding: var(--padding-team-heading-vertical) var(--padding-team-heading-horizontal);
+  padding: 0 var(--padding-team-heading-horizontal);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -413,12 +430,15 @@ body {
 }
 
 .roster-headings {
-  background-color: inherit;
+  background-color: var(--roster-band-headings);
+  color: var(--column-heading-fg);
+  flex: none;
   font-size: var(--font-heading-size);
   font-weight: bold;
-  letter-spacing: 0.08em;
-  opacity: var(--opacity-column-heading);
-  padding-bottom: var(--padding-row-bottom);
+  height: var(--height-column-headings);
+  letter-spacing: 0.1em;
+  margin-bottom: var(--margin-bottom-row);
+  padding: 0 var(--padding-roster-columns);
   position: sticky;
   text-transform: uppercase;
   top: 0;
@@ -436,10 +456,10 @@ body {
 
 .roster-line {
   align-content: center;
-  border-bottom: var(--width-border-rosters-penalties) solid;
+  border-bottom: var(--width-border-rosters-penalties) solid var(--roster-row-separator);
   height: var(--height-roster-row);
   margin-bottom: var(--margin-bottom-row);
-  padding-bottom: var(--padding-row-bottom);
+  padding: 0 var(--padding-roster-columns) var(--padding-row-bottom);
 }
 
 .roster-number {
@@ -464,12 +484,18 @@ body {
 }
 
 .captain-indicator {
+  background-color: var(--roster-rule);
+  border-radius: var(--radius-border-captain-indicator);
   flex-shrink: 0;
   font-size: var(--font-captain-size);
-  font-style: italic;
+  font-weight: 800;
+  line-height: 1;
   margin-left: var(--margin-captain-left);
-  opacity: var(--opacity-captain-indicator);
-  padding-left: var(--padding-captain-indicator-left);
+  padding: var(--padding-captain-indicator);
+}
+
+.captain-indicator:empty {
+  display: none;
 }
 
 /**********************
@@ -477,6 +503,7 @@ body {
 **********************/
 
 .penalty-codes {
+  color: var(--penalty-code-fg);
   display: flex;
   font-weight: bold;
   gap: var(--penalty-code-spacing);
@@ -518,13 +545,24 @@ body {
 
 #team1-total,
 #team2-total {
-  border-top: var(--width-border-rosters-penalties) solid var(--overlay-border);
+  align-items: center;
+  background-color: var(--roster-band-total);
+  border-top: var(--width-border-total-row) solid;
+  border-top-color: inherit;
   display: flex;
-  font-size: var(--font-roster-penalties-size);
-  font-weight: bold;
+  flex: none;
+  font-size: var(--font-total-size);
+  font-weight: 800;
+  height: var(--height-total-row);
   justify-content: space-between;
-  line-height: var(--height-roster-penalties-line);
-  padding: var(--padding-penalties);
+  padding: 0 var(--padding-roster-columns);
+}
+
+.total-label {
+  color: var(--total-label-fg);
+  font-weight: bold;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
 }
 
 /*****************************
@@ -854,7 +892,7 @@ body {
   position: absolute;
 }
 
-/* Trace: a gradient ring travelling around the overlay border */
+/* Trace: a gradient ring traveling around the overlay border */
 @keyframes overlay-trace {
   to {
     --overlay-trace-angle: 360deg;
