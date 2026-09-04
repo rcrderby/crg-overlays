@@ -121,9 +121,6 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Text displayed for fouled out skaters
     fouloutDisplay: 'FO',
 
-    // Label shown before P1 when IGRF start time is missing or in the past
-    preFirstPeriodLabel: 'Period 1',
-
     // Text displayed for removed skaters
     removedDisplay: 'RE',
 
@@ -147,7 +144,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
   ** Rules Settings **
   *******************/
 
- rules: {
+  rules: {
     // Number of penalties that result in a foulout
     fouloutPenaltyCount: 7,
 

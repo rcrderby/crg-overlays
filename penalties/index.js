@@ -11,13 +11,39 @@ console.log('Loading Penalties Overlay configuration (config.js)...');
 // Import configuration data from config.js
 const PenaltiesOverlayConfig = window.AppConfig?.PenaltiesOverlayConfig;
 
+// Show a configuration error when the overlay fails to load
+function showConfigError(message) {
+  const render = function() {
+    // Literal selector in case CLASSES did not load
+    const overlay = document.getElementById('loading-overlay');
+
+    if (!overlay) {
+      return;
+    }
+
+    overlay.classList.add('error');
+    // Literal selector in case CLASSES did not load
+    const loadingText = overlay.querySelector('.loading-text');
+
+    if (loadingText) {
+      loadingText.textContent = message;
+    }
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', render);
+  } else {
+    render();
+  }
+}
+
 // Validate that config.js loaded correctly
 if (typeof PenaltiesOverlayConfig === 'undefined') {
   console.error('ERROR: config.js did not load.');
   console.error('Make sure config.js is in the same directory as index.js');
   console.error('and that index.html includes: <script src="config.js"></script>');
   console.error('before <script> tags that import index.js and core.js.');
-  alert('Configuration Error: config.js is missing or did not load properly. Check browser console for details.');
+  showConfigError('Configuration error: config.js is missing or did not load. Check the browser console for details.');
   throw new Error('Configuration file (config.js) failed to load');
 }
 
@@ -39,7 +65,7 @@ const missingSections = requiredSections.filter(
 if (missingSections.length > 0) {
   const errorMsg = `Configuration file (config.js) is missing required sections: ${missingSections.join(', ')}`;
   console.error('ERROR:', errorMsg);
-  alert(`Configuration Error: ${errorMsg}. Check browser console for details.`);
+  showConfigError(`Configuration error: ${errorMsg}. Check the browser console for details.`);
   throw new Error(errorMsg);
 }
 

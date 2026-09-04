@@ -243,7 +243,6 @@ A configuration file named [config.js](./config.js) allows you to customize vari
   | `defaultPeriodLabelPrefix` | Prefix used for default period label | string | `Period` | :warning: |
   | `expelledDisplay` | Text displayed for expelled skaters | string | `EXP` | :warning: |
   | `fouloutDisplay` | Text displayed for fouled out skaters | string | `FO` | :warning: |
-  | `preFirstPeriodLabel` | Label shown before P1 when IGRF start time is missing or in the past | string | `Period 1` | :warning: |
   | `removedDisplay` | Text displayed for removed skaters | string | `RE` | :warning: |
   | `timeout.untyped` | Label for untyped timeout | string | `Timeout` | :white_check_mark: |
   | `timeout.official` | Label for official timeout | string | `Official Timeout` | :white_check_mark: |
