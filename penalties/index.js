@@ -99,7 +99,8 @@ const ALLOWED_URL_PARAMS = [
   'anchor',
   'font',
   'opacity',
-  'scale'
+  'scale',
+  'width'
 ];
 
 // Parse and validate URL parameters
@@ -186,6 +187,52 @@ function setOverlayScale() {
 
   if (DEBUG) {
     console.log(`Overlay scaled to ${overlayScalePercent}% (from ${scaleSource}).`);
+  }
+}
+
+// Validate and set the overlay width
+function setOverlayWidth() {
+  let overlayWidthPercent = 85; // Default to 85%
+  let widthSource = 'default';
+  let validationPassed = false;
+
+  // Check for URL parameter first to take precedence over the config.js setting
+  const urlWidth = getUrlParameter('width');
+  const configWidth = CONFIG.overlayWidth;
+
+  // Determine which width value to use
+  let widthToValidate;
+  if (urlWidth !== null) {
+    widthToValidate = parseFloat(urlWidth);
+    widthSource = 'URL parameter';
+  } else {
+    widthToValidate = configWidth;
+    widthSource = 'config.js';
+  }
+
+  // Validate the width value
+  if (typeof widthToValidate === 'undefined' || widthToValidate === null) {
+    console.warn(`Overlay width not defined in ${widthSource} - using default (85%).`);
+  } else if (typeof widthToValidate !== 'number' || isNaN(widthToValidate)) {
+    console.warn(`Invalid overlay width value "${widthToValidate}" in ${widthSource} (must be numeric) - using default (85%).`);
+  } else if (widthToValidate < 50 || widthToValidate > 100) {
+    console.warn(`Invalid overlay width value ${widthToValidate} in ${widthSource} (must be in range 50-100) - using default (85%).`);
+  } else {
+    // Round width to two decimal points
+    overlayWidthPercent = Math.round(widthToValidate * 100) / 100;
+    validationPassed = true;
+  }
+
+  // Reset width source if validation failed
+  if (!validationPassed) {
+    widthSource = 'default';
+  }
+
+  // Convert percentage to a decimal ratio of the video frame width
+  document.documentElement.style.setProperty('--overlay-width-ratio', overlayWidthPercent / 100);
+
+  if (DEBUG) {
+    console.log(`Overlay width set to ${overlayWidthPercent}% of the video frame (from ${widthSource}).`);
   }
 }
 
@@ -856,6 +903,9 @@ $(function() {
 
   // Set the overlay background opacity
   setOverlayOpacity();
+
+  // Set the overlay width
+  setOverlayWidth();
 
   // Set the font pairing
   setOverlayFont();

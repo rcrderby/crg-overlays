@@ -124,18 +124,31 @@ Provide this information to your video streaming team to give them access to the
 | Refresh browser when scene becomes active | Unchecked |
 | Page permissions | `Read access to OBS status information` |
 
-#### Size Adjustments
+#### Scale Adjustments
 
-You can adjust the size of the overlay to fit your broadcast display with the `scale` URL parameter.  For example:
+You can adjust the scale of the overlay to fit your broadcast display with the `scale` URL parameter.  For example:
 
-| Size | URL |
+| Scale | URL |
 | - | - |
-| Default size (100%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=100` |
+| Default scale (100%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=100` |
 | Scale down 5% (95%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=95` |
 | Scale down 10% (90%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=90` |
 
 > [!TIP]
 > The allowed `scale` parameter range is `1` to `100`.  See the `overlayScale` setting in the [Configuration Section](#configuration "Configuration Section") for details.
+
+#### Width Adjustments
+
+The overlay is narrower than the video frame so it doesn't crowd the edges.  Use the `width` URL parameter to adjust the overlay width.
+
+| Width | URL |
+| - | - |
+| Default (85%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?width=85` |
+| Wider (95%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?width=95` |
+| Narrower (75%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?width=75` |
+
+> [!TIP]
+> The allowed `width` parameter range is `50` to `100`.  Narrowing the overlay takes space from the player name column, so long player names may begin to truncate below about `75`.  See the `overlayWidth` setting in the [Configuration Section](#configuration "Configuration Section") for details.
 
 #### Position Adjustments
 
@@ -205,12 +218,12 @@ A configuration file named [config.js](./config.js) allows you to customize vari
 
 ### Common Customizations
 
-- `config.overlayScale` to adjust the overlay size - typically between 80% and 120% (default is `100`).
+- `config.overlayScale` to adjust the overlay scale - between 1 and 100 (default is `100`).
+- `config.overlayWidth` to adjust the overlay width - between 50 and 100 (default is `85`).
 - `config.overlayAnchor` to set the point the overlay scales from - `top`, `center`, or `bottom` (default is `top`).
 - `config.overlayOpacity` to adjust how much of the video shows through the overlay background - between 0 and 100 (default is `98`).
 - `config.overlayFont` to set the font pairing - `saira`, `league-gothic`, `anton`, or `bricolage` (default is `saira`).
-- `config.titleBannerText` to adjust the title banner text (default is `PENALTIES`).
-- `config.titleBannerBackgroundColor` and `titleBannerForegroundColor` set the title banner box background and text colors, respectively.
+- `config.titleBannerText` to adjust the title text (default is `PENALTIES`).
 
 > [!WARNING]
 > Changes to `config.js` require a page refresh to take effect.
@@ -236,12 +249,10 @@ A configuration file named [config.js](./config.js) allows you to customize vari
   | `filteredSkaterFlags` | Skater flags to filter from roster display (Not Skating, Bench Alt Captain, Bench Staff) | array of strings | `['ALT', 'B', 'BA']` | :x: |
   | `defaultRosterShadowProperties` | Default roster shadow properties | string | `.5px .5px 1px` | :x: |
   | `loadingOverlayText` | Text displayed on the "loading" screen | string | `Loading game data...` | :white_check_mark: |
-  | `titleBannerBackgroundColor` | Title banner background color hex value, color name, or `transparent` | string | `#666666`[^3] | :white_check_mark: |
-  | `titleBannerForegroundColor` | Title banner text/foreground color hex value, color name, or `transparent` | string | `#ffffff`[^3] | :white_check_mark: |
-  | `titleBannerShadow` | Title banner box shadow visibility | boolean | `true` | :white_check_mark: |
-  | `penaltiesTitleText` | Title banner text | string | `PENALTIES` | :white_check_mark: |
-  | `overlayScale` | Overlay scale size percentage: 100  = full size, 90 = 90% size, etc. (1 to 100) - the [`scale` URL parameter](#size-adjustments "Size Adjustments Section") overrides this value | int or float | `100` | :white_check_mark: |
+  | `titleBannerText` | Title text | string | `PENALTIES` | :white_check_mark: |
+  | `overlayScale` | Overlay scale percentage: 100  = full scale, 90 = 90% scale, etc. (1 to 100) - the [`scale` URL parameter](#scale-adjustments "Scale Adjustments Section") overrides this value | int or float | `100` | :white_check_mark: |
   | `overlayAnchor` | Point the overlay scales from: `top`, `center`, or `bottom` - the [`anchor` URL parameter](#position-adjustments "Position Adjustments Section") overrides this value | string | `top` | :white_check_mark: |
+  | `overlayWidth` | Overlay width percentage of the video frame (50 to 100) - the [`width` URL parameter](#width-adjustments "Width Adjustments Section") overrides this value | int or float | `85` | :white_check_mark: |
   | `overlayOpacity` | Overlay background opacity percentage: 100 is solid, 0 is invisible (0 to 100) - the [`opacity` URL parameter](#background-opacity "Background Opacity Section") overrides this value | int or float | `98` | :white_check_mark: |
   | `overlayFont` | Font pairing: `saira`, `league-gothic`, `anton`, or `bricolage` - the [`font` URL parameter](#font-selection "Font Selection Section") overrides this value | string | `saira` | :white_check_mark: |
 
@@ -319,4 +330,3 @@ A configuration file named [config.js](./config.js) allows you to customize vari
 [^1]: Replace `<crg-ip-address>` with the IP address of your CRG instance.
 [^2]: The overlay will constrain your logo to a 70px x 70px container and apply a drop shadow.  
 Logos with a 1:1 aspect ratio and a transparent background will produce the best appearance.
-[^3]: See the [Mozilla Color Reference Documentation](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/named-color#value "Mozilla Color Reference Documentation") for value examples.
