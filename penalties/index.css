@@ -59,6 +59,7 @@
 
   /* Loading overlay colors */
   --loading-bg: rgb(0 0 0 / 95%);
+  --loading-error-fg: #ff6b6b;
   --loading-fg: white;
   --loading-spinner-color: #ff69b4;
 
@@ -126,6 +127,7 @@
   --width-border-rosters-penalties: 1px;
   --width-game-details-max: 800px;
   --width-game-details-min: 600px;
+  --width-loading-error-max: 1100px;
   --width-roster-column-max: 350px;
   --width-roster-number-min: 40px;
   --width-penalties-column-max: 250px;
@@ -137,6 +139,7 @@
 
   /* Spacing */
   --gap-between-teams: 30px;
+  --gap-game-details: 10px;
   --gap-roster-penalties: 10px;
   --gap-penalty-sections: 2px;
   --margin-bottom-row: 4px;
@@ -207,6 +210,18 @@ body {
   font-size: var(--font-loading-size);
   font-weight: bold;
   text-shadow: var(--shadow-text);
+}
+
+/* Configuration failure */
+#loading-overlay.error .loading-spinner {
+  display: none;
+}
+
+#loading-overlay.error .loading-text {
+  color: var(--loading-error-fg);
+  line-height: 1.4;
+  margin: 0 auto;
+  max-width: var(--width-loading-error-max);
 }
 
 @keyframes spin {
