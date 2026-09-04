@@ -94,6 +94,7 @@ const TIMING = PenaltiesOverlayConfig.timing;
 // Allowed URL parameters
 const ALLOWED_URL_PARAMS = [
   'anchor',
+  'font',
   'scale'
 ];
 
@@ -234,6 +235,74 @@ function setOverlayAnchor() {
 
   if (DEBUG) {
     console.log(`Overlay anchored to ${overlayAnchor} (from ${anchorSource}).`);
+  }
+}
+
+// Font pairings, keyed by their display face
+const OVERLAY_FONTS = {
+  'saira': {
+    display: "'Saira Condensed', 'Arial Narrow', arial, sans-serif",
+    body: "'Saira', arial, sans-serif"
+  },
+  'league-gothic': {
+    display: "'League Gothic', 'Arial Narrow', arial, sans-serif",
+    body: "'Barlow', arial, sans-serif"
+  },
+  'anton': {
+    display: "'Anton', 'Arial Narrow', arial, sans-serif",
+    body: "'Chivo', arial, sans-serif"
+  },
+  'bricolage': {
+    display: "'Bricolage Grotesque', arial, sans-serif",
+    body: "'Barlow Condensed', 'Arial Narrow', arial, sans-serif"
+  }
+};
+
+// Validate and set the overlay font pairing
+function setOverlayFont() {
+  let overlayFont = 'saira'; // Default to Saira
+  let fontSource = 'default';
+  let validationPassed = false;
+
+  // Check for URL parameter first to take precedence over the config.js setting
+  const urlFont = getUrlParameter('font');
+  const configFont = CONFIG.overlayFont;
+
+  // Determine which font value to use
+  let fontToValidate;
+  if (urlFont !== null) {
+    fontToValidate = urlFont;
+    fontSource = 'URL parameter';
+  } else {
+    fontToValidate = configFont;
+    fontSource = 'config.js';
+  }
+
+  // Validate the font value
+  const allowedFonts = Object.keys(OVERLAY_FONTS);
+  if (typeof fontToValidate === 'undefined' || fontToValidate === null) {
+    console.warn(`Overlay font not defined in ${fontSource} - using default (saira).`);
+  } else if (typeof fontToValidate !== 'string') {
+    console.warn(`Invalid overlay font value "${fontToValidate}" in ${fontSource} (must be a string) - using default (saira).`);
+  } else if (!allowedFonts.includes(fontToValidate.toLowerCase())) {
+    console.warn(`Invalid overlay font value "${fontToValidate}" in ${fontSource} (must be one of ${allowedFonts.join(', ')}) - using default (saira).`);
+  } else {
+    overlayFont = fontToValidate.toLowerCase();
+    validationPassed = true;
+  }
+
+  // Reset font source if validation failed
+  if (!validationPassed) {
+    fontSource = 'default';
+  }
+
+  // Apply the font to the display and body font variables
+  const pairing = OVERLAY_FONTS[overlayFont];
+  document.documentElement.style.setProperty('--font-family-display', pairing.display);
+  document.documentElement.style.setProperty('--font-family', pairing.body);
+
+  if (DEBUG) {
+    console.log(`Overlay font set to ${overlayFont} (from ${fontSource}).`);
   }
 }
 
@@ -761,6 +830,9 @@ $(function() {
 
   // Set the point the overlay scales from
   setOverlayAnchor();
+
+  // Set the font pairing
+  setOverlayFont();
 
   // Load amph module
   loadAmphModule();

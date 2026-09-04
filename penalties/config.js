@@ -57,6 +57,10 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // The `scale` URL parameter overrides this value
     overlayScale: 100,
 
+    // Font pairing: `saira`, `league-gothic`, `anton`, or `bricolage`
+    // The `font` URL parameter overrides this value
+    overlayFont: 'saira',
+
     // Point the overlay scales from: `top`, `center`, or `bottom`
     // The `anchor` URL parameter overrides this value
     overlayAnchor: 'top'
