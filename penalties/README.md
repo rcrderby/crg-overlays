@@ -131,11 +131,11 @@ You can adjust the size of the overlay to fit your broadcast display with the `s
 | Size | URL |
 | - | - |
 | Default size (100%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=100` |
-| Scale up 4.55% (104.55%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=104.55` |
+| Scale down 5% (95%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=95` |
 | Scale down 10% (90%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=90` |
 
 > [!TIP]
-> The allowed `scale` parameter range is `1` to `200`. See the `overlayScale` setting in the [Configuration Section](#configuration "Configuration Section") for details.
+> The allowed `scale` parameter range is `1` to `100`.  See the `overlayScale` setting in the [Configuration Section](#configuration "Configuration Section") for details.
 
 #### Position Adjustments
 
@@ -226,7 +226,7 @@ A configuration file named [config.js](./config.js) allows you to customize vari
   | `titleBannerForegroundColor` | Title banner text/foreground color hex value, color name, or `transparent` | string | `#ffffff`[^3] | :white_check_mark: |
   | `titleBannerShadow` | Title banner box shadow visibility | boolean | `true` | :white_check_mark: |
   | `penaltiesTitleText` | Title banner text | string | `PENALTIES` | :white_check_mark: |
-  | `overlayScale` | Overlay scale size percentage: 100 = full size, 90 = 90% size, etc. (1 to 200) - the [`scale` URL parameter](#size-adjustments "Size Adjustments Section") overrides this value | int or float | `100` | :white_check_mark: |
+  | `overlayScale` | Overlay scale size percentage: 100  = full size, 90 = 90% size, etc. (1 to 100) - the [`scale` URL parameter](#size-adjustments "Size Adjustments Section") overrides this value | int or float | `100` | :white_check_mark: |
   | `overlayAnchor` | Point the overlay scales from: `top`, `center`, or `bottom` - the [`anchor` URL parameter](#position-adjustments "Position Adjustments Section") overrides this value | string | `top` | :white_check_mark: |
   | `overlayFont` | Font pairing: `saira`, `league-gothic`, `anton`, or `bricolage` - the [`font` URL parameter](#font-selection "Font Selection Section") overrides this value | string | `saira` | :white_check_mark: |
 

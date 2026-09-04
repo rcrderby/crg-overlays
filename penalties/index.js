@@ -166,8 +166,8 @@ function setOverlayScale() {
     console.warn(`Overlay scale not defined in ${scaleSource} - using default (100%).`);
   } else if (typeof scaleToValidate !== 'number' || isNaN(scaleToValidate)) {
     console.warn(`Invalid overlay scale value "${scaleToValidate}" in ${scaleSource} (must be numeric) - using default (100%).`);
-  } else if (scaleToValidate < 1 || scaleToValidate > 200) {
-    console.warn(`Invalid overlay scale value ${scaleToValidate} in ${scaleSource} (must be in range 1-200) - using default (100%).`);
+  } else if (scaleToValidate < 1 || scaleToValidate > 100) {
+    console.warn(`Invalid overlay scale value ${scaleToValidate} in ${scaleSource} (must be in range 1-100) - using default (100%).`);
   } else {
     // Round scale to two decimal points
     overlayScalePercent = Math.round(scaleToValidate * 100) / 100;
