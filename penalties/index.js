@@ -98,6 +98,7 @@ const OVERLAY_VERSION = '4.0.0';
 const ALLOWED_URL_PARAMS = [
   'anchor',
   'font',
+  'opacity',
   'scale'
 ];
 
@@ -185,6 +186,52 @@ function setOverlayScale() {
 
   if (DEBUG) {
     console.log(`Overlay scaled to ${overlayScalePercent}% (from ${scaleSource}).`);
+  }
+}
+
+// Validate and set the overlay background opacity
+function setOverlayOpacity() {
+  let overlayOpacityPercent = 98; // Default to 98%
+  let opacitySource = 'default';
+  let validationPassed = false;
+
+  // Check for URL parameter first to take precedence over the config.js setting
+  const urlOpacity = getUrlParameter('opacity');
+  const configOpacity = CONFIG.overlayOpacity;
+
+  // Determine which opacity value to use
+  let opacityToValidate;
+  if (urlOpacity !== null) {
+    opacityToValidate = parseFloat(urlOpacity);
+    opacitySource = 'URL parameter';
+  } else {
+    opacityToValidate = configOpacity;
+    opacitySource = 'config.js';
+  }
+
+  // Validate the opacity value
+  if (typeof opacityToValidate === 'undefined' || opacityToValidate === null) {
+    console.warn(`Overlay opacity not defined in ${opacitySource} - using default (98%).`);
+  } else if (typeof opacityToValidate !== 'number' || isNaN(opacityToValidate)) {
+    console.warn(`Invalid overlay opacity value "${opacityToValidate}" in ${opacitySource} (must be numeric) - using default (98%).`);
+  } else if (opacityToValidate < 0 || opacityToValidate > 100) {
+    console.warn(`Invalid overlay opacity value ${opacityToValidate} in ${opacitySource} (must be in range 0-100) - using default (98%).`);
+  } else {
+    // Round opacity to two decimal points
+    overlayOpacityPercent = Math.round(opacityToValidate * 100) / 100;
+    validationPassed = true;
+  }
+
+  // Reset opacity source if validation failed
+  if (!validationPassed) {
+    opacitySource = 'default';
+  }
+
+  // The value sets the alpha channel of the overlay background color
+  document.documentElement.style.setProperty('--overlay-opacity', `${overlayOpacityPercent}%`);
+
+  if (DEBUG) {
+    console.log(`Overlay background opacity set to ${overlayOpacityPercent}% (from ${opacitySource}).`);
   }
 }
 
@@ -806,6 +853,9 @@ $(function() {
 
   // Set the point the overlay scales from
   setOverlayAnchor();
+
+  // Set the overlay background opacity
+  setOverlayOpacity();
 
   // Set the font pairing
   setOverlayFont();
