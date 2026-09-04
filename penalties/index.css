@@ -8,7 +8,8 @@
   /* Overlay values */
   --overlay-width: 1920px;
   --overlay-height: 1080px;
-  --overlay-padding: 12px;
+  --overlay-padding-horizontal: 15px;
+  --overlay-padding-vertical: 12px;
   --overlay-inset-vertical: 32px;
   --overlay-width-ratio: 0.85;
   --overlay-bg-color: 13 12 17;
@@ -241,7 +242,7 @@ body {
   flex-direction: column;
   height: calc(var(--overlay-height) - (2 * var(--overlay-inset-vertical)));
   margin: var(--overlay-inset-vertical) auto;
-  padding: var(--overlay-padding);
+  padding: var(--overlay-padding-vertical) var(--overlay-padding-horizontal);
   position: relative;
   transform: scale(var(--overlay-scale, 1));
   transform-origin: var(--overlay-origin, top center);
