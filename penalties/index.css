@@ -117,8 +117,9 @@
   --height-game-details-max: 110px;
   --height-game-details-min: 80px;
   --height-logo-container: 100px;
+  --height-penalty-count-line: 20px;
   --height-roster-row: 28px;
-  --height-roster-penalties-line: 1.5;
+  --height-roster-penalties-line: 28px;
   --height-timeout-banner: 28px;
   --radius-border-penalty-count: 3px;
   --width-border-overlay: 1px;
@@ -424,6 +425,7 @@ body {
 }
 
 .roster-line {
+  align-content: center;
   border-bottom: var(--width-border-rosters-penalties) solid;
   height: var(--height-roster-row);
   margin-bottom: var(--margin-bottom-row);
@@ -477,6 +479,7 @@ body {
 .penalty-count {
   border-radius: var(--radius-border-penalty-count);
   font-weight: bold;
+  line-height: var(--height-penalty-count-line);
   padding: var(--padding-penalty-count-vertical) var(--padding-penalty-count-horizontal);
   text-align: right;
   text-shadow: var(--shadow-text);
