@@ -82,8 +82,10 @@
   --font-timeout-banner-size: 18px;
 
   /* Logo sizes */
-  --size-team-logo-max: 92px;
-  --size-custom-logo: 70px;
+  --size-team-logo-max-height: 96px;
+  --size-team-logo-max-width: 300px;
+  --size-custom-logo-height: 76px;
+  --size-custom-logo-width: 120px;
 
   /* Margins */
   --margin-captain-left: 4px;
@@ -281,8 +283,8 @@ body {
 
 .team-logo {
   filter: var(--shadow-drop-logo);
-  max-height: var(--size-team-logo-max);
-  max-width: var(--size-team-logo-max);
+  max-height: var(--size-team-logo-max-height);
+  max-width: var(--size-team-logo-max-width);
   object-fit: contain;
   opacity: 0;
   transition: opacity var(--transition-fade);
@@ -588,10 +590,11 @@ body {
 #custom-logo-space {
   align-items: center;
   display: none;
+  flex-shrink: 0;
   grid-column: 1;
-  height: var(--size-custom-logo);
+  height: var(--size-custom-logo-height);
   justify-content: center;
-  width: var(--size-custom-logo);
+  width: var(--size-custom-logo-width);
 }
 
 #custom-logo-space.visible {
@@ -619,7 +622,7 @@ body {
 
 /* When the logo is visible, add the balance column */
 #teams-scores.has-logo {
-  grid-template-columns: auto 1fr auto 1fr var(--size-custom-logo);
+  grid-template-columns: auto 1fr auto 1fr var(--size-custom-logo-width);
 }
 
 /* Base team score block styles */
