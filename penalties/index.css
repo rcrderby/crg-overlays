@@ -990,7 +990,7 @@ body {
 ** Timeout banner animations **
 *****************************/
 
-/* Glow: the banner color breathes, whatever color it is */
+/* Glow: the banner color breathes */
 @keyframes timeout-glow {
   0%,
   100% {
@@ -1060,7 +1060,7 @@ body {
   position: absolute;
 }
 
-/* Viewers who ask for reduced motion get none of it */
+/* Browsers that request reduced motion will not see overlay or timeout banner animation */
 @media (prefers-reduced-motion: reduce) {
   #overlay-motion i,
   .timeout-banner.visible,

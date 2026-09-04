@@ -79,6 +79,7 @@ The overlay gets the information and settings it needs from CRG, so you can just
 
 | CRG Version | Description        |
 | ----------- | -------------------|
+| 2027.x      | Not Tested         |
 | 2025.x      | :white_check_mark: |
 | 2023.x      | Not Tested         |
 | Other       | :x:                |
@@ -196,7 +197,7 @@ The overlay bundles four font pairings and uses `saira` as its default.  Use the
 
 #### Animation Options
 
-The overlay animates its background and its timeout banner.  Use the `background` and `timeout` URL parameters to change or disable either one:
+The overlay has animation for its background and timeout banner.  Use the `background` and `timeout` URL parameters to change or disable either one:
 
 | Background | Effect | URL |
 | - | - | - |
@@ -213,7 +214,8 @@ The overlay animates its background and its timeout banner.  Use the `background
 | `off` | No timeout banner animation | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=off` |
 
 > [!NOTE]
-> A viewer whose system asks for reduced motion sees no animation at all, whatever these settings say.
+> Browsers that request reduced motion will see no overlay or timeout banner animation.
+
 #### Penalty Code Key
 
 The overlay lists definitions for any penalty codes in use during a game.  Use the `key` URL parameter to hide it:
