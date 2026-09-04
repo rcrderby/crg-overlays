@@ -145,20 +145,14 @@ window.AppConfig.PenaltiesOverlayConfig = {
   *******************/
 
   rules: {
-    // Number of penalties that result in a foulout
-    fouloutPenaltyCount: 7,
+    // Number of penalties before a foulout, based on the active ruleset, that trigger warning colors
+    warningPenaltyOffsets: {
+      // First warning color, two penalties before a foulout
+      first: 2,
 
-    // Override a custom number of periods
-    numPeriods: 2,
-
-    // Override a custom number of teams
-    numTeams: 2,
-
-    // Penalty count that triggers the first warning color
-    warningPenaltyCount5: 5,
-
-    // Penalty count that triggers second warning color
-    warningPenaltyCount6: 6
+      // Second warning color, one penalty before a foulout
+      second: 1
+    }
   },
 
   /***********************
@@ -181,6 +175,12 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
     // Delay before initializing display after WebSocket connects (ms)
     initWebSocket: 100,
+
+    // How often to check if the game rules arrived (ms)
+    loadCheckInterval: 100,
+
+    // Longest time to wait for the game rules before displaying anyway (ms)
+    maxLoadWaitMs: 5000,
 
     // Minimum time to show loading screen (ms)
     minLoadDisplayMs: 500,
