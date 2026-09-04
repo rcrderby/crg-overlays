@@ -899,7 +899,7 @@ body {
   }
 }
 
-.background-trace #overlay-motion i:first-child {
+.background-trace #overlay-motion .motion-primary {
   animation: overlay-trace var(--duration-animation-background) linear infinite;
   background: linear-gradient(
     var(--overlay-trace-angle),
@@ -913,7 +913,7 @@ body {
 }
 
 /* Organic: two soft pools of light drifting across the panel */
-@keyframes overlay-organic-near {
+@keyframes overlay-organic-primary {
   from {
     transform: translate3d(-7%, -5%, 0) scale(1);
   }
@@ -923,7 +923,7 @@ body {
   }
 }
 
-@keyframes overlay-organic-far {
+@keyframes overlay-organic-secondary {
   from {
     transform: translate3d(8%, 4%, 0) scale(1.12);
   }
@@ -933,8 +933,8 @@ body {
   }
 }
 
-.background-organic #overlay-motion i:first-child {
-  animation: overlay-organic-near
+.background-organic #overlay-motion .motion-primary {
+  animation: overlay-organic-primary
     calc(var(--duration-animation-background) * 1.9) ease-in-out infinite
     alternate;
   background: radial-gradient(
@@ -945,8 +945,8 @@ body {
   display: block;
 }
 
-.background-organic #overlay-motion i:last-child {
-  animation: overlay-organic-far
+.background-organic #overlay-motion .motion-secondary {
+  animation: overlay-organic-secondary
     calc(var(--duration-animation-background) * 2.7) ease-in-out infinite
     alternate;
   background: radial-gradient(
@@ -973,7 +973,7 @@ body {
   }
 }
 
-.background-shine #overlay-motion i:first-child {
+.background-shine #overlay-motion .motion-primary {
   animation: overlay-shine var(--duration-animation-background) linear infinite;
   background-image: linear-gradient(
     135deg,
@@ -990,7 +990,7 @@ body {
 ** Timeout banner animations **
 *****************************/
 
-/* Glow: the banner color breathes, whatever color it is */
+/* Glow: the banner color breathes */
 @keyframes timeout-glow {
   0%,
   100% {
@@ -1060,7 +1060,7 @@ body {
   position: absolute;
 }
 
-/* Viewers who ask for reduced motion get none of it */
+/* Browsers that request reduced motion will not see overlay or timeout banner animation */
 @media (prefers-reduced-motion: reduce) {
   #overlay-motion i,
   .timeout-banner.visible,
