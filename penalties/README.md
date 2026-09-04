@@ -204,7 +204,7 @@ The overlay lists definitions for any penalty codes in use during a game.  Use t
 | Hidden | `https://<crg-ip-address>:8000/custom/overlay/penalties?key=false` |
 
 > [!NOTE]
-> CRG provides penalty code definitions from the active ruleset.  Codes with no definition do not appear in the key.
+> CRG provides penalty code definitions from the active ruleset.  Codes with no definition do not appear in the key, nor does the unknown penalty code (`?`), which says only that a penalty has not been identified.  The key wraps onto more than one line when the codes do not fit across the overlay.
 
 ### Optional Custom Logo
 
@@ -269,6 +269,7 @@ A configuration file named [config.js](./config.js) allows you to customize vari
   | `overlayOpacity` | Overlay background opacity percentage: 100 is solid, 0 is invisible (0 to 100) - the [`opacity` URL parameter](#background-opacity "Background Opacity Section") overrides this value | int or float | `98` | :white_check_mark: |
   | `overlayFont` | Font pairing: `saira`, `league-gothic`, `anton`, or `bricolage` - the [`font` URL parameter](#font-selection "Font Selection Section") overrides this value | string | `saira` | :white_check_mark: |
   | `penaltyCodeKey` | Penalty code key visibility below the rosters - the [`key` URL parameter](#penalty-code-key "Penalty Code Key Section") overrides this value | boolean | `true` | :white_check_mark: |
+  | `penaltyCodeKeyLabel` | Heading shown beside the penalty code key | string | `Penalty codes` | :white_check_mark: |
 
   ---
 

@@ -780,9 +780,11 @@ function getPenaltyCodesInPlay() {
     }
   }
 
-  // Foulouts and removals are status markers, not penalties with a description
+  // Foulouts and removals are status markers, not penalties with a description,
+  // and the unknown code says only that the penalty has not been identified
   codes.delete(PENALTIES.fouloutCode);
   codes.delete(PENALTIES.removedCode);
+  codes.delete(PENALTIES.unknownCode);
 
   return [...codes].sort();
 }
@@ -827,7 +829,14 @@ function buildPenaltyCodeKey() {
     );
   }
 
-  $key.empty().append(items).toggleClass(visibleSuffix, items.length > 0);
+  $key.empty().toggleClass(visibleSuffix, items.length > 0);
+
+  if (items.length > 0) {
+    $key.append(
+      $('<span>').addClass('code-key-label').text(CONFIG.penaltyCodeKeyLabel),
+      $('<span>').addClass('code-key-items').append(items)
+    );
+  }
 
   if (DEBUG) {
     console.log(`Penalty code key rebuilt with ${items.length} code(s).`);
