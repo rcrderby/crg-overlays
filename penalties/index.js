@@ -98,6 +98,7 @@ const OVERLAY_VERSION = '4.0.0';
 const ALLOWED_URL_PARAMS = [
   'anchor',
   'font',
+  'key',
   'opacity',
   'scale',
   'width'
@@ -233,6 +234,55 @@ function setOverlayWidth() {
 
   if (DEBUG) {
     console.log(`Overlay width set to ${overlayWidthPercent}% of the video frame (from ${widthSource}).`);
+  }
+}
+
+// Penalty code key state
+let penaltyCodeKeyVisible = true;
+let penaltyCodeKeyPending = false;
+
+// Validate and set the penalty code key visibility
+function setPenaltyCodeKey() {
+  let showKey = true;
+  let keySource = 'default';
+  let validationPassed = false;
+
+  // Check for URL parameter first to take precedence over the config.js setting
+  const urlKey = getUrlParameter('key');
+  const configKey = CONFIG.penaltyCodeKey;
+
+  // Determine which value to use
+  let keyToValidate;
+  if (urlKey !== null) {
+    keyToValidate = urlKey.toLowerCase();
+    keySource = 'URL parameter';
+  } else {
+    keyToValidate = configKey;
+    keySource = 'config.js';
+  }
+
+  // Validate the value
+  if (typeof keyToValidate === 'undefined' || keyToValidate === null) {
+    console.warn(`Penalty code key not defined in ${keySource} - using default (visible).`);
+  } else if (typeof keyToValidate === 'boolean') {
+    showKey = keyToValidate;
+    validationPassed = true;
+  } else if (keyToValidate === 'true' || keyToValidate === 'false') {
+    showKey = keyToValidate === 'true';
+    validationPassed = true;
+  } else {
+    console.warn(`Invalid penalty code key value "${keyToValidate}" in ${keySource} (must be true or false) - using default (visible).`);
+  }
+
+  // Reset the source if validation failed
+  if (!validationPassed) {
+    keySource = 'default';
+  }
+
+  penaltyCodeKeyVisible = showKey;
+
+  if (DEBUG) {
+    console.log(`Penalty code key ${showKey ? 'enabled' : 'disabled'} (from ${keySource}).`);
   }
 }
 
@@ -458,6 +508,8 @@ window.glowColorToShadow = function(_k, glowColor) {
 **************************/
 
 // WebSocket Channels to read the active ruleset
+const PENALTY_CODE_PREFIX = 'ScoreBoard.CurrentGame.PenaltyCode(';
+const SKATER_PENALTY_CODE = /^ScoreBoard\.CurrentGame\.Team\(\d+\)\.Skater\(([^)]+)\)\.Penalty\(\d+\)\.Code$/;
 const RULE_FOULOUT_COUNT = 'ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout)';
 const RULE_PERIOD_COUNT = 'ScoreBoard.CurrentGame.Rule(Period.Number)';
 
@@ -573,12 +625,12 @@ window.shouldHidePenaltyCode = function(k, code, penaltyNumber) {
 ** Game Information Utility Functions **
 ***************************************/
 
-// Prepend " - Game " to the game number if present
+// Prepend a dot divider and " Game " to the game number if present
 window.prependGameNo = function(_k, gameNum) {
   if (!gameNum || gameNum === '' || gameNum === '0') {
     return '';
   }
-  return ` - Game ${gameNum}`;
+  return ` \u00b7 Game ${gameNum}`;
 };
 
 // Display team names with fallback mechanisms to prevent a blank name
@@ -697,6 +749,115 @@ window.shouldHideComingUp = function(_k) {
   
   return period !== 0 || isIntermission || isOfficial || isOvertime;
 };
+
+/***********************************
+** Penalty Code Key Helper Functions **
+***********************************/
+
+// Collect active penalty code definitions
+function getPenaltyCodesInPlay() {
+  const codes = new Set();
+  const hidden = {};
+
+  for (const stateKey of Object.keys(WS.state)) {
+    const match = SKATER_PENALTY_CODE.exec(stateKey);
+    if (!match) {
+      continue;
+    }
+
+    // Filter inactive players
+    const skaterContext = stateKey.slice(0, stateKey.indexOf(').Penalty(') + 1);
+    if (!(skaterContext in hidden)) {
+      hidden[skaterContext] = window.shouldHideSkater(null, WS.state[skaterContext + '.Flags']);
+    }
+    if (hidden[skaterContext]) {
+      continue;
+    }
+
+    const code = WS.state[stateKey];
+    if (code) {
+      codes.add(code);
+    }
+  }
+
+  // Foulouts and removals are status markers, not penalties with a description
+  codes.delete(PENALTIES.fouloutCode);
+  codes.delete(PENALTIES.removedCode);
+
+  return [...codes].sort();
+}
+
+// Read the CRG cues for a penalty code
+function getPenaltyCodeCue(code) {
+  const description = WS.state[PENALTY_CODE_PREFIX + code + ')'];
+  if (typeof description !== 'string' || description.trim() === '') {
+    return null;
+  }
+
+  // Retain only the first/primary cue
+  return description.split(',')[0].trim();
+}
+
+// Constuct the penalty code key from active penalties
+function buildPenaltyCodeKey() {
+  penaltyCodeKeyPending = false;
+
+  const $key = $(CLASSES.penaltyCodeKeySelector);
+  const visibleSuffix = CLASSES.penaltyCodeKeyVisibleSelectorSuffix;
+
+  if (!penaltyCodeKeyVisible) {
+    $key.empty().removeClass(visibleSuffix);
+    return;
+  }
+
+  const items = [];
+  for (const code of getPenaltyCodesInPlay()) {
+    const cue = getPenaltyCodeCue(code);
+
+    // Ignore codes without a description
+    if (cue === null) {
+      continue;
+    }
+
+    items.push(
+      $('<span>').addClass('code-key-item').append(
+        $('<span>').addClass('code-key-code').text(code),
+        document.createTextNode(cue)
+      )
+    );
+  }
+
+  $key.empty().append(items).toggleClass(visibleSuffix, items.length > 0);
+
+  if (DEBUG) {
+    console.log(`Penalty code key rebuilt with ${items.length} code(s).`);
+  }
+}
+
+// Rebuild once after a burst of WebSocket updates rather than on each one
+function schedulePenaltyCodeKeyRebuild() {
+  if (penaltyCodeKeyPending) {
+    return;
+  }
+  penaltyCodeKeyPending = true;
+  setTimeout(buildPenaltyCodeKey, TIMING.penaltyCodeKeyRebuild);
+}
+
+// Register the WebSocket paths the penalty code key depends on
+function registerPenaltyCodeKey() {
+  if (!penaltyCodeKeyVisible) {
+    return;
+  }
+
+  WS.Register(
+    [
+      'ScoreBoard.CurrentGame.PenaltyCode',
+      'ScoreBoard.CurrentGame.Team(1).Skater',
+      'ScoreBoard.CurrentGame.Team(2).Skater'
+    ],
+    schedulePenaltyCodeKeyRebuild
+  );
+}
 
 /********************************
 ** Custom Logo Helper Function **
@@ -910,6 +1071,9 @@ $(function() {
   // Set the font pairing
   setOverlayFont();
 
+  // Set the penalty code key visibility
+  setPenaltyCodeKey();
+
   // Show the overlay version
   setOverlayVersion();
 
@@ -933,6 +1097,7 @@ $(function() {
     if (typeof WS !== 'undefined') {
       WS.Connect();
       WS.AutoRegister();
+      registerPenaltyCodeKey();
       console.log('WebSocket connected.');
 
     // Attempt to retry the WebSocket connection if it is not yet available
