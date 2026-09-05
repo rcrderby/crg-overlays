@@ -85,7 +85,7 @@ The overlay gets the information and settings it needs from CRG, so you can just
 
 | CRG Version | Description        |
 | ----------- | -------------------|
-| 2027.x      | Not Tested         |
+| 2027.x      | :white_check_mark: |
 | 2025.x      | :white_check_mark: |
 | 2023.x      | Not Tested         |
 | Other       | :x:                |
