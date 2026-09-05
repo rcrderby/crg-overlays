@@ -226,7 +226,7 @@ The overlay lists definitions for any penalty codes in use during a game.  Use t
 | Hidden | `https://<crg-ip-address>:8000/custom/overlay/penalties?key=false` |
 
 > [!NOTE]
-> CRG provides penalty code definitions from the active ruleset.  Codes with no definition do not appear in the key, nor does the unknown penalty code (`?`), which says only that a penalty has not been identified.  The key wraps onto more than one line when the codes do not fit across the overlay.
+> CRG provides penalty code definitions from the active ruleset.  Codes with no definition do not appear in the key, nor does the unknown penalty code (`?`), which says only that a penalty has not been identified.  The key always occupies one line, reducing its text size as needed, so every code fits.
 
 ### Optional Custom Logo
 
@@ -295,7 +295,6 @@ A configuration file named [config.js](./config.js) allows you to customize vari
   | `backgroundAnimation` | Background animation: `trace`, `organic`, `shine`, or `off` - the [`background` URL parameter](#animation-options "Animation Options Section") overrides this value | string | `trace` | :white_check_mark: |
   | `timeoutAnimation` | Timeout banner animation: `glow`, `pulse`, `shine`, or `off` - the [`timeout` URL parameter](#animation-options "Animation Options Section") overrides this value | string | `glow` | :white_check_mark: |
   | `penaltyCodeKey` | Penalty code key visibility below the rosters - the [`key` URL parameter](#penalty-code-key "Penalty Code Key Section") overrides this value | boolean | `true` | :white_check_mark: |
-  | `penaltyCodeKeyLabel` | Heading shown beside the penalty code key | string | `Penalty codes` | :white_check_mark: |
 
   ---
 
