@@ -125,3 +125,43 @@ Deno.test('editing a limit in config.js moves the range and the default together
   assert.match(rejected.warnings.join(' '), /range 60-100/);
   assert.match(rejected.warnings.join(' '), /default \(80%\)/);
 });
+
+Deno.test('debug logging is off unless something turns it on', async () => {
+  const { DEBUG, warnings } = await loadOverlay();
+  assert.equal(DEBUG, false);
+  assert.deepEqual(warnings, []);
+});
+
+Deno.test('the debug URL parameter turns logging on and off', async () => {
+  for (const [search, expected] of [
+    ['?debug=true', true],
+    ['?debug=TRUE', true],
+    ['?debug=false', false]
+  ]) {
+    const { DEBUG, warnings } = await loadOverlay({ search });
+    assert.equal(DEBUG, expected, `${search} should set debug to ${expected}`);
+    assert.deepEqual(warnings, []);
+  }
+});
+
+Deno.test('the debug URL parameter overrides config.js', async () => {
+  const configSource = (await readSource('penalties/config.js')).replace('enabled: false', 'enabled: true');
+  const off = await loadOverlay({ configSource, search: '?debug=false' });
+  assert.equal(off.DEBUG, false);
+
+  const on = await loadOverlay({ configSource });
+  assert.equal(on.DEBUG, true);
+});
+
+Deno.test('an invalid debug value falls back to the configured default', async () => {
+  const { DEBUG, warnings } = await loadOverlay({ search: '?debug=verbose' });
+  assert.equal(DEBUG, false);
+  assert.match(warnings.join(' '), /must be true or false/);
+});
+
+Deno.test('a missing debug setting falls back to the configured default', async () => {
+  const configSource = (await readSource('penalties/config.js')).replace('enabled: false', 'notEnabled: false');
+  const { DEBUG, warnings } = await loadOverlay({ configSource });
+  assert.equal(DEBUG, false);
+  assert.match(warnings.join(' '), /Debug logging not defined in config\.js/);
+});

@@ -65,10 +65,6 @@ console.log('config.js loaded successfully.');
  ** Global Constants  **
  **********************/
 
-// Debugging setting
-const DEBUG = PenaltiesOverlayConfig.debug?.enabled || false;
-console.log('Debug mode:', DEBUG);
-
 // Configuration sections - available globally for all functions
 const CONFIG = PenaltiesOverlayConfig.config;
 const LIMITS = PenaltiesOverlayConfig.limits;
@@ -78,15 +74,28 @@ const RULES = PenaltiesOverlayConfig.rules;
 const PENALTIES = PenaltiesOverlayConfig.penalties;
 const TIMING = PenaltiesOverlayConfig.timing;
 
+// Allowed URL parameters.  `debug` belongs here, because the overlay reads the
+// debug setting through getUrlParameter() before DEBUG exists, and an
+// unapproved parameter logs through DEBUG
+const ALLOWED_URL_PARAMS = ['anchor', 'background', 'debug', 'font', 'key', 'opacity', 'scale', 'timeout', 'width'];
+
+// Settings sources for validation messages
+const SETTING_SOURCES = {
+  config: 'config.js',
+  default: 'default',
+  url: 'URL parameter'
+};
+
+// Debugging setting, read before the settings that log through it
+const DEBUG = getDebugSetting();
+console.log('Debug mode:', DEBUG);
+
 // Overlay version to display as a watermark and log to the console
 const OVERLAY_VERSION = '4.0.0';
 
 /*****************************
  ** URL Parameter Functions **
  ****************************/
-
-// Allowed URL parameters
-const ALLOWED_URL_PARAMS = ['anchor', 'background', 'font', 'key', 'opacity', 'scale', 'timeout', 'width'];
 
 // Parse and validate URL parameters
 function getUrlParameter(name) {
@@ -99,6 +108,34 @@ function getUrlParameter(name) {
 
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get(name);
+}
+
+// Validate the debug logging setting
+function getDebugSetting() {
+  const urlDebug = getUrlParameter('debug');
+  const debugSource = urlDebug !== null ? SETTING_SOURCES.url : SETTING_SOURCES.config;
+  const debugToValidate = urlDebug !== null ? urlDebug.toLowerCase() : PenaltiesOverlayConfig.debug?.enabled;
+  const defaultDebug = LIMITS.debug.default;
+
+  // Validate the debug value
+  if (typeof debugToValidate === 'undefined' || debugToValidate === null) {
+    console.warn(`Debug logging not defined in ${debugSource} - using default (${defaultDebug}).`);
+    return defaultDebug;
+  }
+
+  if (typeof debugToValidate === 'boolean') {
+    return debugToValidate;
+  }
+
+  if (debugToValidate === 'true' || debugToValidate === 'false') {
+    return debugToValidate === 'true';
+  }
+
+  console.warn(
+    `Invalid debug logging value "${debugToValidate}" in ${debugSource} (must be true or false) - using default (${defaultDebug}).`
+  );
+
+  return defaultDebug;
 }
 
 // Log URL parameters
@@ -127,13 +164,6 @@ function logUrlParameters() {
 /**************************************
  ** Overlay Display Format Functions **
  *************************************/
-
-// Settings sources for validation messages
-const SETTING_SOURCES = {
-  config: 'config.js',
-  default: 'default',
-  url: 'URL parameter'
-};
 
 // Validate and set the overlay scale value
 function setOverlayScale() {

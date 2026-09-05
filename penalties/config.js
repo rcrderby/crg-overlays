@@ -91,6 +91,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Background animation
     backgroundAnimation: { default: 'trace' },
 
+    // Debug logging
+    debug: { default: false },
+
     // Font pairing
     font: { default: 'saira' },
 

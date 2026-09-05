@@ -234,6 +234,18 @@ The overlay lists definitions for any penalty codes in use during a game.  Use t
 > [!NOTE]
 > CRG provides penalty code definitions from the active ruleset.  Codes with no definition do not appear in the key, nor does the unknown penalty code (`?`), which says only that a penalty has not been identified.  The key always occupies one line, reducing its text size as needed, so every code fits.
 
+#### Debug Logging
+
+The overlay logs its settings the decisions it makes during a game to the browser console.  Use the `debug` URL parameter to enable logging:
+
+| Debug logging | URL |
+| - | - |
+| Off (default) | `https://<crg-ip-address>:8000/custom/overlay/penalties?debug=false` |
+| On | `https://<crg-ip-address>:8000/custom/overlay/penalties?debug=true` |
+
+> [!TIP]
+> Open the browser developer tools to read the console.  Warnings about invalid settings always appear, whether debug logging is on or off.  See the `debug.enabled` setting in the [Configuration Section](#configuration-reference "Configuration Section") for details.
+
 ### Optional Custom Logo
 
 To add a custom logo to the left side game information area of the overlay:
@@ -284,7 +296,7 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
-  | `enabled` | Enable debug logging to browser console (set to `true` for troubleshooting) | boolean | `false` | :white_check_mark: |
+  | `enabled` | Enable debug logging to browser console (set to `true` for troubleshooting) - the [`debug` URL parameter](#debug-logging "Debug Logging Section") overrides this value | boolean | `false` | :white_check_mark: |
 
   ---
 
@@ -316,6 +328,7 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | - | - | - | - | - |
   | `anchor` | Default for `overlayAnchor` | object | `top` | :warning: |
   | `backgroundAnimation` | Default for `backgroundAnimation` | object | `trace` | :warning: |
+  | `debug` | Default for `debug.enabled` | object | `false` | :warning: |
   | `font` | Default for `overlayFont` | object | `saira` | :warning: |
   | `opacity` | Allowed range and default for `overlayOpacity` | object | `0` to `100`, default `98` | :warning: |
   | `penaltyCodeKey` | Default for `penaltyCodeKey` | object | `true` | :warning: |
