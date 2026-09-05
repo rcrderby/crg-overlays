@@ -1,23 +1,22 @@
 /****************************************************************************
-** Configuration file for Roller Derby Penalties Overlay
-**
-** This file contains all customizable settings for the overlay.
-** 
-** This file must load within index.html before it loads core.js or index.js:
-** <script type="text/javascript" src="config.js"></script>
-** <script type="text/javascript" src="/json/core.js"></script>
-** <script type="text/javascript" src="index.js"></script>
-****************************************************************************/
+ ** Configuration file for Roller Derby Penalties Overlay
+ **
+ ** This file contains all customizable settings for the overlay.
+ **
+ ** This file must load within index.html before it loads core.js or index.js:
+ ** <script type="text/javascript" src="config.js"></script>
+ ** <script type="text/javascript" src="/json/core.js"></script>
+ ** <script type="text/javascript" src="index.js"></script>
+ ****************************************************************************/
 
 // Create a global namespace for variables
 window.AppConfig = window.AppConfig || {};
 
 // Global variables
 window.AppConfig.PenaltiesOverlayConfig = {
-
   /********************
-  ** Debug Settings **
-  ********************/
+   ** Debug Settings **
+   ********************/
 
   debug: {
     // Enable debug logging to browser console (set to `true` for troubleshooting)
@@ -25,8 +24,8 @@ window.AppConfig.PenaltiesOverlayConfig = {
   },
 
   /***************************
-  ** Configuration Settings **
-  ***************************/
+   ** Configuration Settings **
+   ***************************/
 
   config: {
     // Path to an optional custom logo in the game information section
@@ -55,11 +54,11 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Font pairing: `saira`, `league-gothic`, `anton`, or `bricolage`
     // The `font` URL parameter overrides this value
     overlayFont: 'saira',
-    
+
     // Overlay background opacity percentage: 100 is solid, 0 is invisible (0 to 100)
     // The `opacity` URL parameter overrides this value
     overlayOpacity: 98,
-    
+
     // Overlay scale percentage: 100 = full scale, 90 = 90% scale, etc. (1 to 100)
     // The `scale` URL parameter overrides this value
     overlayScale: 100,
@@ -75,12 +74,11 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Timeout banner animation: `glow`, `pulse`, `shine`, or `off`
     // The `timeout` URL parameter overrides this value
     timeoutAnimation: 'glow'
-
   },
 
   /****************
-  ** CSS Classes **
-  ****************/
+   ** CSS Classes **
+   ****************/
 
   classes: {
     // CSS Selector for the custom logo container
@@ -118,15 +116,15 @@ window.AppConfig.PenaltiesOverlayConfig = {
   },
 
   /********************
-  ** Labels Settings **
-  ********************/
+   ** Labels Settings **
+   ********************/
 
   labels: {
     // Character displayed next to alternate captain names
     altCaptainFlag: 'A',
 
     // Character displayed next to team captain names
-    captainFlag: 'C',    
+    captainFlag: 'C',
 
     // Prefix used for default team names
     defaultTeamNamePrefix: 'Team',
@@ -160,8 +158,8 @@ window.AppConfig.PenaltiesOverlayConfig = {
   },
 
   /*******************
-  ** Rules Settings **
-  *******************/
+   ** Rules Settings **
+   *******************/
 
   rules: {
     // Number of penalties before a foulout, based on the active ruleset, that trigger warning colors
@@ -175,13 +173,13 @@ window.AppConfig.PenaltiesOverlayConfig = {
   },
 
   /***********************
-  ** Penalties Settings **
-  ***********************/
+   ** Penalties Settings **
+   ***********************/
 
   penalties: {
     // Penalty code for fouled out players
     fouloutCode: 'FO',
-  
+
     // Penalty code for players removed by the head referee
     removedCode: 'RE',
 
@@ -190,11 +188,10 @@ window.AppConfig.PenaltiesOverlayConfig = {
   },
 
   /********************
-  ** Timing Settings **
-  ********************/
+   ** Timing Settings **
+   ********************/
 
   timing: {
-
     // Delay before initializing display after WebSocket connects (ms)
     initWebSocket: 100,
 
@@ -208,6 +205,6 @@ window.AppConfig.PenaltiesOverlayConfig = {
     minLoadDisplayMs: 500,
 
     // Delay before rebuilding the penalty code key after an update (ms)
-    penaltyCodeKeyRebuild: 50,
+    penaltyCodeKeyRebuild: 50
   }
 };

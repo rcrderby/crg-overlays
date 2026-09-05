@@ -2,9 +2,9 @@
 
 'use strict';
 
-/******************************************
-** Configuration Import and Validation **
-******************************************/
+/*******************************************
+ ** Configuration Import and Validation **
+ ******************************************/
 
 console.log('Loading Penalties Overlay configuration (config.js)...');
 
@@ -13,7 +13,7 @@ const PenaltiesOverlayConfig = window.AppConfig?.PenaltiesOverlayConfig;
 
 // Show a configuration error when the overlay fails to load
 function showConfigError(message) {
-  const render = function() {
+  const render = function () {
     // Literal selector in case CLASSES did not load
     const overlay = document.getElementById('loading-overlay');
 
@@ -48,19 +48,9 @@ if (typeof PenaltiesOverlayConfig === 'undefined') {
 }
 
 // Validate required configuration structure
-const requiredSections = [
-  'debug',
-  'config',
-  'classes',
-  'labels',
-  'rules',
-  'penalties',
-  'timing'
-];
+const requiredSections = ['debug', 'config', 'classes', 'labels', 'rules', 'penalties', 'timing'];
 
-const missingSections = requiredSections.filter(
-  section => !PenaltiesOverlayConfig[section]
-);
+const missingSections = requiredSections.filter((section) => !PenaltiesOverlayConfig[section]);
 
 if (missingSections.length > 0) {
   const errorMsg = `Configuration file (config.js) is missing required sections: ${missingSections.join(', ')}`;
@@ -71,9 +61,9 @@ if (missingSections.length > 0) {
 
 console.log('config.js loaded successfully.');
 
-/**********************
-** Global Constants  **
-**********************/
+/***********************
+ ** Global Constants  **
+ **********************/
 
 // Debugging setting
 const DEBUG = PenaltiesOverlayConfig.debug?.enabled || false;
@@ -90,21 +80,12 @@ const TIMING = PenaltiesOverlayConfig.timing;
 // Overlay version to display as a watermark and log to the console
 const OVERLAY_VERSION = '4.0.0';
 
-/****************************
-** URL Parameter Functions **
-****************************/
+/*****************************
+ ** URL Parameter Functions **
+ ****************************/
 
 // Allowed URL parameters
-const ALLOWED_URL_PARAMS = [
-  'anchor',
-  'background',
-  'font',
-  'key',
-  'opacity',
-  'scale',
-  'timeout',
-  'width'
-];
+const ALLOWED_URL_PARAMS = ['anchor', 'background', 'font', 'key', 'opacity', 'scale', 'timeout', 'width'];
 
 // Parse and validate URL parameters
 function getUrlParameter(name) {
@@ -114,7 +95,7 @@ function getUrlParameter(name) {
     }
     return null;
   }
-  
+
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get(name);
 }
@@ -123,16 +104,16 @@ function getUrlParameter(name) {
 function logUrlParameters() {
   const urlParams = new URLSearchParams(window.location.search);
   const params = {};
-  
+
   for (const [k, v] of urlParams.entries()) {
     params[k] = v;
   }
-  
+
   if (Object.keys(params).length > 0) {
     if (DEBUG) {
       console.log(`URL parameters detected: ${JSON.stringify(params)}`);
     }
-    
+
     // Warn about unrecognized parameters
     for (const key of Object.keys(params)) {
       if (!ALLOWED_URL_PARAMS.includes(key)) {
@@ -142,20 +123,20 @@ function logUrlParameters() {
   }
 }
 
-/*************************************
-** Overlay Display Format Functions **
-*************************************/
+/**************************************
+ ** Overlay Display Format Functions **
+ *************************************/
 
 // Validate and set the overlay scale value
 function setOverlayScale() {
   let overlayScalePercent = 100; // Default to 100%
   let scaleSource = 'default';
   let validationPassed = false;
-  
+
   // Check for URL parameter first to take precedence over the config.js setting
   const urlScale = getUrlParameter('scale');
   const configScale = CONFIG.overlayScale;
-  
+
   // Determine which scale value to use
   let scaleToValidate;
   if (urlScale !== null) {
@@ -165,25 +146,29 @@ function setOverlayScale() {
     scaleToValidate = configScale;
     scaleSource = 'config.js';
   }
-  
+
   // Validate the scale value
   if (typeof scaleToValidate === 'undefined' || scaleToValidate === null) {
     console.warn(`Overlay scale not defined in ${scaleSource} - using default (100%).`);
   } else if (typeof scaleToValidate !== 'number' || isNaN(scaleToValidate)) {
-    console.warn(`Invalid overlay scale value "${scaleToValidate}" in ${scaleSource} (must be numeric) - using default (100%).`);
+    console.warn(
+      `Invalid overlay scale value "${scaleToValidate}" in ${scaleSource} (must be numeric) - using default (100%).`
+    );
   } else if (scaleToValidate < 1 || scaleToValidate > 100) {
-    console.warn(`Invalid overlay scale value ${scaleToValidate} in ${scaleSource} (must be in range 1-100) - using default (100%).`);
+    console.warn(
+      `Invalid overlay scale value ${scaleToValidate} in ${scaleSource} (must be in range 1-100) - using default (100%).`
+    );
   } else {
     // Round scale to two decimal points
     overlayScalePercent = Math.round(scaleToValidate * 100) / 100;
     validationPassed = true;
   }
-  
+
   // Reset scale source if validation failed
   if (!validationPassed) {
     scaleSource = 'default';
   }
-  
+
   // Convert percentage to decimal for CSS transform
   const overlayScale = overlayScalePercent / 100;
   document.documentElement.style.setProperty('--overlay-scale', overlayScale);
@@ -217,9 +202,13 @@ function setOverlayWidth() {
   if (typeof widthToValidate === 'undefined' || widthToValidate === null) {
     console.warn(`Overlay width not defined in ${widthSource} - using default (85%).`);
   } else if (typeof widthToValidate !== 'number' || isNaN(widthToValidate)) {
-    console.warn(`Invalid overlay width value "${widthToValidate}" in ${widthSource} (must be numeric) - using default (85%).`);
+    console.warn(
+      `Invalid overlay width value "${widthToValidate}" in ${widthSource} (must be numeric) - using default (85%).`
+    );
   } else if (widthToValidate < 50 || widthToValidate > 100) {
-    console.warn(`Invalid overlay width value ${widthToValidate} in ${widthSource} (must be in range 50-100) - using default (85%).`);
+    console.warn(
+      `Invalid overlay width value ${widthToValidate} in ${widthSource} (must be in range 50-100) - using default (85%).`
+    );
   } else {
     // Round width to two decimal points
     overlayWidthPercent = Math.round(widthToValidate * 100) / 100;
@@ -278,9 +267,13 @@ function setAnimation(settingName, urlParam, configValue, animations, defaultNam
   if (typeof animationToValidate === 'undefined' || animationToValidate === null) {
     console.warn(`${settingName} not defined in ${animationSource} - using default (${defaultName}).`);
   } else if (typeof animationToValidate !== 'string') {
-    console.warn(`Invalid ${settingName} value "${animationToValidate}" in ${animationSource} (must be a string) - using default (${defaultName}).`);
+    console.warn(
+      `Invalid ${settingName} value "${animationToValidate}" in ${animationSource} (must be a string) - using default (${defaultName}).`
+    );
   } else if (!allowedAnimations.includes(animationToValidate.toLowerCase())) {
-    console.warn(`Invalid ${settingName} value "${animationToValidate}" in ${animationSource} (must be one of ${allowedAnimations.join(', ')}) - using default (${defaultName}).`);
+    console.warn(
+      `Invalid ${settingName} value "${animationToValidate}" in ${animationSource} (must be one of ${allowedAnimations.join(', ')}) - using default (${defaultName}).`
+    );
   } else {
     animation = animationToValidate.toLowerCase();
     validationPassed = true;
@@ -353,7 +346,9 @@ function setPenaltyCodeKey() {
     showKey = keyToValidate === 'true';
     validationPassed = true;
   } else {
-    console.warn(`Invalid penalty code key value "${keyToValidate}" in ${keySource} (must be true or false) - using default (visible).`);
+    console.warn(
+      `Invalid penalty code key value "${keyToValidate}" in ${keySource} (must be true or false) - using default (visible).`
+    );
   }
 
   // Reset the source if validation failed
@@ -392,9 +387,13 @@ function setOverlayOpacity() {
   if (typeof opacityToValidate === 'undefined' || opacityToValidate === null) {
     console.warn(`Overlay opacity not defined in ${opacitySource} - using default (98%).`);
   } else if (typeof opacityToValidate !== 'number' || isNaN(opacityToValidate)) {
-    console.warn(`Invalid overlay opacity value "${opacityToValidate}" in ${opacitySource} (must be numeric) - using default (98%).`);
+    console.warn(
+      `Invalid overlay opacity value "${opacityToValidate}" in ${opacitySource} (must be numeric) - using default (98%).`
+    );
   } else if (opacityToValidate < 0 || opacityToValidate > 100) {
-    console.warn(`Invalid overlay opacity value ${opacityToValidate} in ${opacitySource} (must be in range 0-100) - using default (98%).`);
+    console.warn(
+      `Invalid overlay opacity value ${opacityToValidate} in ${opacitySource} (must be in range 0-100) - using default (98%).`
+    );
   } else {
     // Round opacity to two decimal points
     overlayOpacityPercent = Math.round(opacityToValidate * 100) / 100;
@@ -446,9 +445,13 @@ function setOverlayAnchor() {
   if (typeof anchorToValidate === 'undefined' || anchorToValidate === null) {
     console.warn(`Overlay anchor not defined in ${anchorSource} - using default (top).`);
   } else if (typeof anchorToValidate !== 'string') {
-    console.warn(`Invalid overlay anchor value "${anchorToValidate}" in ${anchorSource} (must be a string) - using default (top).`);
+    console.warn(
+      `Invalid overlay anchor value "${anchorToValidate}" in ${anchorSource} (must be a string) - using default (top).`
+    );
   } else if (!allowedAnchors.includes(anchorToValidate.toLowerCase())) {
-    console.warn(`Invalid overlay anchor value "${anchorToValidate}" in ${anchorSource} (must be one of ${allowedAnchors.join(', ')}) - using default (top).`);
+    console.warn(
+      `Invalid overlay anchor value "${anchorToValidate}" in ${anchorSource} (must be one of ${allowedAnchors.join(', ')}) - using default (top).`
+    );
   } else {
     overlayAnchor = anchorToValidate.toLowerCase();
     validationPassed = true;
@@ -469,7 +472,7 @@ function setOverlayAnchor() {
 
 // Font pairings, keyed by their display face
 const OVERLAY_FONTS = {
-  'saira': {
+  saira: {
     display: "'Saira Condensed', 'Arial Narrow', arial, sans-serif",
     body: "'Saira', arial, sans-serif"
   },
@@ -477,11 +480,11 @@ const OVERLAY_FONTS = {
     display: "'League Gothic', 'Arial Narrow', arial, sans-serif",
     body: "'Barlow', arial, sans-serif"
   },
-  'anton': {
+  anton: {
     display: "'Anton', 'Arial Narrow', arial, sans-serif",
     body: "'Chivo', arial, sans-serif"
   },
-  'bricolage': {
+  bricolage: {
     display: "'Bricolage Grotesque', arial, sans-serif",
     body: "'Barlow Condensed', 'Arial Narrow', arial, sans-serif"
   }
@@ -512,9 +515,13 @@ function setOverlayFont() {
   if (typeof fontToValidate === 'undefined' || fontToValidate === null) {
     console.warn(`Overlay font not defined in ${fontSource} - using default (saira).`);
   } else if (typeof fontToValidate !== 'string') {
-    console.warn(`Invalid overlay font value "${fontToValidate}" in ${fontSource} (must be a string) - using default (saira).`);
+    console.warn(
+      `Invalid overlay font value "${fontToValidate}" in ${fontSource} (must be a string) - using default (saira).`
+    );
   } else if (!allowedFonts.includes(fontToValidate.toLowerCase())) {
-    console.warn(`Invalid overlay font value "${fontToValidate}" in ${fontSource} (must be one of ${allowedFonts.join(', ')}) - using default (saira).`);
+    console.warn(
+      `Invalid overlay font value "${fontToValidate}" in ${fontSource} (must be one of ${allowedFonts.join(', ')}) - using default (saira).`
+    );
   } else {
     overlayFont = fontToValidate.toLowerCase();
     validationPassed = true;
@@ -535,36 +542,35 @@ function setOverlayFont() {
   }
 }
 
-
-/******************************
-** General Utility Functions **
-******************************/
+/*******************************
+ ** General Utility Functions **
+ ******************************/
 
 // Check if a value exists for cases when a value isn't truthy
-window.hasValue = function(_k, v) {
+window.hasValue = function (_k, v) {
   return v && v !== '';
 };
 
-/*****************************
-** Roster Utility Functions **
-*****************************/
+/******************************
+ ** Roster Utility Functions **
+ *****************************/
 
 // Filter players based on flags
-window.shouldHideSkater = function(_k, flags) {
+window.shouldHideSkater = function (_k, flags) {
   // Handle null or undefined flags
   if (!flags) {
     return false;
   }
 
   const filteredFlags = CONFIG.filteredSkaterFlags;
-  const flagArray = flags.split(',').map(f => f.trim());
-  
+  const flagArray = flags.split(',').map((f) => f.trim());
+
   // Hide players if any flag matches the filtered list
-  return filteredFlags.some(filtered => flagArray.includes(filtered));
+  return filteredFlags.some((filtered) => flagArray.includes(filtered));
 };
 
 // Show captain or alt captain indicators
-window.showCaptainIndicator = function(_k, captainFlags) {
+window.showCaptainIndicator = function (_k, captainFlags) {
   // Handle null or undefined flags
   if (!captainFlags) {
     return '';
@@ -573,21 +579,20 @@ window.showCaptainIndicator = function(_k, captainFlags) {
   const { captainFlag, altCaptainFlag } = LABELS;
   const flags = captainFlags.split(',');
 
-  return flags.includes(captainFlag) ? captainFlag :
-         flags.includes(altCaptainFlag) ? altCaptainFlag : '';
+  return flags.includes(captainFlag) ? captainFlag : flags.includes(altCaptainFlag) ? altCaptainFlag : '';
 };
 
 // Convert the text glow color to the text-shadow color
-window.glowColorToShadow = function(_k, glowColor) {
+window.glowColorToShadow = function (_k, glowColor) {
   if (!glowColor || glowColor === '') {
     return CLASSES.textShadow;
   }
   return `${CONFIG.defaultRosterShadowProperties} ${glowColor}`;
 };
 
-/**************************
-** Game Rule Functions **
-**************************/
+/***************************
+ ** Game Rule Functions **
+ **************************/
 
 // WebSocket Channels to read the active ruleset
 const PENALTY_CODE_PREFIX = 'ScoreBoard.CurrentGame.PenaltyCode(';
@@ -612,39 +617,40 @@ function getWarningCount(offset) {
   return warningCount >= 1 ? warningCount : null;
 }
 
-/************************************
-** Penalty Count Helper Functions **
-************************************/
+/*************************************
+ ** Penalty Count Helper Functions **
+ ************************************/
 
 // Private helper to check if a player is expelled or removed
 function checkPenaltyStatus(k) {
   // Extract the player context from the key
   const skaterContext = k.substring(
-    0, k.lastIndexOf('.Skater(') + k.substring(k.lastIndexOf('.Skater(')).indexOf(')') + 1
+    0,
+    k.lastIndexOf('.Skater(') + k.substring(k.lastIndexOf('.Skater(')).indexOf(')') + 1
   );
-  
+
   // Get Penalty(0).Code from WS.state
   const penalty0Code = WS.state[skaterContext + '.Penalty(0).Code'];
-  
+
   // Empty/undefined means a player is neither expelled nor removed
   if (!penalty0Code || penalty0Code === '') {
     return { isExpelled: false, isRemoved: false };
   }
-  
+
   // Removed by the head official
   const isRemoved = penalty0Code === PENALTIES.removedCode;
-  
+
   // Fouled out - has the "FO" code
   const isFouledOut = penalty0Code === PENALTIES.fouloutCode;
-  
+
   // Expelled - has a penalty code other than RE or FO
   const isExpelled = !isRemoved && !isFouledOut;
-  
+
   return { isExpelled, isRemoved };
 }
 
 // Determine if a player should have CSS formatting for the first penalty warning color
-window.isPenaltyCountWarning1 = function(k, penaltyCount) {
+window.isPenaltyCountWarning1 = function (k, penaltyCount) {
   const count = parseInt(penaltyCount) || 0;
   const { isExpelled, isRemoved } = checkPenaltyStatus(k);
   const warningCount = getWarningCount(RULES.warningPenaltyOffsets.first);
@@ -653,7 +659,7 @@ window.isPenaltyCountWarning1 = function(k, penaltyCount) {
 };
 
 // Determine if a player should have CSS formatting for the second penalty warning color
-window.isPenaltyCountWarning2 = function(k, penaltyCount) {
+window.isPenaltyCountWarning2 = function (k, penaltyCount) {
   const count = parseInt(penaltyCount) || 0;
   const { isExpelled, isRemoved } = checkPenaltyStatus(k);
   const warningCount = getWarningCount(RULES.warningPenaltyOffsets.second);
@@ -662,53 +668,50 @@ window.isPenaltyCountWarning2 = function(k, penaltyCount) {
 };
 
 // Determine if a player should have CSS formatting for expulsion, foulout, or removal
-window.isPenaltyCountExpFoRe = function(k, penaltyCount) {
+window.isPenaltyCountExpFoRe = function (k, penaltyCount) {
   const count = parseInt(penaltyCount) || 0;
   const { isExpelled, isRemoved } = checkPenaltyStatus(k);
-  
+
   const fouloutCount = getFouloutCount();
 
   return isRemoved || isExpelled || (fouloutCount >= 1 && count >= fouloutCount);
 };
 
 // Determine the text to show for a player's penalty count
-window.getPenaltyCountDisplay = function(k, penaltyCount) {
+window.getPenaltyCountDisplay = function (k, penaltyCount) {
   const count = parseInt(penaltyCount) || 0;
   const { isExpelled, isRemoved } = checkPenaltyStatus(k);
-  
+
   const fouloutCount = getFouloutCount();
 
   if (isRemoved) return LABELS.removedDisplay;
   if (isExpelled) return LABELS.expelledDisplay;
   if (fouloutCount >= 1 && count >= fouloutCount) return LABELS.fouloutDisplay;
-  
+
   return count > 0 ? count : '';
 };
 
 // Hide filtered penalty codes from a player's penalty code list
-window.shouldHidePenaltyCode = function(k, code, penaltyNumber) {
-  const filteredCodes = [
-    PENALTIES.fouloutCode,
-    PENALTIES.removedCode
-  ];
+window.shouldHidePenaltyCode = function (k, code, penaltyNumber) {
+  const filteredCodes = [PENALTIES.fouloutCode, PENALTIES.removedCode];
   if (filteredCodes.includes(code)) {
     return true;
   }
-  
+
   // Always hide Penalty(0) - it indicates a player is expelled, fouled out, or removed
   if (parseInt(penaltyNumber) === 0 || k.includes('.Penalty(0)')) {
     return true;
   }
-  
+
   return false;
 };
 
-/***************************************
-** Game Information Utility Functions **
-***************************************/
+/****************************************
+ ** Game Information Utility Functions **
+ ***************************************/
 
 // Prepend a dot divider and " Game " to the game number if present
-window.prependGameNo = function(_k, gameNum) {
+window.prependGameNo = function (_k, gameNum) {
   if (!gameNum || gameNum === '' || gameNum === '0') {
     return '';
   }
@@ -716,28 +719,27 @@ window.prependGameNo = function(_k, gameNum) {
 };
 
 // Display team names with fallback mechanisms to prevent a blank name
-window.getTeamNameWithDefault = function(k, alternateName) {
+window.getTeamNameWithDefault = function (k, alternateName) {
   // Try AlternateName(whiteboard) first
   if (typeof alternateName === 'string' && alternateName.trim() !== '') {
     return alternateName;
   }
-  
+
   // Try team name (Name) read from WS.state second
   const teamNum = k.Team || '?';
   const nameKey = `ScoreBoard.CurrentGame.Team(${teamNum}).Name`;
   const name = WS.state[nameKey];
-  
+
   if (typeof name === 'string' && name.trim() !== '') {
     return name;
   }
-  
+
   // Use "Team N" third
   return `${LABELS.defaultTeamNamePrefix} ${teamNum}`;
 };
 
 // Determine if the period clock should be hidden
-window.shouldHidePeriodClock = function(_k, intermissionRunning) {
-
+window.shouldHidePeriodClock = function (_k, intermissionRunning) {
   // Pre-game, when no intermission clock is running (Coming Up)
   const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
 
@@ -750,15 +752,11 @@ window.shouldHidePeriodClock = function(_k, intermissionRunning) {
   // During overtime
   const isOvertime = WS.state['ScoreBoard.CurrentGame.InOvertime'] === true;
 
-  return period === 0 ||
-         isIntermission ||
-         isOfficial ||
-         isOvertime;
+  return period === 0 || isIntermission || isOfficial || isOvertime;
 };
 
 // Determine if the intermission clock should be hidden
-window.shouldHideIntermissionClock = function(_k, intermissionRunning) {
-
+window.shouldHideIntermissionClock = function (_k, intermissionRunning) {
   // When the intermission clock is not running
   const isIntermission = intermissionRunning === true;
 
@@ -771,33 +769,33 @@ window.shouldHideIntermissionClock = function(_k, intermissionRunning) {
   // After the last period
   const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
 
-  return !isIntermission || isOfficial || isOvertime || (period >= getPeriodCount());
+  return !isIntermission || isOfficial || isOvertime || period >= getPeriodCount();
 };
 
-/************************
-** Clock Label Helpers **
-************************/
+/*************************
+ ** Clock Label Helpers **
+ ************************/
 
 // Simple helper to invert boolean for sbHide
-window.invertBoolean = function(_k, value) {
+window.invertBoolean = function (_k, value) {
   return !value;
 };
 
 // Get period label
-window.getPeriodLabel = function(_k, periodNumber) {
+window.getPeriodLabel = function (_k, periodNumber) {
   const period = parseInt(periodNumber);
   if (!period || period === 0) return '';
   return `${LABELS.defaultPeriodLabelPrefix} ${period}`;
 };
 
 // Get intermission label
-window.getIntermissionLabel = function(_k, periodNumber) {
+window.getIntermissionLabel = function (_k, periodNumber) {
   const period = parseInt(periodNumber) || 0;
-  
+
   // Read intermission labels from the WS.state
   const preGame = WS.state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)'];
   const intermission = WS.state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)'];
-  
+
   // Before the game starts
   if (period === 0) {
     return preGame || '';
@@ -813,28 +811,28 @@ window.getIntermissionLabel = function(_k, periodNumber) {
 };
 
 // Hide the "Unofficial Score" label
-window.shouldHideUnofficialScore = function(_k) {
+window.shouldHideUnofficialScore = function (_k) {
   const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
   const isIntermission = WS.state['ScoreBoard.CurrentGame.Clock(Intermission).Running'] === true;
   const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
   const isOvertime = WS.state['ScoreBoard.CurrentGame.InOvertime'] === true;
-  
+
   return period < getPeriodCount() || !isIntermission || isOfficial || isOvertime;
 };
 
 // Hide the "Coming Up" label
-window.shouldHideComingUp = function(_k) {
+window.shouldHideComingUp = function (_k) {
   const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
   const isIntermission = WS.state['ScoreBoard.CurrentGame.Clock(Intermission).Running'] === true;
   const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
   const isOvertime = WS.state['ScoreBoard.CurrentGame.InOvertime'] === true;
-  
+
   return period !== 0 || isIntermission || isOfficial || isOvertime;
 };
 
-/***********************************
-** Penalty Code Key Helper Functions **
-***********************************/
+/***************************************
+ ** Penalty Code Key Helper Functions **
+ **************************************/
 
 // Collect active penalty code definitions
 function getPenaltyCodesInPlay() {
@@ -862,7 +860,7 @@ function getPenaltyCodesInPlay() {
     }
   }
 
-  // Foulouts and removals are status markers, not penalties with a description,
+  // Foul-outs and removals are status markers, not penalties with a description,
   // and the unknown code says only that the penalty has not been identified
   codes.delete(PENALTIES.fouloutCode);
   codes.delete(PENALTIES.removedCode);
@@ -882,7 +880,7 @@ function getPenaltyCodeCue(code) {
   return description.split(',')[0].trim();
 }
 
-// Constuct the penalty code key from active penalties
+// Construct the penalty code key from active penalties
 function buildPenaltyCodeKey() {
   penaltyCodeKeyPending = false;
 
@@ -904,10 +902,9 @@ function buildPenaltyCodeKey() {
     }
 
     items.push(
-      $('<span>').addClass('code-key-item').append(
-        $('<span>').addClass('code-key-code').text(code),
-        document.createTextNode(cue)
-      )
+      $('<span>')
+        .addClass('code-key-item')
+        .append($('<span>').addClass('code-key-code').text(code), document.createTextNode(cue))
     );
   }
 
@@ -937,9 +934,7 @@ function fitPenaltyCodeKey() {
   // Sum the codes rather than read scrollWidth, which misses content that
   // overflows to the left of a centered row.  Use offsetWidth so the overlay's
   // scale transform does not shrink the measurement and hide an overflow
-  const natural = [...items.children].reduce(
-    (total, code) => total + code.offsetWidth, 0
-  );
+  const natural = [...items.children].reduce((total, code) => total + code.offsetWidth, 0);
   if (available === 0 || natural <= available) {
     return;
   }
@@ -980,16 +975,14 @@ function registerPenaltyCodeKey() {
   );
 }
 
-/********************************
-** Custom Logo Helper Function **
-********************************/
+/*********************************
+ ** Custom Logo Helper Function **
+ ********************************/
 
 // Load a custom logo if one is configured
 function loadCustomLogo() {
-
   // Check if the logo path is configured
   if (!CONFIG.bannerLogoPath || CONFIG.bannerLogoPath === '') {
-    
     if (DEBUG) {
       console.log('No custom logo configured.');
     }
@@ -1001,19 +994,19 @@ function loadCustomLogo() {
   const $customLogoSpace = $(CLASSES.customLogoSpaceSelector);
 
   // Show the logo once it loads
-  logoImg.onload = function() {
+  logoImg.onload = function () {
     $customLogo.attr('src', CONFIG.bannerLogoPath);
     $customLogoSpace.addClass(CLASSES.customLogoSpaceVisibleSelectorSuffix);
-    
+
     if (DEBUG) {
       console.log(`Custom logo loaded: ${CONFIG.bannerLogoPath}.`);
     }
   };
 
   // Keep the logo hidden if it fails to load
-  logoImg.onerror = function() {
+  logoImg.onerror = function () {
     $customLogoSpace.removeClass(CLASSES.customLogoSpaceVisibleSelectorSuffix);
-    
+
     if (DEBUG) {
       console.log(`Custom logo failed to load: ${CONFIG.bannerLogoPath}.`);
     }
@@ -1023,33 +1016,23 @@ function loadCustomLogo() {
   logoImg.src = CONFIG.bannerLogoPath;
 }
 
-/************************************
-** Timeout Banner Helper Functions **
-************************************/
+/*************************************
+ ** Timeout Banner Helper Functions **
+ ************************************/
 
 // Determine the timeout banner text to display
-window.getTimeoutText = function(_k, timeoutOwner, officialReview) {
-
+window.getTimeoutText = function (_k, timeoutOwner, officialReview) {
   // Official review
-  const isReview = officialReview === true || 
-                 WS.state['ScoreBoard.CurrentGame.OfficialReview'] === true;
+  const isReview = officialReview === true || WS.state['ScoreBoard.CurrentGame.OfficialReview'] === true;
   if (isReview) return LABELS.timeout.review;
 
   // Official timeout
-  if (
-    timeoutOwner === LABELS.timeoutOwner.official
-  ) return LABELS.timeout.official;
+  if (timeoutOwner === LABELS.timeoutOwner.official) return LABELS.timeout.official;
 
   // Team timeout
   if (
-    timeoutOwner && (
-      timeoutOwner.endsWith(
-        LABELS.timeoutOwner.team1
-      ) ||
-      timeoutOwner.endsWith(
-        LABELS.timeoutOwner.team2
-      )
-    )
+    timeoutOwner &&
+    (timeoutOwner.endsWith(LABELS.timeoutOwner.team1) || timeoutOwner.endsWith(LABELS.timeoutOwner.team2))
   ) {
     return LABELS.timeout.team;
   }
@@ -1059,28 +1042,28 @@ window.getTimeoutText = function(_k, timeoutOwner, officialReview) {
 };
 
 // Position untyped and official timeouts in the center column
-window.isPositionCenter = function(_k, timeoutOwner) {
+window.isPositionCenter = function (_k, timeoutOwner) {
   return !timeoutOwner || timeoutOwner === LABELS.timeoutOwner.official;
 };
 
 // Position team 1 timeouts in the left column
-window.isPositionTeam1 = function(_k, timeoutOwner) {
+window.isPositionTeam1 = function (_k, timeoutOwner) {
   return !!(timeoutOwner && timeoutOwner.endsWith(LABELS.timeoutOwner.team1));
 };
 
 // Position team 2 timeouts in the right column
-window.isPositionTeam2 = function(_k, timeoutOwner) {
+window.isPositionTeam2 = function (_k, timeoutOwner) {
   return !!(timeoutOwner && timeoutOwner.endsWith(LABELS.timeoutOwner.team2));
 };
 
 // Determine if the timeout banner should be visible
-window.isTimeoutVisible = function(_k, timeoutRunning) {
+window.isTimeoutVisible = function (_k, timeoutRunning) {
   return timeoutRunning === true;
 };
 
-/*******************************
-** Version Watermark Function **
-*******************************/
+/********************************
+ ** Version Watermark Function **
+ *******************************/
 
 // Show the version so a deployment can be identified from a screenshot
 function setOverlayVersion() {
@@ -1098,15 +1081,15 @@ function setOverlayVersion() {
   console.log(`Penalties Overlay v${OVERLAY_VERSION}`);
 }
 
-/*******************************
-** Loading Overlay Functions **
-*******************************/
+/********************************
+ ** Loading Overlay Functions **
+ *******************************/
 
 // Display the loading overlay until the ruleset data arrives
 function hideLoadingOverlayWhenReady() {
   const startTime = Date.now();
 
-  const hideLoadingOverlay = function(reason) {
+  const hideLoadingOverlay = function (reason) {
     $(CLASSES.loadingOverlaySelector).addClass(CLASSES.loadingOverlayFadeOutSuffixSelector);
 
     if (DEBUG) {
@@ -1114,12 +1097,11 @@ function hideLoadingOverlayWhenReady() {
     }
   };
 
-  const checkForRules = function() {
+  const checkForRules = function () {
     const elapsed = Date.now() - startTime;
-    const rulesArrived = typeof WS !== 'undefined' &&
-      [RULE_FOULOUT_COUNT, RULE_PERIOD_COUNT].every(
-        channel => typeof WS.state[channel] !== 'undefined'
-      );
+    const rulesArrived =
+      typeof WS !== 'undefined' &&
+      [RULE_FOULOUT_COUNT, RULE_PERIOD_COUNT].every((channel) => typeof WS.state[channel] !== 'undefined');
 
     // Always show the loading overlay for the minimum display time
     if (elapsed < TIMING.minLoadDisplayMs) {
@@ -1127,11 +1109,10 @@ function hideLoadingOverlayWhenReady() {
     } else if (rulesArrived) {
       hideLoadingOverlay('game rules received');
 
-    // Display the overlay rather than leave a loading screen active indefinitely
+      // Display the overlay rather than leave a loading screen active indefinitely
     } else if (elapsed >= TIMING.maxLoadWaitMs) {
       console.warn(
-        `Game rules did not arrive within ${TIMING.maxLoadWaitMs}ms - ` +
-        'displaying the overlay without them.'
+        `Game rules did not arrive within ${TIMING.maxLoadWaitMs}ms - ` + 'displaying the overlay without them.'
       );
       hideLoadingOverlay('timed out waiting for game rules');
     } else {
@@ -1142,9 +1123,9 @@ function hideLoadingOverlayWhenReady() {
   checkForRules();
 }
 
-/****************
-** Amph Module **
-*****************/
+/******************
+ ** Amph Module **
+ *****************/
 
 // Attempt to load the amph module
 function loadAmphModule() {
@@ -1152,19 +1133,18 @@ function loadAmphModule() {
   script.type = 'text/javascript';
   script.src = 'amph/amph.js';
   script.async = true;
-  
+
   // Silent failure
-  script.onerror = function() {
-  };
-  
+  script.onerror = function () {};
+
   document.head.appendChild(script);
 }
 
-/*******************************
-** Application Initialization **
-*******************************/
+/********************************
+ ** Application Initialization **
+ *******************************/
 
-$(function() {
+$(function () {
   if (DEBUG) {
     console.log('Initializing Penalties Overlay...');
   }
@@ -1221,7 +1201,7 @@ $(function() {
       registerPenaltyCodeKey();
       console.log('WebSocket connected.');
 
-    // Attempt to retry the WebSocket connection if it is not yet available
+      // Attempt to retry the WebSocket connection if it is not yet available
     } else {
       if (DEBUG) {
         console.log('Waiting for WebSocket...');

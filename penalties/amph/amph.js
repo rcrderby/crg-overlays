@@ -1,21 +1,17 @@
 // JavaScript for amph.js
 
-(function() {
+(function () {
   'use strict';
 
-  /******************
-  ** Configuration **
-  ******************/
+  /*******************
+   ** Configuration **
+   ******************/
 
   const AMPH_CONFIG = {
     enabled: false,
 
-    // Amph image paths 
-    amphs: [
-      'amph/amphs/amph-1.png',
-      'amph/amphs/amph-2.png',
-      'amph/amphs/amph-3.png'
-    ],
+    // Amph image paths
+    amphs: ['amph/amphs/amph-1.png', 'amph/amphs/amph-2.png', 'amph/amphs/amph-3.png'],
 
     // Time between amph appearances (ms)
     amphInterval: 20000,
@@ -25,33 +21,30 @@
     imageSelector: '#amph-image'
   };
 
-  /******************
-  ** Module state **
-  ******************/
+  /*******************
+   ** Module state **
+   ******************/
 
   let animating = false;
   let scheduledTimeout = null;
   let validAmphs = [];
 
-  /*********************
-  ** Helper Functions **
-  *********************/
+  /**********************
+   ** Helper Functions **
+   *********************/
 
   function warn(message) {
     console.warn('[Amph]', message);
   }
 
   function getAnimationDuration() {
-    const duration = parseInt(
-      getComputedStyle(document.documentElement)
-        .getPropertyValue('--amph-animation-duration')
-    );
+    const duration = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--amph-animation-duration'));
     return duration || 3000;
   }
 
-  /****************
-  ** CSS Loading **
-  *****************/
+  /*****************
+   ** CSS Loading **
+   ****************/
 
   function loadCSS() {
     const link = document.createElement('link');
@@ -60,9 +53,9 @@
     document.head.appendChild(link);
   }
 
-  /******************
-  ** Image Preload **
-  ******************/
+  /*******************
+   ** Image Preload **
+   ******************/
 
   function preloadImages(callback) {
     if (!AMPH_CONFIG.amphs || AMPH_CONFIG.amphs.length === 0) {
@@ -70,8 +63,8 @@
       return;
     }
 
-    const promises = AMPH_CONFIG.amphs.map(path => {
-      return new Promise(resolve => {
+    const promises = AMPH_CONFIG.amphs.map((path) => {
+      return new Promise((resolve) => {
         const img = new Image();
         img.onload = () => resolve({ path: path, valid: true });
         img.onerror = () => {
@@ -82,14 +75,14 @@
       });
     });
 
-    Promise.all(promises).then(results => {
-      callback(results.filter(a => a.valid));
+    Promise.all(promises).then((results) => {
+      callback(results.filter((a) => a.valid));
     });
   }
 
-  /********************
-  ** ANIMATION LOGIC **
-  ********************/
+  /*********************
+   ** Animation Logic **
+   ********************/
 
   function showAmph() {
     // Skip if already animating or no valid amphs
@@ -110,7 +103,7 @@
 
       // Pick random amph
       const amph = validAmphs[Math.floor(Math.random() * validAmphs.length)];
-      
+
       // Set image and animation class
       $image.attr('src', amph.path);
       $container.removeClass('peek');
@@ -120,13 +113,12 @@
 
       // Clean up after animation (match CSS animation duration)
       const animationDuration = getAnimationDuration();
-      
+
       setTimeout(() => {
         $container.removeClass('peek');
         animating = false;
         scheduleNext();
       }, animationDuration);
-
     } catch (error) {
       warn(`Error showing amph: ${error.message}`);
       animating = false;
@@ -143,9 +135,9 @@
     scheduledTimeout = setTimeout(showAmph, interval);
   }
 
-  /********************
-  ** Initialization **
-  ********************/
+  /*********************
+   ** Initialization **
+   ********************/
 
   function init() {
     // Exit if disabled
@@ -165,7 +157,7 @@
     loadCSS();
 
     // Preload images
-    preloadImages(valid => {
+    preloadImages((valid) => {
       validAmphs = valid;
 
       if (validAmphs.length === 0) {
@@ -178,8 +170,7 @@
   }
 
   // Auto-initialize when the document is ready
-  $(function() {
+  $(function () {
     setTimeout(init, 100);
   });
-
 })();

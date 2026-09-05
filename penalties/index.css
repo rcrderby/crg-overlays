@@ -27,7 +27,7 @@
   /* Shadows */
   --shadow-box: 0 2px 6px rgb(0 0 0 / 60%);
   --shadow-overlay: 0 14px 44px rgb(0 0 0 / 55%);
-  --shadow-text: .5px .5px 1px rgb(0 0 0 / 80%);
+  --shadow-text: 0.5px 0.5px 1px rgb(0 0 0 / 80%);
   --shadow-text-title: 0 2px 12px rgb(0 0 0 / 85%), 0 0 3px rgb(0 0 0 / 90%);
   --shadow-drop-logo: drop-shadow(0 0 4px rgb(0 0 0 / 40%));
 
@@ -41,9 +41,9 @@
   --team-penalties-default-text-shadow: var(--shadow-text);
 
   /* Penalty highlight colors */
-  --penalty-warning-1: #b8860b;          /* Dark yellow */
-  --penalty-warning-2: #cc6600;          /* Dark orange */
-  --penalty-warning-exp-fo-re: #8b0000;  /* Dark red */
+  --penalty-warning-1: #b8860b; /* Dark yellow */
+  --penalty-warning-2: #cc6600; /* Dark orange */
+  --penalty-warning-exp-fo-re: #8b0000; /* Dark red */
 
   /* Game information area colors */
   --clock-label-fg: rgb(255 255 255 / 82%);
@@ -368,8 +368,6 @@ body {
   min-height: 0;
 }
 
-
-
 .team-heading {
   background-color: var(--team-penalties-default-bg-color);
   color: var(--team-penalties-default-fg-color);
@@ -583,7 +581,6 @@ body {
 #penalty-code-key.visible {
   display: flex;
 }
-
 
 .code-key-items {
   align-items: center;
@@ -891,14 +888,12 @@ body {
 
 .background-trace #overlay-motion .motion-primary {
   animation: overlay-trace var(--duration-animation-background) linear infinite;
-  background: linear-gradient(
-    var(--overlay-trace-angle),
-    rgb(255 255 255 / 14%),
-    rgb(232 238 250 / 62%)
-  ) border-box;
+  background: linear-gradient(var(--overlay-trace-angle), rgb(255 255 255 / 14%), rgb(232 238 250 / 62%)) border-box;
   border: var(--width-border-overlay-trace) solid transparent;
   display: block;
-  mask: linear-gradient(#000000 0 0) content-box, linear-gradient(#000000 0 0);
+  mask:
+    linear-gradient(#000000 0 0) content-box,
+    linear-gradient(#000000 0 0);
   mask-composite: exclude;
 }
 
@@ -924,31 +919,16 @@ body {
 }
 
 .background-organic #overlay-motion .motion-primary {
-  animation: overlay-organic-primary
-    calc(var(--duration-animation-background) * 1.9) ease-in-out infinite
-    alternate;
-  background: radial-gradient(
-    38% 52% at 30% 36%,
-    rgb(232 238 250 / 9%),
-    rgb(0 0 0 / 0%) 66%
-  );
+  animation: overlay-organic-primary calc(var(--duration-animation-background) * 1.9) ease-in-out infinite alternate;
+  background: radial-gradient(38% 52% at 30% 36%, rgb(232 238 250 / 9%), rgb(0 0 0 / 0%) 66%);
   display: block;
 }
 
 .background-organic #overlay-motion .motion-secondary {
-  animation: overlay-organic-secondary
-    calc(var(--duration-animation-background) * 2.7) ease-in-out infinite
-    alternate;
-  background: radial-gradient(
-      34% 46% at 72% 64%,
-      rgb(216 222 236 / 8%),
-      rgb(0 0 0 / 0%) 66%
-    ),
-    radial-gradient(
-      30% 42% at 52% 20%,
-      rgb(240 244 252 / 6%),
-      rgb(0 0 0 / 0%) 68%
-    );
+  animation: overlay-organic-secondary calc(var(--duration-animation-background) * 2.7) ease-in-out infinite alternate;
+  background:
+    radial-gradient(34% 46% at 72% 64%, rgb(216 222 236 / 8%), rgb(0 0 0 / 0%) 66%),
+    radial-gradient(30% 42% at 52% 20%, rgb(240 244 252 / 6%), rgb(0 0 0 / 0%) 68%);
   display: block;
 }
 
@@ -1017,8 +997,7 @@ body {
 }
 
 .timeout-pulse .timeout-banner.visible {
-  animation: timeout-pulse calc(var(--duration-animation-timeout) * 0.8) ease
-    infinite;
+  animation: timeout-pulse calc(var(--duration-animation-timeout) * 0.8) ease infinite;
   outline: 1px solid rgb(226 72 88 / 75%);
   outline-offset: 0;
 }
