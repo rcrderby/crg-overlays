@@ -1,0 +1,46 @@
+# Run the overlay test suite with Deno
+# https://docs.deno.com/runtime/reference/cli/test/
+
+---
+# Name of the action
+name: Run Tests
+
+# Events that trigger the action
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+# Cancel superseded runs on a branch; never cancel main runs so the
+# post-merge run always completes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  run-tests:
+    name: Run Tests
+    # Same-repo pushes are already covered by the 'push' event, so only
+    # run the pull_request event for forks (their branches are not in
+    # this repo and so never trigger 'push')
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+
+    steps:
+      # checkout action documentation
+      # https://github.com/marketplace/actions/checkout
+      - name: Checkout Repository
+        uses: actions/checkout@v7.0.1
+
+      # setup-deno action documentation
+      # https://github.com/marketplace/actions/setup-deno
+      - name: Set Up Deno
+        uses: denoland/setup-deno@v2.0.5
+        with:
+          deno-version: v2.x
+
+      # The tests only read files from the repository
+      - name: Run Tests
+        run: deno test --allow-read tests/

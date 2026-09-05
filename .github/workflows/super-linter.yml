@@ -43,7 +43,7 @@ jobs:
         uses: super-linter/super-linter/slim@v8.7.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_ALL_CODEBASE: true
           VALIDATE_CSS: true
           VALIDATE_CSS_PRETTIER: true
           VALIDATE_GITHUB_ACTIONS: true
@@ -53,6 +53,7 @@ jobs:
           VALIDATE_JAVASCRIPT_ES: true
           VALIDATE_JAVASCRIPT_PRETTIER: true
           VALIDATE_MARKDOWN: true
+          VALIDATE_NATURAL_LANGUAGE: true
           VALIDATE_YAML: true
           # Language-specific configuration
           YAML_ERROR_ON_WARNING: true
