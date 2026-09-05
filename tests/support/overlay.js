@@ -8,7 +8,8 @@ const REPO = new URL('../../', import.meta.url);
 
 // Names index.js keeps in module scope, exposed so tests can reach them
 const INTERNALS = [
-  'LIMITS',
+  'DEBUG',
+  'VALIDATION',
   'SETTING_SOURCES',
   'CONFIG',
   'LABELS',

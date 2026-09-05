@@ -44,7 +44,7 @@ Deno.test('every configuration key index.js reads exists in config.js', async ()
   // The constant index.js assigns each configuration section to
   const sections = {
     CONFIG: 'config',
-    LIMITS: 'limits',
+    VALIDATION: 'validation',
     CLASSES: 'classes',
     LABELS: 'labels',
     RULES: 'rules',
@@ -89,6 +89,49 @@ Deno.test('config.js provides every section index.js requires', async () => {
 });
 
 Deno.test('a missing configuration section stops the overlay', async () => {
-  const configSource = (await readSource('penalties/config.js')).replace('  limits: {', '  notLimits: {');
-  await assert.rejects(async () => await loadOverlay({ configSource }), /missing required sections: limits/);
+  const configSource = (await readSource('penalties/config.js')).replace('  validation: {', '  notValidation: {');
+  await assert.rejects(async () => await loadOverlay({ configSource }), /missing required sections: validation/);
+});
+
+Deno.test('the README documents every configuration key', async () => {
+  const readme = await readSource('penalties/README.md');
+  const { window } = await loadOverlay();
+  const configuration = window.AppConfig.PenaltiesOverlayConfig;
+
+  const flatten = (section, prefix = '') =>
+    Object.entries(section).flatMap(([key, value]) =>
+      value && typeof value === 'object' && !Array.isArray(value) ? flatten(value, `${prefix}${key}.`) : [prefix + key]
+    );
+
+  const undocumented = [];
+  const stale = [];
+
+  for (const [name, section] of Object.entries(configuration)) {
+    // Each section has its own table, running until the next section heading
+    // or the end of the reference block, whichever comes first
+    const start = readme.indexOf(`***${name}*** **Section**`);
+    assert.notEqual(start, -1, `the README has no table for the ${name} section`);
+    const ends = [readme.indexOf('*** **Section**', start + 20), readme.indexOf('</details>', start)].filter(
+      (index) => index !== -1
+    );
+    const table = readme.slice(start, ends.length ? Math.min(...ends) : readme.length);
+
+    const documented = [...table.matchAll(/^\s*\|\s*`([^`]+)`/gm)].map((match) => match[1]);
+    const keys = flatten(section);
+
+    // A table may document a parent key rather than each key beneath it
+    undocumented.push(
+      ...keys
+        .filter((key) => !documented.includes(key) && !documented.some((entry) => key.startsWith(`${entry}.`)))
+        .map((key) => `${name}.${key}`)
+    );
+    stale.push(
+      ...documented
+        .filter((entry) => !keys.includes(entry) && !keys.some((key) => key.startsWith(`${entry}.`)))
+        .map((entry) => `${name}.${entry}`)
+    );
+  }
+
+  assert.deepEqual(undocumented, [], `config.js keys the README does not document: ${undocumented.join(', ')}`);
+  assert.deepEqual(stale, [], `README rows for keys config.js no longer has: ${stale.join(', ')}`);
 });
