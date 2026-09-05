@@ -2,9 +2,9 @@
 
 'use strict';
 
-/*******************************************
+/*****************************************
  ** Configuration Import and Validation **
- ******************************************/
+ *****************************************/
 
 console.log('Loading Penalties Overlay configuration (config.js)...');
 
@@ -48,7 +48,7 @@ if (typeof PenaltiesOverlayConfig === 'undefined') {
 }
 
 // Validate required configuration structure
-const requiredSections = ['debug', 'config', 'classes', 'labels', 'rules', 'penalties', 'timing'];
+const requiredSections = ['debug', 'config', 'limits', 'classes', 'labels', 'rules', 'penalties', 'timing'];
 
 const missingSections = requiredSections.filter((section) => !PenaltiesOverlayConfig[section]);
 
@@ -71,6 +71,7 @@ console.log('Debug mode:', DEBUG);
 
 // Configuration sections - available globally for all functions
 const CONFIG = PenaltiesOverlayConfig.config;
+const LIMITS = PenaltiesOverlayConfig.limits;
 const CLASSES = PenaltiesOverlayConfig.classes;
 const LABELS = PenaltiesOverlayConfig.labels;
 const RULES = PenaltiesOverlayConfig.rules;
@@ -127,10 +128,18 @@ function logUrlParameters() {
  ** Overlay Display Format Functions **
  *************************************/
 
+// Settings sources for validation messages
+const SETTING_SOURCES = {
+  config: 'config.js',
+  default: 'default',
+  url: 'URL parameter'
+};
+
 // Validate and set the overlay scale value
 function setOverlayScale() {
-  let overlayScalePercent = 100; // Default to 100%
-  let scaleSource = 'default';
+  const limits = LIMITS.scale;
+  let overlayScalePercent = limits.default;
+  let scaleSource = SETTING_SOURCES.default;
   let validationPassed = false;
 
   // Check for URL parameter first to take precedence over the config.js setting
@@ -141,22 +150,22 @@ function setOverlayScale() {
   let scaleToValidate;
   if (urlScale !== null) {
     scaleToValidate = parseFloat(urlScale);
-    scaleSource = 'URL parameter';
+    scaleSource = SETTING_SOURCES.url;
   } else {
     scaleToValidate = configScale;
-    scaleSource = 'config.js';
+    scaleSource = SETTING_SOURCES.config;
   }
 
   // Validate the scale value
   if (typeof scaleToValidate === 'undefined' || scaleToValidate === null) {
-    console.warn(`Overlay scale not defined in ${scaleSource} - using default (100%).`);
+    console.warn(`Overlay scale not defined in ${scaleSource} - using default (${limits.default}%).`);
   } else if (typeof scaleToValidate !== 'number' || isNaN(scaleToValidate)) {
     console.warn(
-      `Invalid overlay scale value "${scaleToValidate}" in ${scaleSource} (must be numeric) - using default (100%).`
+      `Invalid overlay scale value "${scaleToValidate}" in ${scaleSource} (must be numeric) - using default (${limits.default}%).`
     );
-  } else if (scaleToValidate < 1 || scaleToValidate > 100) {
+  } else if (scaleToValidate < limits.min || scaleToValidate > limits.max) {
     console.warn(
-      `Invalid overlay scale value ${scaleToValidate} in ${scaleSource} (must be in range 1-100) - using default (100%).`
+      `Invalid overlay scale value ${scaleToValidate} in ${scaleSource} (must be in range ${limits.min}-${limits.max}) - using default (${limits.default}%).`
     );
   } else {
     // Round scale to two decimal points
@@ -166,7 +175,7 @@ function setOverlayScale() {
 
   // Reset scale source if validation failed
   if (!validationPassed) {
-    scaleSource = 'default';
+    scaleSource = SETTING_SOURCES.default;
   }
 
   // Convert percentage to decimal for CSS transform
@@ -180,8 +189,9 @@ function setOverlayScale() {
 
 // Validate and set the overlay width
 function setOverlayWidth() {
-  let overlayWidthPercent = 85; // Default to 85%
-  let widthSource = 'default';
+  const limits = LIMITS.width;
+  let overlayWidthPercent = limits.default;
+  let widthSource = SETTING_SOURCES.default;
   let validationPassed = false;
 
   // Check for URL parameter first to take precedence over the config.js setting
@@ -192,22 +202,22 @@ function setOverlayWidth() {
   let widthToValidate;
   if (urlWidth !== null) {
     widthToValidate = parseFloat(urlWidth);
-    widthSource = 'URL parameter';
+    widthSource = SETTING_SOURCES.url;
   } else {
     widthToValidate = configWidth;
-    widthSource = 'config.js';
+    widthSource = SETTING_SOURCES.config;
   }
 
   // Validate the width value
   if (typeof widthToValidate === 'undefined' || widthToValidate === null) {
-    console.warn(`Overlay width not defined in ${widthSource} - using default (85%).`);
+    console.warn(`Overlay width not defined in ${widthSource} - using default (${limits.default}%).`);
   } else if (typeof widthToValidate !== 'number' || isNaN(widthToValidate)) {
     console.warn(
-      `Invalid overlay width value "${widthToValidate}" in ${widthSource} (must be numeric) - using default (85%).`
+      `Invalid overlay width value "${widthToValidate}" in ${widthSource} (must be numeric) - using default (${limits.default}%).`
     );
-  } else if (widthToValidate < 50 || widthToValidate > 100) {
+  } else if (widthToValidate < limits.min || widthToValidate > limits.max) {
     console.warn(
-      `Invalid overlay width value ${widthToValidate} in ${widthSource} (must be in range 50-100) - using default (85%).`
+      `Invalid overlay width value ${widthToValidate} in ${widthSource} (must be in range ${limits.min}-${limits.max}) - using default (${limits.default}%).`
     );
   } else {
     // Round width to two decimal points
@@ -217,7 +227,7 @@ function setOverlayWidth() {
 
   // Reset width source if validation failed
   if (!validationPassed) {
-    widthSource = 'default';
+    widthSource = SETTING_SOURCES.default;
   }
 
   // Convert percentage to a decimal ratio of the video frame width
@@ -246,7 +256,7 @@ const TIMEOUT_ANIMATIONS = {
 // Validate an animation setting and apply its class to the overlay
 function setAnimation(settingName, urlParam, configValue, animations, defaultName) {
   let animation = defaultName;
-  let animationSource = 'default';
+  let animationSource = SETTING_SOURCES.default;
   let validationPassed = false;
 
   // Check for URL parameter first to take precedence over the config.js setting
@@ -256,10 +266,10 @@ function setAnimation(settingName, urlParam, configValue, animations, defaultNam
   let animationToValidate;
   if (urlAnimation !== null) {
     animationToValidate = urlAnimation;
-    animationSource = 'URL parameter';
+    animationSource = SETTING_SOURCES.url;
   } else {
     animationToValidate = configValue;
-    animationSource = 'config.js';
+    animationSource = SETTING_SOURCES.config;
   }
 
   // Validate the animation value
@@ -281,7 +291,7 @@ function setAnimation(settingName, urlParam, configValue, animations, defaultNam
 
   // Reset the source if validation failed
   if (!validationPassed) {
-    animationSource = 'default';
+    animationSource = SETTING_SOURCES.default;
   }
 
   // Remove any previously applied class before applying the chosen one
@@ -304,12 +314,24 @@ function setAnimation(settingName, urlParam, configValue, animations, defaultNam
 
 // Validate and set the background animation
 function setBackgroundAnimation() {
-  setAnimation('Background animation', 'background', CONFIG.backgroundAnimation, BACKGROUND_ANIMATIONS, 'trace');
+  setAnimation(
+    'Background animation',
+    'background',
+    CONFIG.backgroundAnimation,
+    BACKGROUND_ANIMATIONS,
+    LIMITS.backgroundAnimation.default
+  );
 }
 
 // Validate and set the timeout banner animation
 function setTimeoutAnimation() {
-  setAnimation('Timeout animation', 'timeout', CONFIG.timeoutAnimation, TIMEOUT_ANIMATIONS, 'glow');
+  setAnimation(
+    'Timeout animation',
+    'timeout',
+    CONFIG.timeoutAnimation,
+    TIMEOUT_ANIMATIONS,
+    LIMITS.timeoutAnimation.default
+  );
 }
 
 // Penalty code key state
@@ -318,8 +340,9 @@ let penaltyCodeKeyPending = false;
 
 // Validate and set the penalty code key visibility
 function setPenaltyCodeKey() {
-  let showKey = true;
-  let keySource = 'default';
+  const defaultKey = LIMITS.penaltyCodeKey.default;
+  let showKey = defaultKey;
+  let keySource = SETTING_SOURCES.default;
   let validationPassed = false;
 
   // Check for URL parameter first to take precedence over the config.js setting
@@ -330,15 +353,17 @@ function setPenaltyCodeKey() {
   let keyToValidate;
   if (urlKey !== null) {
     keyToValidate = urlKey.toLowerCase();
-    keySource = 'URL parameter';
+    keySource = SETTING_SOURCES.url;
   } else {
     keyToValidate = configKey;
-    keySource = 'config.js';
+    keySource = SETTING_SOURCES.config;
   }
 
   // Validate the value
   if (typeof keyToValidate === 'undefined' || keyToValidate === null) {
-    console.warn(`Penalty code key not defined in ${keySource} - using default (visible).`);
+    console.warn(
+      `Penalty code key not defined in ${keySource} - using default (${defaultKey ? 'visible' : 'hidden'}).`
+    );
   } else if (typeof keyToValidate === 'boolean') {
     showKey = keyToValidate;
     validationPassed = true;
@@ -347,13 +372,13 @@ function setPenaltyCodeKey() {
     validationPassed = true;
   } else {
     console.warn(
-      `Invalid penalty code key value "${keyToValidate}" in ${keySource} (must be true or false) - using default (visible).`
+      `Invalid penalty code key value "${keyToValidate}" in ${keySource} (must be true or false) - using default (${defaultKey ? 'visible' : 'hidden'}).`
     );
   }
 
   // Reset the source if validation failed
   if (!validationPassed) {
-    keySource = 'default';
+    keySource = SETTING_SOURCES.default;
   }
 
   penaltyCodeKeyVisible = showKey;
@@ -365,8 +390,9 @@ function setPenaltyCodeKey() {
 
 // Validate and set the overlay background opacity
 function setOverlayOpacity() {
-  let overlayOpacityPercent = 98; // Default to 98%
-  let opacitySource = 'default';
+  const limits = LIMITS.opacity;
+  let overlayOpacityPercent = limits.default;
+  let opacitySource = SETTING_SOURCES.default;
   let validationPassed = false;
 
   // Check for URL parameter first to take precedence over the config.js setting
@@ -377,22 +403,22 @@ function setOverlayOpacity() {
   let opacityToValidate;
   if (urlOpacity !== null) {
     opacityToValidate = parseFloat(urlOpacity);
-    opacitySource = 'URL parameter';
+    opacitySource = SETTING_SOURCES.url;
   } else {
     opacityToValidate = configOpacity;
-    opacitySource = 'config.js';
+    opacitySource = SETTING_SOURCES.config;
   }
 
   // Validate the opacity value
   if (typeof opacityToValidate === 'undefined' || opacityToValidate === null) {
-    console.warn(`Overlay opacity not defined in ${opacitySource} - using default (98%).`);
+    console.warn(`Overlay opacity not defined in ${opacitySource} - using default (${limits.default}%).`);
   } else if (typeof opacityToValidate !== 'number' || isNaN(opacityToValidate)) {
     console.warn(
-      `Invalid overlay opacity value "${opacityToValidate}" in ${opacitySource} (must be numeric) - using default (98%).`
+      `Invalid overlay opacity value "${opacityToValidate}" in ${opacitySource} (must be numeric) - using default (${limits.default}%).`
     );
-  } else if (opacityToValidate < 0 || opacityToValidate > 100) {
+  } else if (opacityToValidate < limits.min || opacityToValidate > limits.max) {
     console.warn(
-      `Invalid overlay opacity value ${opacityToValidate} in ${opacitySource} (must be in range 0-100) - using default (98%).`
+      `Invalid overlay opacity value ${opacityToValidate} in ${opacitySource} (must be in range ${limits.min}-${limits.max}) - using default (${limits.default}%).`
     );
   } else {
     // Round opacity to two decimal points
@@ -402,7 +428,7 @@ function setOverlayOpacity() {
 
   // Reset opacity source if validation failed
   if (!validationPassed) {
-    opacitySource = 'default';
+    opacitySource = SETTING_SOURCES.default;
   }
 
   // The value sets the alpha channel of the overlay background color
@@ -422,8 +448,9 @@ const OVERLAY_ANCHORS = {
 
 // Validate and set the overlay anchor value
 function setOverlayAnchor() {
-  let overlayAnchor = 'top'; // Default to the top of the frame
-  let anchorSource = 'default';
+  const defaultAnchor = LIMITS.anchor.default;
+  let overlayAnchor = defaultAnchor;
+  let anchorSource = SETTING_SOURCES.default;
   let validationPassed = false;
 
   // Check for URL parameter first to take precedence over the config.js setting
@@ -434,23 +461,23 @@ function setOverlayAnchor() {
   let anchorToValidate;
   if (urlAnchor !== null) {
     anchorToValidate = urlAnchor;
-    anchorSource = 'URL parameter';
+    anchorSource = SETTING_SOURCES.url;
   } else {
     anchorToValidate = configAnchor;
-    anchorSource = 'config.js';
+    anchorSource = SETTING_SOURCES.config;
   }
 
   // Validate the anchor value
   const allowedAnchors = Object.keys(OVERLAY_ANCHORS);
   if (typeof anchorToValidate === 'undefined' || anchorToValidate === null) {
-    console.warn(`Overlay anchor not defined in ${anchorSource} - using default (top).`);
+    console.warn(`Overlay anchor not defined in ${anchorSource} - using default (${defaultAnchor}).`);
   } else if (typeof anchorToValidate !== 'string') {
     console.warn(
-      `Invalid overlay anchor value "${anchorToValidate}" in ${anchorSource} (must be a string) - using default (top).`
+      `Invalid overlay anchor value "${anchorToValidate}" in ${anchorSource} (must be a string) - using default (${defaultAnchor}).`
     );
   } else if (!allowedAnchors.includes(anchorToValidate.toLowerCase())) {
     console.warn(
-      `Invalid overlay anchor value "${anchorToValidate}" in ${anchorSource} (must be one of ${allowedAnchors.join(', ')}) - using default (top).`
+      `Invalid overlay anchor value "${anchorToValidate}" in ${anchorSource} (must be one of ${allowedAnchors.join(', ')}) - using default (${defaultAnchor}).`
     );
   } else {
     overlayAnchor = anchorToValidate.toLowerCase();
@@ -459,7 +486,7 @@ function setOverlayAnchor() {
 
   // Reset anchor source if validation failed
   if (!validationPassed) {
-    anchorSource = 'default';
+    anchorSource = SETTING_SOURCES.default;
   }
 
   // Convert the anchor name to a CSS transform origin
@@ -492,8 +519,9 @@ const OVERLAY_FONTS = {
 
 // Validate and set the overlay font pairing
 function setOverlayFont() {
-  let overlayFont = 'saira'; // Default to Saira
-  let fontSource = 'default';
+  const defaultFont = LIMITS.font.default;
+  let overlayFont = defaultFont;
+  let fontSource = SETTING_SOURCES.default;
   let validationPassed = false;
 
   // Check for URL parameter first to take precedence over the config.js setting
@@ -504,23 +532,23 @@ function setOverlayFont() {
   let fontToValidate;
   if (urlFont !== null) {
     fontToValidate = urlFont;
-    fontSource = 'URL parameter';
+    fontSource = SETTING_SOURCES.url;
   } else {
     fontToValidate = configFont;
-    fontSource = 'config.js';
+    fontSource = SETTING_SOURCES.config;
   }
 
   // Validate the font value
   const allowedFonts = Object.keys(OVERLAY_FONTS);
   if (typeof fontToValidate === 'undefined' || fontToValidate === null) {
-    console.warn(`Overlay font not defined in ${fontSource} - using default (saira).`);
+    console.warn(`Overlay font not defined in ${fontSource} - using default (${defaultFont}).`);
   } else if (typeof fontToValidate !== 'string') {
     console.warn(
-      `Invalid overlay font value "${fontToValidate}" in ${fontSource} (must be a string) - using default (saira).`
+      `Invalid overlay font value "${fontToValidate}" in ${fontSource} (must be a string) - using default (${defaultFont}).`
     );
   } else if (!allowedFonts.includes(fontToValidate.toLowerCase())) {
     console.warn(
-      `Invalid overlay font value "${fontToValidate}" in ${fontSource} (must be one of ${allowedFonts.join(', ')}) - using default (saira).`
+      `Invalid overlay font value "${fontToValidate}" in ${fontSource} (must be one of ${allowedFonts.join(', ')}) - using default (${defaultFont}).`
     );
   } else {
     overlayFont = fontToValidate.toLowerCase();
@@ -529,7 +557,7 @@ function setOverlayFont() {
 
   // Reset font source if validation failed
   if (!validationPassed) {
-    fontSource = 'default';
+    fontSource = SETTING_SOURCES.default;
   }
 
   // Apply the font to the display and body font variables
@@ -590,9 +618,9 @@ window.glowColorToShadow = function (_k, glowColor) {
   return `${CONFIG.defaultRosterShadowProperties} ${glowColor}`;
 };
 
-/***************************
+/*************************
  ** Game Rule Functions **
- **************************/
+ ************************/
 
 // WebSocket Channels to read the active ruleset
 const PENALTY_CODE_PREFIX = 'ScoreBoard.CurrentGame.PenaltyCode(';
@@ -617,9 +645,9 @@ function getWarningCount(offset) {
   return warningCount >= 1 ? warningCount : null;
 }
 
-/*************************************
+/************************************
  ** Penalty Count Helper Functions **
- ************************************/
+ ***********************************/
 
 // Private helper to check if a player is expelled or removed
 function checkPenaltyStatus(k) {
@@ -695,6 +723,11 @@ window.getPenaltyCountDisplay = function (k, penaltyCount) {
 window.shouldHidePenaltyCode = function (k, code, penaltyNumber) {
   const filteredCodes = [PENALTIES.fouloutCode, PENALTIES.removedCode];
   if (filteredCodes.includes(code)) {
+    return true;
+  }
+
+  // Display no more than the max allowed penalty codes
+  if (parseInt(penaltyNumber) > LIMITS.penaltyCodes.max) {
     return true;
   }
 
@@ -1081,9 +1114,9 @@ function setOverlayVersion() {
   console.log(`Penalties Overlay v${OVERLAY_VERSION}`);
 }
 
-/********************************
+/*******************************
  ** Loading Overlay Functions **
- *******************************/
+ ******************************/
 
 // Display the loading overlay until the ruleset data arrives
 function hideLoadingOverlayWhenReady() {
@@ -1123,9 +1156,9 @@ function hideLoadingOverlayWhenReady() {
   checkForRules();
 }
 
-/******************
+/*****************
  ** Amph Module **
- *****************/
+ ****************/
 
 // Attempt to load the amph module
 function loadAmphModule() {
