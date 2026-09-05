@@ -137,7 +137,7 @@
   --width-game-info-center: 330px;
   --width-game-info-side: 190px;
   --width-loading-error-max: 1100px;
-  --width-penalty-codes: 168px;
+  --width-penalty-codes: 236px; /* Fits nine penalty codes */
   --width-penalty-count: 52px;
   --width-roster-number: 78px;
   --width-penalties-title-max: 40%;
