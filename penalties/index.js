@@ -843,22 +843,26 @@ window.getIntermissionLabel = function (_k, periodNumber) {
   }
 };
 
+// Read the game state the score labels depend on
+function getScoreLabelState() {
+  return {
+    period: parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0,
+    isIntermission: WS.state['ScoreBoard.CurrentGame.Clock(Intermission).Running'] === true,
+    isOfficial: WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true,
+    isOvertime: WS.state['ScoreBoard.CurrentGame.InOvertime'] === true
+  };
+}
+
 // Hide the "Unofficial Score" label
 window.shouldHideUnofficialScore = function (_k) {
-  const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
-  const isIntermission = WS.state['ScoreBoard.CurrentGame.Clock(Intermission).Running'] === true;
-  const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
-  const isOvertime = WS.state['ScoreBoard.CurrentGame.InOvertime'] === true;
+  const { period, isIntermission, isOfficial, isOvertime } = getScoreLabelState();
 
   return period < getPeriodCount() || !isIntermission || isOfficial || isOvertime;
 };
 
 // Hide the "Coming Up" label
 window.shouldHideComingUp = function (_k) {
-  const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
-  const isIntermission = WS.state['ScoreBoard.CurrentGame.Clock(Intermission).Running'] === true;
-  const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
-  const isOvertime = WS.state['ScoreBoard.CurrentGame.InOvertime'] === true;
+  const { period, isIntermission, isOfficial, isOvertime } = getScoreLabelState();
 
   return period !== 0 || isIntermission || isOfficial || isOvertime;
 };
