@@ -914,14 +914,44 @@ function buildPenaltyCodeKey() {
   $key.empty().toggleClass(visibleSuffix, items.length > 0);
 
   if (items.length > 0) {
-    $key.append(
-      $('<span>').addClass('code-key-label').text(CONFIG.penaltyCodeKeyLabel),
-      $('<span>').addClass('code-key-items').append(items)
-    );
+    $key.append($('<span>').addClass('code-key-items').append(items));
+    fitPenaltyCodeKey();
   }
 
   if (DEBUG) {
     console.log(`Penalty code key rebuilt with ${items.length} code(s).`);
+  }
+}
+
+// Adjust the size of the penalty key codes to fit on one line
+function fitPenaltyCodeKey() {
+  const items = document.querySelector(CLASSES.penaltyCodeKeyItemsSelector);
+  if (!items) {
+    return;
+  }
+
+  // Measure at the configured size, so a rebuild never inherits an earlier fit
+  items.style.removeProperty('--font-penalty-code-key-size');
+  const available = items.clientWidth;
+
+  // Sum the codes rather than read scrollWidth, which misses content that
+  // overflows to the left of a centered row.  Use offsetWidth so the overlay's
+  // scale transform does not shrink the measurement and hide an overflow
+  const natural = [...items.children].reduce(
+    (total, code) => total + code.offsetWidth, 0
+  );
+  if (available === 0 || natural <= available) {
+    return;
+  }
+
+  // Every dimension in the key is proportional to this size, so the width
+  // shrinks linearly with it and a single measurement captures the size
+  const configuredSize = parseFloat(getComputedStyle(items.children[0]).fontSize);
+  const fittedSize = Math.floor(configuredSize * (available / natural));
+  items.style.setProperty('--font-penalty-code-key-size', `${fittedSize}px`);
+
+  if (DEBUG) {
+    console.log(`Penalty code key reduced from ${configuredSize}px to ${fittedSize}px to fit one line.`);
   }
 }
 

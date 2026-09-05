@@ -55,6 +55,7 @@
   --clock-label-fg: rgb(255 255 255 / 82%);
   --column-heading-fg: rgb(255 255 255 / 68%);
   --penalty-code-fg: #e2e0e8;
+  --roster-name-fg: #f6f5f9;
   --total-label-fg: rgb(255 255 255 / 86%);
 
   /* Loading overlay colors */
@@ -80,17 +81,17 @@
   --font-team-name-size: 25px;
   --font-clock-label-size: 16px;
   --font-heading-size: 12px;
-  --font-penalty-code-key-code-size: 19px;
-  --font-penalty-code-key-label-size: 12px;
+  --font-penalty-code-key-code-size: 1.25em;
   --font-penalty-code-key-size: 15px;
   --font-total-size: 21px;
-  --font-roster-penalties-size: 18px;
+  --font-penalty-code-size: 19px;
+  --font-penalty-count-size: 18px;
+  --font-roster-penalties-size: 21px;
   --font-captain-size: 13px;
   --font-loading-size: 32px;
   --font-timeout-banner-size: 18px;
 
   /* Logo sizes */
-  --size-team-logo-max-height: 96px;
   --size-team-logo-max-width: 300px;
   --size-custom-logo-height: 92px;
   --size-custom-logo-width: 170px;
@@ -98,27 +99,24 @@
   /* Margins */
   --margin-captain-left: 4px;
   --margin-logo-container-bottom: 10px;
-  --margin-penalty-code-key-bottom: 12px;
+  --margin-penalty-code-key-bottom: 4px;
   --offset-version-watermark: 6px;
   --margin-game-info-top: 5px;
 
   /* Opacity */
   --opacity-penalty-code-key: 0.84;
-  --opacity-penalty-code-key-label: 0.62;
   --opacity-version-watermark: 0.3;
 
   /* Padding */
   --padding-captain-indicator: 3px 6px;
-  --padding-roster: 5px;
   --padding-roster-columns: 14px;
   --padding-team-heading-horizontal: 16px;
   --padding-game-info-columns: 16px;
   --padding-game-info-event: 20px;
-  --padding-penalty-code-key-item: 17px;
-  --padding-penalty-code-key-label: 10px;
+  --padding-penalty-code-key-item: 0.9em;
+  --padding-penalty-code-key-top: 9px;
   --padding-penalty-count-vertical: 2px;
-  --padding-penalty-count-horizontal: 6px;
-  --padding-row-bottom: 4px;
+  --padding-penalty-count-horizontal: 0;
   --padding-timeout-banner-row-bottom: 8px;
   --padding-timeout-banner-vertical: 8px;
   --padding-timeout-banner-horizontal: 20px;
@@ -128,9 +126,10 @@
   --height-game-info-scores: 82px;
   --height-timeout-banner-row: 40px;
   --height-logo-container: 100px;
+  --height-teams-container-min: 44px;
   --height-penalty-count-line: 20px;
   --height-column-headings: 24px;
-  --height-roster-row: 28px;
+  --height-roster-row: 29px;
   --height-team-heading: 46px;
   --height-total-row: 38px;
   --height-roster-penalties-line: 28px;
@@ -139,15 +138,14 @@
   --width-border-overlay: 1px;
   --width-border-overlay-trace: 2px;
   --width-border-rosters-penalties: 1px;
-  --width-penalty-code-key-label: 190px;
   --width-border-team-panel: 2px;
   --width-border-total-row: 3px;
   --width-game-info-center: 330px;
   --width-game-info-side: 190px;
   --width-loading-error-max: 1100px;
-  --width-penalty-codes: 216px;
-  --width-penalty-count: 50px;
-  --width-roster-number: 56px;
+  --width-penalty-codes: 168px;
+  --width-penalty-count: 52px;
+  --width-roster-number: 78px;
   --width-penalties-title-max: 40%;
   --width-score: 122px;
 
@@ -155,11 +153,10 @@
   --gap-between-teams: 30px;
   --gap-clock-label: 1px;
   --gap-game-details: 18px;
-  --gap-penalty-code-key: 8px;
-  --gap-penalty-code-key-rows: 4px;
+  --gap-penalty-code-key: 0.4em;
   --gap-tournament-divider: 10px;
-  --gap-roster-columns: 10px;
-  --margin-bottom-row: 4px;
+  --gap-roster-columns: 12px;
+  --margin-bottom-column-headings: 4px;
   --penalty-code-spacing: 0.5em;
 
   /* Transitions */
@@ -167,6 +164,7 @@
   --duration-animation-timeout: 5s;
   --transition-background: 0.3s ease;
   --transition-fade: 0.5s ease;
+  --transition-height: 0.35s ease;
 }
 
 /***********************
@@ -280,8 +278,11 @@ body {
 #teams-container {
   align-items: center;
   display: flex;
+  flex-shrink: 1;
   gap: var(--gap-between-teams);
+  height: var(--height-logo-container);
   margin: 0 auto var(--margin-logo-container-bottom);
+  min-height: var(--height-teams-container-min);
   position: relative;
   width: var(--content-width);
 }
@@ -290,18 +291,21 @@ body {
   display: flex;
   flex: 1;
   flex-direction: column;
+  height: 100%;
+  min-height: 0;
 }
 
 .team-logo-container {
   align-items: center;
   display: flex;
-  height: var(--height-logo-container);
+  height: 100%;
   justify-content: center;
+  min-height: 0;
 }
 
 .team-logo {
   filter: var(--shadow-drop-logo);
-  max-height: var(--size-team-logo-max-height);
+  max-height: 100%;
   max-width: var(--size-team-logo-max-width);
   object-fit: contain;
   opacity: 0;
@@ -332,6 +336,7 @@ body {
   font-family: var(--font-family-display);
   font-size: var(--font-penalties-title-size);
   font-weight: 800;
+  line-height: 1;
   text-shadow: var(--shadow-text-title);
   margin: 0;
   overflow: hidden;
@@ -345,7 +350,7 @@ body {
 
 #rosters-penalties-container {
   display: flex;
-  flex: 1;
+  flex: 1 0 auto;
   gap: var(--gap-between-teams);
   margin: 0 auto 15px;
   min-height: 0;
@@ -412,8 +417,7 @@ body {
   font-size: var(--font-roster-penalties-size);
   line-height: var(--height-roster-penalties-line);
   min-height: 0;
-  overflow-y: auto;
-  padding: var(--padding-roster);
+  overflow: hidden;
   text-shadow: var(--shadow-text);
 }
 
@@ -437,7 +441,7 @@ body {
   font-weight: bold;
   height: var(--height-column-headings);
   letter-spacing: 0.1em;
-  margin-bottom: var(--margin-bottom-row);
+  margin-bottom: var(--margin-bottom-column-headings);
   padding: 0 var(--padding-roster-columns);
   position: sticky;
   text-transform: uppercase;
@@ -455,15 +459,14 @@ body {
 }
 
 .roster-line {
-  align-content: center;
+  align-items: baseline;
   border-bottom: var(--width-border-rosters-penalties) solid var(--roster-row-separator);
   height: var(--height-roster-row);
-  margin-bottom: var(--margin-bottom-row);
-  padding: 0 var(--padding-roster-columns) var(--padding-row-bottom);
+  padding: 0 var(--padding-roster-columns);
 }
 
 .roster-number {
-  font-weight: bold;
+  font-weight: 800;
   overflow: hidden;
   text-align: right;
 }
@@ -476,7 +479,9 @@ body {
 }
 
 .name-text {
+  color: var(--roster-name-fg);
   flex: 0 1 auto;
+  font-weight: 500;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -505,6 +510,7 @@ body {
 .penalty-codes {
   color: var(--penalty-code-fg);
   display: flex;
+  font-size: var(--font-penalty-code-size);
   font-weight: bold;
   gap: var(--penalty-code-spacing);
   justify-content: flex-end;
@@ -515,10 +521,11 @@ body {
 
 .penalty-count {
   border-radius: var(--radius-border-penalty-count);
-  font-weight: bold;
+  font-size: var(--font-penalty-count-size);
+  font-weight: 800;
   line-height: var(--height-penalty-count-line);
   padding: var(--padding-penalty-count-vertical) var(--padding-penalty-count-horizontal);
-  text-align: right;
+  text-align: center;
   text-shadow: var(--shadow-text);
   transition: background-color var(--transition-background);
 }
@@ -574,6 +581,7 @@ body {
   color: var(--overlay-fg);
   display: none;
   margin: 0 auto var(--margin-penalty-code-key-bottom);
+  padding-top: var(--padding-penalty-code-key-top);
   text-shadow: var(--shadow-text);
   width: var(--content-width);
 }
@@ -582,29 +590,14 @@ body {
   display: flex;
 }
 
-.code-key-label {
-  align-items: center;
-  border-right: var(--width-border-rosters-penalties) solid var(--overlay-border);
-  display: flex;
-  flex: none;
-  font-size: var(--font-penalty-code-key-label-size);
-  font-weight: bold;
-  justify-content: center;
-  letter-spacing: 0.12em;
-  opacity: var(--opacity-penalty-code-key-label);
-  padding: 0 var(--padding-penalty-code-key-label);
-  text-align: center;
-  text-transform: uppercase;
-  width: var(--width-penalty-code-key-label);
-}
 
 .code-key-items {
   align-items: center;
   display: flex;
   flex: 1;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  justify-content: center;
   min-width: 0;
-  row-gap: var(--gap-penalty-code-key-rows);
 }
 
 .code-key-item {
@@ -821,6 +814,9 @@ body {
 #timeout-banner-row {
   flex: none;
   height: 0;
+  transition:
+    height var(--transition-height),
+    padding-bottom var(--transition-height);
 }
 
 /* The row takes up space only while a timeout is running */

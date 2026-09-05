@@ -38,9 +38,6 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Default roster shadow properties
     defaultRosterShadowProperties: '.5px .5px 1px',
 
-    // Heading shown beside the penalty code key
-    penaltyCodeKeyLabel: 'Penalty codes',
-
     // Text displayed on the "loading" screen
     loadingOverlayText: 'Loading game data...',
 
@@ -106,6 +103,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
     // CSS Selector for the penalty code key container
     penaltyCodeKeySelector: '#penalty-code-key',
+
+    // CSS Selector for the penalty code key items
+    penaltyCodeKeyItemsSelector: '.code-key-items',
 
     // CSS Selector for the visible penalty code key
     penaltyCodeKeyVisibleSelectorSuffix: 'visible',
