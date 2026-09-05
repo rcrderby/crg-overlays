@@ -984,7 +984,7 @@ function registerPenaltyCodeKey() {
 ** Custom Logo Helper Function **
 ********************************/
 
-// Load a custom logo if available - also adds has-logo class for grid layout
+// Load a custom logo if one is configured
 function loadCustomLogo() {
 
   // Check if the logo path is configured
@@ -999,28 +999,23 @@ function loadCustomLogo() {
   const logoImg = new Image();
   const $customLogo = $(CLASSES.customLogoSelector);
   const $customLogoSpace = $(CLASSES.customLogoSpaceSelector);
-  const $teamsScores = $(CLASSES.teamsScoresSelector);
 
-  // Show the logo and expand the grid columns when the logo successfully loads
+  // Show the logo once it loads
   logoImg.onload = function() {
     $customLogo.attr('src', CONFIG.bannerLogoPath);
     $customLogoSpace.addClass(CLASSES.customLogoSpaceVisibleSelectorSuffix);
-    $teamsScores.addClass(CLASSES.teamsScoresHasLogoSelectorSuffix);
     
     if (DEBUG) {
       console.log(`Custom logo loaded: ${CONFIG.bannerLogoPath}.`);
-      console.log('Grid column 5 expanded for balanced layout.');
     }
   };
 
-  // Keep logo hidden and grid collapsed if it fails to load
+  // Keep the logo hidden if it fails to load
   logoImg.onerror = function() {
     $customLogoSpace.removeClass(CLASSES.customLogoSpaceVisibleSelectorSuffix);
-    $teamsScores.removeClass(CLASSES.teamsScoresHasLogoSelectorSuffix);
     
     if (DEBUG) {
       console.log(`Custom logo failed to load: ${CONFIG.bannerLogoPath}.`);
-      console.log('Grid column 5 remains collapsed.');
     }
   };
 
@@ -1063,17 +1058,17 @@ window.getTimeoutText = function(_k, timeoutOwner, officialReview) {
   return LABELS.timeout.untyped;
 };
 
-// Position untyped and official timeouts in the center of the game information box
+// Position untyped and official timeouts in the center column
 window.isPositionCenter = function(_k, timeoutOwner) {
   return !timeoutOwner || timeoutOwner === LABELS.timeoutOwner.official;
 };
 
-// Position team 1 timeouts on the left side of the game information box
+// Position team 1 timeouts in the left column
 window.isPositionTeam1 = function(_k, timeoutOwner) {
   return !!(timeoutOwner && timeoutOwner.endsWith(LABELS.timeoutOwner.team1));
 };
 
-// Position team 2 timeouts on the right side of the game information box
+// Position team 2 timeouts in the right column
 window.isPositionTeam2 = function(_k, timeoutOwner) {
   return !!(timeoutOwner && timeoutOwner.endsWith(LABELS.timeoutOwner.team2));
 };
@@ -1209,7 +1204,7 @@ $(function() {
   // Set the loading overlay text
   $(CLASSES.loadingOverlayTextSelector).text(CONFIG.loadingOverlayText);
 
-  // Set the title banner text
+  // Set the overlay title text
   $(CLASSES.penaltiesTitleH1Selector).text(CONFIG.titleBannerText);
 
   // Attempt to load a custom logo

@@ -41,7 +41,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Text displayed on the "loading" screen
     loadingOverlayText: 'Loading game data...',
 
-    // Title banner
+    // Text displayed as the overlay title
     titleBannerText: 'PENALTIES',
 
     // Background animation: `trace`, `organic`, `shine`, or `off`
@@ -112,12 +112,6 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
     // CSS Selector for the penalties title H1 text
     penaltiesTitleH1Selector: '#penalties-title h1',
-
-    // CSS Selector for the team scores custom logo padding container
-    teamsScoresHasLogoSelectorSuffix: 'has-logo',
-
-    // CSS Selector for the team scores container
-    teamsScoresSelector: '#teams-scores',
 
     // CSS Variable for text shadows
     textShadow: 'var(--team-penalties-default-text-shadow)'

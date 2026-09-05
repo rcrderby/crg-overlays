@@ -31,7 +31,7 @@
   --shadow-text-title: 0 2px 12px rgb(0 0 0 / 85%), 0 0 3px rgb(0 0 0 / 90%);
   --shadow-drop-logo: drop-shadow(0 0 4px rgb(0 0 0 / 40%));
 
-  /* Title banner */
+  /* Title */
   --title-color: white;
 
   /* Team and penalty default colors */
@@ -39,12 +39,6 @@
   --team-penalties-default-bg-color: black;
   --team-penalties-default-border-color: white;
   --team-penalties-default-text-shadow: var(--shadow-text);
-
-  /* Team 1 (home) roster default colors */
-
-  /* Team 2 (away) roster default colors */
-
-  /* Team penalties default colors */
 
   /* Penalty highlight colors */
   --penalty-warning-1: #b8860b;          /* Dark yellow */
