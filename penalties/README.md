@@ -2,10 +2,13 @@
 
 ## Contents
 
+- [Overview](#overview "Overlay Overview")
 - [Features](#features "Overlay Features")
 - [Compatibility](#compatibility "Overlay CRG Compatibility")
 - [Usage](#usage "Overlay Usage Instructions")
-- [Configuration](#configuration "Configuration File Reference")
+- [Customization](#customization "Overlay Customization")
+- [Configuration Reference](#configuration-reference "Configuration File Reference")
+- [Upgrading from 3.x](#upgrading-from-3x "Upgrade Notes")
 
 ## Preview
 
@@ -32,7 +35,8 @@ The overlay gets the information and settings it needs from CRG, so you can just
 ### Rosters & Penalties Area
 
 - Displays team logos.
-  - Logos automatically resize to fit 100px x 100px containers.
+  - Logos automatically resize to fit a 100px tall container, up to 300px wide.
+  - Shrinks the logos and the space they occupy when a full roster and a timeout banner need the room.
 - Displays rosters for each team that include player numbers, names, assigned penalty codes, and total penalty count for each player.
   - Indicates team captains with a "C" and alternate captains with an "A".
   - Hides roster names that are marked as:
@@ -41,14 +45,16 @@ The overlay gets the information and settings it needs from CRG, so you can just
     - "Not Skating"
   - Uses each team's custom "whiteboard" background, text, and glow colors if set.
     - Defaults to black backgrounds with white text if not set.
-- Highlights player penalty counts with different color backgrounds at specific thresholds.
-  - 5 penalties in yellow :yellow_square:
-  - 6 penalties in orange :orange_square:
-  - 7+ penalties, foul outs, expulsions, and removals in red :red_square:
+- Highlights player penalty counts with different color backgrounds as a player approaches a foul out.
+  - Two penalties before a foul out in yellow :yellow_square:
+  - One penalty before a foul out in orange :orange_square:
+  - Foul outs, expulsions, and removals in red :red_square:
+  - Reads the number of penalties that cause a foul out from the active ruleset, so the colors follow the ruleset a game uses.
 - Changes player numeric penalty counts to:
   - "FO" for foul outs.
   - "EXP" for expulsions.
   - "RE" for head official removals.
+- Displays up to nine penalty codes for each player (CRG maximum).
 - Displays the total count of penalties for each team.
 
 ### Game Information Area
@@ -73,7 +79,7 @@ The overlay gets the information and settings it needs from CRG, so you can just
     - "Overtime" - during overtime jams.
 - Displays a timeout banner to indicate the type of timeout.
 - Optionally displays a custom logo to provide league, tournament, or sanctioning body branding.
-  - Automatically resized to fit a 70px x 70px container.
+  - Automatically resized to fit a 170px x 92px container.
 
 ## Compatibility
 
@@ -136,7 +142,7 @@ You can adjust the scale of the overlay to fit your broadcast display with the `
 | Scale down 10% (90%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=90` |
 
 > [!TIP]
-> The allowed `scale` parameter range is `1` to `100`.  See the `overlayScale` setting in the [Configuration Section](#configuration "Configuration Section") for details.
+> The allowed `scale` parameter range is `1` to `100`.  See the `overlayScale` setting in the [Configuration Section](#configuration-reference "Configuration Section") for details.
 
 #### Width Adjustments
 
@@ -149,7 +155,7 @@ The overlay is narrower than the video frame so it doesn't crowd the edges.  Use
 | Narrower (75%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?width=75` |
 
 > [!TIP]
-> The allowed `width` parameter range is `70` to `100`.  Narrowing the overlay takes space from the player name column, so long player names may begin to truncate below about `75`.  See the `overlayWidth` setting in the [Configuration Section](#configuration "Configuration Section") for details.
+> The allowed `width` parameter range is `70` to `100`.  Narrowing the overlay takes space from the player name column, so long player names may begin to truncate below about `75`.  See the `overlayWidth` setting in the [Configuration Section](#configuration-reference "Configuration Section") for details.
 
 #### Position Adjustments
 
@@ -166,7 +172,7 @@ You can combine the `anchor` and `scale` parameters to fit your needs:
 `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=90&anchor=bottom`
 
 > [!TIP]
-> The allowed `anchor` parameter values are `top`, `center`, and `bottom`. See the `overlayAnchor` setting in the [Configuration Section](#configuration "Configuration Section") for details.
+> The allowed `anchor` parameter values are `top`, `center`, and `bottom`. See the `overlayAnchor` setting in the [Configuration Section](#configuration-reference "Configuration Section") for details.
 
 #### Background Opacity
 
@@ -179,7 +185,7 @@ Use the `opacity` URL parameter to adjust how visible the video stream is throug
 | Heavily translucent (60%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?opacity=60` |
 
 > [!TIP]
-> The allowed `opacity` parameter range is `0` to `100`, where `100` is solid and `0` is invisible.  This affects the overlay background only; player names and penalty codes stay fully opaque.  See the `overlayOpacity` setting in the [Configuration Section](#configuration "Configuration Section") for details.
+> The allowed `opacity` parameter range is `0` to `100`, where `100` is solid and `0` is invisible.  This affects the overlay background only; player names and penalty codes stay fully opaque.  See the `overlayOpacity` setting in the [Configuration Section](#configuration-reference "Configuration Section") for details.
 
 #### Font Selection
 
@@ -209,7 +215,7 @@ The overlay has animation for its background and timeout banner.  Use the `backg
 | Timeout banner | Effect | URL |
 | - | - | - |
 | `glow` (default) | The banner color breathes | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=glow` |
-| `pulse` | An outline expands away from the banner | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=pulse` |
+| `pulse` | A ring expands away from the banner | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=pulse` |
 | `shine` | A band of light crosses the banner | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=shine` |
 | `off` | No timeout banner animation | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=off` |
 
@@ -242,7 +248,7 @@ To add a custom logo to the left side game information area of the overlay:
 
 The logo will display in the game information area of the overlay once you refresh your browser.
 
-## Configuration
+## Customization
 
 A configuration file named [config.js](./config.js) allows you to customize various overlay settings.  Please note that some settings are safe to change, and others are best left at their default values:
 
@@ -265,16 +271,20 @@ A configuration file named [config.js](./config.js) allows you to customize vari
 > [!WARNING]
 > Changes to `config.js` require a page refresh to take effect.
 
+## Configuration Reference
+
+Expand `Configuration File Details` to review the parameters in [config.js](./config.js).
+
 <details>
   <summary>
-    Configuration File Reference
+    Configuration File Details
   </summary>
 
   ***debug*** **Section**
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
-  | `debug` | Enable debug logging to browser console (set to `true` for troubleshooting) | boolean | `false` | :white_check_mark: |
+  | `enabled` | Enable debug logging to browser console (set to `true` for troubleshooting) | boolean | `false` | :white_check_mark: |
 
   ---
 
@@ -368,8 +378,9 @@ A configuration file named [config.js](./config.js) allows you to customize vari
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
-  | `fouloutCode` | Penalty codes for fouled out players | string | `FO` | :x: |
+  | `fouloutCode` | Penalty code for fouled out players | string | `FO` | :x: |
   | `removedCode` | Penalty code for players removed by the head referee | string | `RE` | :x: |
+  | `unknownCode` | Penalty code CRG uses when the code is not known | string | `?` | :x: |
 
   ---
 
@@ -385,8 +396,43 @@ A configuration file named [config.js](./config.js) allows you to customize vari
 
 </details>
 
+## Upgrading from 3.x
+
+Replace the entire `penalties` folder rather than copying individual files into it.
+
+> [!IMPORTANT]
+> Do not keep a `config.js` file from 3.x.  Version 4.0.0 adds a `limits` section that the overlay requires, and an older file will produce a configuration error.
+
+Version 4.0.0 reads more of its behavior from CRG, so these settings no longer exist:
+
+| Removed setting | Replacement |
+| - | - |
+| `config.titleBannerBackgroundColor` | The title banner has no background box to color. |
+| `config.titleBannerForegroundColor` | The title banner has no background box to color. |
+| `config.titleBannerShadow` | The title banner has no background box to shadow. |
+| `rules.fouloutPenaltyCount` | Read from the active ruleset, so penalty colors follow the ruleset a game uses. |
+| `rules.warningPenaltyCount5` | `rules.warningPenaltyOffsets.first`, counted back from the foul out count. |
+| `rules.warningPenaltyCount6` | `rules.warningPenaltyOffsets.second`, counted back from the foul out count. |
+| `rules.numPeriods` | Read from the active ruleset. |
+| `rules.numTeams` | No longer used. |
+| `classes.teamsScoresSelector` | Removed with the game information area redesign. |
+| `classes.teamsScoresHasLogoSelectorSuffix` | Removed with the game information area redesign. |
+
+These settings are new, and each one has a matching URL parameter:
+
+| New setting | Description |
+| - | - |
+| `config.overlayWidth` | Overlay width as a percentage of the video frame. |
+| `config.overlayOpacity` | How much of the video shows through the overlay background. |
+| `config.overlayFont` | Font pairing. |
+| `config.backgroundAnimation` | Background animation. |
+| `config.timeoutAnimation` | Timeout banner animation. |
+| `config.penaltyCodeKey` | Penalty code key visibility. |
+
+The new `limits` section holds the allowed values and defaults for those settings.  See the [Configuration Section](#configuration-reference "Configuration Section") for the full reference.
+
 <!-- Footnotes -->
 
 [^1]: Replace `<crg-ip-address>` with the IP address of your CRG instance.
-[^2]: The overlay will constrain your logo to a 70px x 70px container and apply a drop shadow.  
-Logos with a 1:1 aspect ratio and a transparent background will produce the best appearance.
+[^2]: The overlay will constrain your logo to a 170px x 92px container and apply a drop shadow.  
+Logos with a transparent background will produce the best appearance.
