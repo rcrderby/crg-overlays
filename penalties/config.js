@@ -16,7 +16,7 @@ window.AppConfig = window.AppConfig || {};
 window.AppConfig.PenaltiesOverlayConfig = {
   /********************
    ** Debug Settings **
-   ********************/
+   *******************/
 
   debug: {
     // Enable debug logging to browser console (set to `true` for troubleshooting)
@@ -56,17 +56,17 @@ window.AppConfig.PenaltiesOverlayConfig = {
     overlayFont: 'saira',
 
     // Overlay background opacity percentage: 100 is solid, 0 is invisible
-    // The `limits` section sets the allowed range
+    // The `validation` section sets the allowed range
     // The `opacity` URL parameter overrides this value
     overlayOpacity: 98,
 
     // Overlay scale percentage: 100 = full scale, 90 = 90% scale, etc.
-    // The `limits` section sets the allowed range
+    // The `validation` section sets the allowed range
     // The `scale` URL parameter overrides this value
     overlayScale: 100,
 
     // Overlay width percentage of the video frame
-    // The `limits` section sets the allowed range
+    // The `validation` section sets the allowed range
     // The `width` URL parameter overrides this value
     overlayWidth: 85,
 
@@ -79,12 +79,12 @@ window.AppConfig.PenaltiesOverlayConfig = {
     timeoutAnimation: 'glow'
   },
 
-  /********************
-   ** Setting Limits **
-   *******************/
+  /************************
+   ** Setting Validation **
+   ***********************/
 
   // Allowed values and defaults for configuration settings
-  limits: {
+  validation: {
     // Point the overlay scales from
     anchor: { default: 'top' },
 

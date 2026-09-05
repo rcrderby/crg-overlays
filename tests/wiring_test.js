@@ -44,7 +44,7 @@ Deno.test('every configuration key index.js reads exists in config.js', async ()
   // The constant index.js assigns each configuration section to
   const sections = {
     CONFIG: 'config',
-    LIMITS: 'limits',
+    VALIDATION: 'validation',
     CLASSES: 'classes',
     LABELS: 'labels',
     RULES: 'rules',
@@ -89,8 +89,8 @@ Deno.test('config.js provides every section index.js requires', async () => {
 });
 
 Deno.test('a missing configuration section stops the overlay', async () => {
-  const configSource = (await readSource('penalties/config.js')).replace('  limits: {', '  notLimits: {');
-  await assert.rejects(async () => await loadOverlay({ configSource }), /missing required sections: limits/);
+  const configSource = (await readSource('penalties/config.js')).replace('  validation: {', '  notValidation: {');
+  await assert.rejects(async () => await loadOverlay({ configSource }), /missing required sections: validation/);
 });
 
 Deno.test('the README documents every configuration key', async () => {

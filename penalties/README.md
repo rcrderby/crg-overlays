@@ -320,7 +320,7 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
 
   ---
 
-  ***limits*** **Section**
+  ***validation*** **Section**
 
   Allowed values and defaults for the ***config*** settings.
 
@@ -414,7 +414,7 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
 Replace the entire `penalties` folder rather than copying individual files into it.
 
 > [!IMPORTANT]
-> Do not keep a `config.js` file from 3.x.  Version 4.0.0 adds a `limits` section that the overlay requires, and an older file will produce a configuration error.
+> Do not keep a `config.js` file from 3.x.  Version 4.0.0 adds a `validation` section that the overlay requires, and an older file will produce a configuration error.
 
 Version 4.0.0 reads more of its behavior from CRG, so these settings no longer exist:
 
@@ -442,7 +442,7 @@ These settings are new, and each one has a matching URL parameter:
 | `config.timeoutAnimation` | Timeout banner animation. |
 | `config.penaltyCodeKey` | Penalty code key visibility. |
 
-The new `limits` section holds the allowed values and defaults for those settings.  See the [Configuration Section](#configuration-reference "Configuration Section") for the full reference.
+The new `validation` section holds the allowed values and defaults for those settings.  See the [Configuration Section](#configuration-reference "Configuration Section") for the full reference.
 
 <!-- Footnotes -->
 

@@ -1,10 +1,10 @@
-// The display settings validate their values against the limits in config.js
+// The display settings validate their values against the validation section in config.js
 
 import assert from 'node:assert/strict';
 import { loadOverlay, readSource } from './support/overlay.js';
 
 const overlay = await loadOverlay();
-const limits = overlay.LIMITS;
+const allowed = overlay.VALIDATION;
 
 // Each numeric setting, with the CSS property it writes and how it converts
 const NUMERIC_SETTINGS = [
@@ -26,7 +26,7 @@ const NUMERIC_SETTINGS = [
 ];
 
 for (const setting of NUMERIC_SETTINGS) {
-  const { min, max, default: fallback } = limits[setting.name];
+  const { min, max, default: fallback } = allowed[setting.name];
 
   Deno.test(`${setting.name} uses its configured default`, async () => {
     const { [setting.method]: apply, properties } = await loadOverlay();

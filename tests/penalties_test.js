@@ -60,8 +60,8 @@ Deno.test('a removed skater gets the foulout color, not a warning color', async 
 });
 
 Deno.test('a roster row displays no more codes than the configured maximum', async () => {
-  const { window, LIMITS } = await withSkater();
-  const maximum = LIMITS.penaltyCodes.max;
+  const { window, VALIDATION } = await withSkater();
+  const maximum = VALIDATION.penaltyCodes.max;
 
   for (let number = 1; number <= maximum; number++) {
     assert.equal(window.shouldHidePenaltyCode('', 'B', String(number)), false, `penalty ${number} should show`);
