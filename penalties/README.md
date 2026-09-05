@@ -298,6 +298,24 @@ A configuration file named [config.js](./config.js) allows you to customize vari
 
   ---
 
+  ***limits*** **Section**
+
+  Allowed values and defaults for the ***config*** settings.
+
+  | Setting | Description | Type | Default | Adjustable |
+  | - | - | - | - | - |
+  | `anchor` | Default for `overlayAnchor` | object | `top` | :warning: |
+  | `backgroundAnimation` | Default for `backgroundAnimation` | object | `trace` | :warning: |
+  | `font` | Default for `overlayFont` | object | `saira` | :warning: |
+  | `opacity` | Allowed range and default for `overlayOpacity` | object | `0` to `100`, default `98` | :warning: |
+  | `penaltyCodeKey` | Default for `penaltyCodeKey` | object | `true` | :warning: |
+  | `penaltyCodes.max` | Most penalty codes a roster row displays | integer | `9` | :warning: |
+  | `scale` | Allowed range and default for `overlayScale` | object | `1` to `100`, default `100` | :warning: |
+  | `timeoutAnimation` | Default for `timeoutAnimation` | object | `glow` | :warning: |
+  | `width` | Allowed range and default for `overlayWidth` | object | `70` to `100`, default `85` | :warning: |
+
+  ---
+
   ***classes*** **Section**
 
   | Setting | Description | Type | Default | Adjustable |
@@ -308,9 +326,10 @@ A configuration file named [config.js](./config.js) allows you to customize vari
   | `loadingOverlayFadeOutSuffixSelector` | CSS Selector for the loading overlay fade out | string | `fade-out` | :x: |
   | `loadingOverlaySelector` | CSS Selector for the loading overlay | string | `#loading-overlay` | :x: |
   | `loadingOverlayTextSelector` | CSS Selector for the loading overlay text | string | `.loading-text` | :x: |
+  | `penaltyCodeKeySelector` | CSS Selector for the penalty code key container | string | `#penalty-code-key` | :x: |
+  | `penaltyCodeKeyItemsSelector` | CSS Selector for the penalty code key items | string | `.code-key-items` | :x: |
+  | `penaltyCodeKeyVisibleSelectorSuffix` | CSS Selector for the visible penalty code key | string | `visible` | :x: |
   | `penaltiesTitleH1Selector` | CSS Selector for the penalties title H1 text | string | `#penalties-title h1` | :x: |
-  | `teamsScoresHasLogoSelectorSuffix` | CSS Selector for the team scores custom logo padding container | string | `has-logo` | :x: |
-  | `teamsScoresSelector` | CSS Selector for the team scores container | string | `#teams-scores` | :x: |
   | `textShadow` | CSS Variable for text shadows | string | `var(--team-penalties-default-text-shadow)` | :x: |
 
   ---
@@ -362,6 +381,7 @@ A configuration file named [config.js](./config.js) allows you to customize vari
   | `loadCheckInterval` | How often to check if the game rules arrived (ms) | integer | `100` | :x: |
   | `maxLoadWaitMs` | Longest time to wait for the game rules to arrive (ms) | integer | `5000` | :warning: |
   | `minLoadDisplayMs` | Minimum time to show loading screen (ms) | integer | `500` | :x: |
+  | `penaltyCodeKeyRebuild` | Delay before rebuilding the penalty code key after an update (ms) | integer | `50` | :x: |
 
 </details>
 

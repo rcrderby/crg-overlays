@@ -23,7 +23,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
     enabled: false
   },
 
-  /***************************
+  /****************************
    ** Configuration Settings **
    ***************************/
 
@@ -55,15 +55,18 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // The `font` URL parameter overrides this value
     overlayFont: 'saira',
 
-    // Overlay background opacity percentage: 100 is solid, 0 is invisible (0 to 100)
+    // Overlay background opacity percentage: 100 is solid, 0 is invisible
+    // The `limits` section sets the allowed range
     // The `opacity` URL parameter overrides this value
     overlayOpacity: 98,
 
-    // Overlay scale percentage: 100 = full scale, 90 = 90% scale, etc. (1 to 100)
+    // Overlay scale percentage: 100 = full scale, 90 = 90% scale, etc.
+    // The `limits` section sets the allowed range
     // The `scale` URL parameter overrides this value
     overlayScale: 100,
 
-    // Overlay width percentage of the video frame (70 to 100)
+    // Overlay width percentage of the video frame
+    // The `limits` section sets the allowed range
     // The `width` URL parameter overrides this value
     overlayWidth: 85,
 
@@ -76,7 +79,41 @@ window.AppConfig.PenaltiesOverlayConfig = {
     timeoutAnimation: 'glow'
   },
 
-  /****************
+  /********************
+   ** Setting Limits **
+   *******************/
+
+  // Allowed values and defaults for configuration settings
+  limits: {
+    // Point the overlay scales from
+    anchor: { default: 'top' },
+
+    // Background animation
+    backgroundAnimation: { default: 'trace' },
+
+    // Font pairing
+    font: { default: 'saira' },
+
+    // Overlay background opacity percentage
+    opacity: { min: 0, max: 100, default: 98 },
+
+    // Penalty code key visibility
+    penaltyCodeKey: { default: true },
+
+    // Max penalty codes a roster row displays
+    penaltyCodes: { max: 9 },
+
+    // Overlay scale percentage
+    scale: { min: 1, max: 100, default: 100 },
+
+    // Timeout banner animation
+    timeoutAnimation: { default: 'glow' },
+
+    // Overlay width percentage of the video frame
+    width: { min: 70, max: 100, default: 85 }
+  },
+
+  /*****************
    ** CSS Classes **
    ****************/
 
@@ -115,7 +152,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
     textShadow: 'var(--team-penalties-default-text-shadow)'
   },
 
-  /********************
+  /*********************
    ** Labels Settings **
    ********************/
 
@@ -157,7 +194,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
     }
   },
 
-  /*******************
+  /********************
    ** Rules Settings **
    *******************/
 
@@ -172,7 +209,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
     }
   },
 
-  /***********************
+  /************************
    ** Penalties Settings **
    ***********************/
 
@@ -187,7 +224,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
     unknownCode: '?'
   },
 
-  /********************
+  /*********************
    ** Timing Settings **
    ********************/
 
