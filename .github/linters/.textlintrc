@@ -1,0 +1,26 @@
+{
+  "filters": {
+    "comments": true
+  },
+  "rules": {
+    "terminology": {
+      "defaultTerms": true,
+      "terms": [
+        ["colour(s|ed|ing)?", "color$1"],
+        ["behaviour(s)?", "behavior$1"],
+        ["centre(s|d)?", "center$1"],
+        ["customis(e|es|ed|ing|able|ation)", "customiz$1"],
+        ["organis(e|es|ed|ing|ation)", "organiz$1"],
+        ["recognis(e|es|ed|ing)", "recogniz$1"],
+        ["initialis(e|es|ed|ing|ation)", "initializ$1"],
+        ["optimis(e|es|ed|ing|ation)", "optimiz$1"],
+        ["licence", "license"],
+        ["defence", "defense"],
+        ["programme(s)?", "program$1"],
+        ["travelling", "traveling"],
+        ["labelled", "labeled"],
+        ["grey", "gray"]
+      ]
+    }
+  }
+}

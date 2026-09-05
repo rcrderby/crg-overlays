@@ -19,11 +19,40 @@ export default defineConfig([
 
       globals: {
         ...globals.browser,
+
+        // Supplied by CRG and jQuery at runtime, not by this repository
+        WS: "readonly",
+        $: "readonly",
+        jQuery: "readonly",
       },
     },
 
     rules: {
-      "no-undef": "off",
+      "no-undef": "error",
+      "no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+    },
+  },
+  {
+    // The tests run under Deno, as modules
+    files: ["tests/**/*.js"],
+
+    plugins: {
+      js,
+    },
+
+    extends: ["js/recommended"],
+
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+
+      globals: {
+        Deno: "readonly",
+      },
+    },
+
+    rules: {
+      "no-undef": "error",
       "no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
     },
   },
