@@ -205,9 +205,9 @@ function setOverlayWidth() {
     console.warn(
       `Invalid overlay width value "${widthToValidate}" in ${widthSource} (must be numeric) - using default (85%).`
     );
-  } else if (widthToValidate < 50 || widthToValidate > 100) {
+  } else if (widthToValidate < 70 || widthToValidate > 100) {
     console.warn(
-      `Invalid overlay width value ${widthToValidate} in ${widthSource} (must be in range 50-100) - using default (85%).`
+      `Invalid overlay width value ${widthToValidate} in ${widthSource} (must be in range 70-100) - using default (85%).`
     );
   } else {
     // Round width to two decimal points

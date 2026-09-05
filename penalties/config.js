@@ -63,7 +63,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // The `scale` URL parameter overrides this value
     overlayScale: 100,
 
-    // Overlay width percentage of the video frame (50 to 100)
+    // Overlay width percentage of the video frame (70 to 100)
     // The `width` URL parameter overrides this value
     overlayWidth: 85,
 

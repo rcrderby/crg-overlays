@@ -149,7 +149,7 @@ The overlay is narrower than the video frame so it doesn't crowd the edges.  Use
 | Narrower (75%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?width=75` |
 
 > [!TIP]
-> The allowed `width` parameter range is `50` to `100`.  Narrowing the overlay takes space from the player name column, so long player names may begin to truncate below about `75`.  See the `overlayWidth` setting in the [Configuration Section](#configuration "Configuration Section") for details.
+> The allowed `width` parameter range is `70` to `100`.  Narrowing the overlay takes space from the player name column, so long player names may begin to truncate below about `75`.  See the `overlayWidth` setting in the [Configuration Section](#configuration "Configuration Section") for details.
 
 #### Position Adjustments
 
@@ -253,7 +253,7 @@ A configuration file named [config.js](./config.js) allows you to customize vari
 ### Common Customizations
 
 - `config.overlayScale` to adjust the overlay scale - between 1 and 100 (default is `100`).
-- `config.overlayWidth` to adjust the overlay width - between 50 and 100 (default is `85`).
+- `config.overlayWidth` to adjust the overlay width - between 70 and 100 (default is `85`).
 - `config.overlayAnchor` to set the point the overlay scales from - `top`, `center`, or `bottom` (default is `top`).
 - `config.overlayOpacity` to adjust how much of the video shows through the overlay background - between 0 and 100 (default is `98`).
 - `config.overlayFont` to set the font pairing - `saira`, `league-gothic`, `anton`, or `bricolage` (default is `saira`).
@@ -289,7 +289,7 @@ A configuration file named [config.js](./config.js) allows you to customize vari
   | `titleBannerText` | Title text | string | `PENALTIES` | :white_check_mark: |
   | `overlayScale` | Overlay scale percentage: 100  = full scale, 90 = 90% scale, etc. (1 to 100) - the [`scale` URL parameter](#scale-adjustments "Scale Adjustments Section") overrides this value | int or float | `100` | :white_check_mark: |
   | `overlayAnchor` | Point the overlay scales from: `top`, `center`, or `bottom` - the [`anchor` URL parameter](#position-adjustments "Position Adjustments Section") overrides this value | string | `top` | :white_check_mark: |
-  | `overlayWidth` | Overlay width percentage of the video frame (50 to 100) - the [`width` URL parameter](#width-adjustments "Width Adjustments Section") overrides this value | int or float | `85` | :white_check_mark: |
+  | `overlayWidth` | Overlay width percentage of the video frame (70 to 100) - the [`width` URL parameter](#width-adjustments "Width Adjustments Section") overrides this value | int or float | `85` | :white_check_mark: |
   | `overlayOpacity` | Overlay background opacity percentage: 100 is solid, 0 is invisible (0 to 100) - the [`opacity` URL parameter](#background-opacity "Background Opacity Section") overrides this value | int or float | `98` | :white_check_mark: |
   | `overlayFont` | Font pairing: `saira`, `league-gothic`, `anton`, or `bricolage` - the [`font` URL parameter](#font-selection "Font Selection Section") overrides this value | string | `saira` | :white_check_mark: |
   | `backgroundAnimation` | Background animation: `trace`, `organic`, `shine`, or `off` - the [`background` URL parameter](#animation-options "Animation Options Section") overrides this value | string | `trace` | :white_check_mark: |
