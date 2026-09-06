@@ -48,9 +48,9 @@ if (typeof PenaltiesOverlayConfig === 'undefined') {
 }
 
 // Validate required configuration structure
-const requiredSections = ['debug', 'config', 'validation', 'classes', 'labels', 'rules', 'penalties', 'timing'];
+const REQUIRED_SECTIONS = ['debug', 'config', 'validation', 'classes', 'labels', 'rules', 'penalties', 'timing'];
 
-const missingSections = requiredSections.filter((section) => !PenaltiesOverlayConfig[section]);
+const missingSections = REQUIRED_SECTIONS.filter((section) => !PenaltiesOverlayConfig[section]);
 
 if (missingSections.length > 0) {
   const errorMsg = `Configuration file (config.js) is missing required sections: ${missingSections.join(', ')}`;
@@ -104,6 +104,22 @@ console.log('Debug mode:', DEBUG);
 
 // Overlay version to display as a watermark and log to the console
 const OVERLAY_VERSION = '4.0.0';
+
+// CRG WebSocket channels the overlay reads
+const CHANNELS = {
+  currentPeriod: 'ScoreBoard.CurrentGame.CurrentPeriodNumber',
+  inOvertime: 'ScoreBoard.CurrentGame.InOvertime',
+  intermissionLabel: 'ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)',
+  intermissionRunning: 'ScoreBoard.CurrentGame.Clock(Intermission).Running',
+  officialReview: 'ScoreBoard.CurrentGame.OfficialReview',
+  officialScore: 'ScoreBoard.CurrentGame.OfficialScore',
+  penaltyCode: 'ScoreBoard.CurrentGame.PenaltyCode',
+  preGameLabel: 'ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)',
+  ruleFouloutCount: 'ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout)',
+  rulePeriodCount: 'ScoreBoard.CurrentGame.Rule(Period.Number)',
+  team1Skaters: 'ScoreBoard.CurrentGame.Team(1).Skater',
+  team2Skaters: 'ScoreBoard.CurrentGame.Team(2).Skater'
+};
 
 /*****************************
  ** URL Parameter Functions **
@@ -502,12 +518,12 @@ window.glowColorToShadow = function (_k, glowColor) {
  ** Game Rule Functions **
  ************************/
 
-// WebSocket Channels to read the active ruleset
-const PENALTY_CODE_PREFIX = 'ScoreBoard.CurrentGame.PenaltyCode(';
+// Patterns that read a player out of a state key
 const SKATER_CONTEXT = /^ScoreBoard\.CurrentGame\.Team\(\d+\)\.Skater\([^)]+\)/;
 const PENALTY_CODE_SUFFIX = /\.Penalty\(\d+\)\.Code$/;
-const RULE_FOULOUT_COUNT = 'ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout)';
-const RULE_PERIOD_COUNT = 'ScoreBoard.CurrentGame.Rule(Period.Number)';
+
+// Penalty code definitions are in the penalty code channel
+const PENALTY_CODE_PREFIX = `${CHANNELS.penaltyCode}(`;
 
 // Portion of a state key that names a player, or null when the key names something else
 function getSkaterContext(stateKey) {
@@ -518,14 +534,14 @@ function getSkaterContext(stateKey) {
 
 // Number of penalties that result in a foulout, or null when the ruleset supplies no usable count
 function getFouloutCount() {
-  const fouloutCount = parseInt(WS.state[RULE_FOULOUT_COUNT]);
+  const fouloutCount = parseInt(WS.state[CHANNELS.ruleFouloutCount]);
 
   return Number.isFinite(fouloutCount) && fouloutCount >= 1 ? fouloutCount : null;
 }
 
 // Number of periods in the game, or null when the ruleset supplies no usable count
 function getPeriodCount() {
-  const periodCount = parseInt(WS.state[RULE_PERIOD_COUNT]);
+  const periodCount = parseInt(WS.state[CHANNELS.rulePeriodCount]);
 
   return Number.isFinite(periodCount) && periodCount >= 1 ? periodCount : null;
 }
@@ -673,16 +689,16 @@ window.getTeamNameWithDefault = function (k, alternateName) {
 // Determine if the period clock should be hidden
 window.shouldHidePeriodClock = function (_k, intermissionRunning) {
   // Pre-game, when no intermission clock is running (Coming Up)
-  const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
+  const period = parseInt(WS.state[CHANNELS.currentPeriod]) || 0;
 
   // When the intermission clock is running
   const isIntermission = intermissionRunning === true;
 
   // When the score is unofficial or official
-  const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
+  const isOfficial = WS.state[CHANNELS.officialScore] === true;
 
   // During overtime
-  const isOvertime = WS.state['ScoreBoard.CurrentGame.InOvertime'] === true;
+  const isOvertime = WS.state[CHANNELS.inOvertime] === true;
 
   return period === 0 || isIntermission || isOfficial || isOvertime;
 };
@@ -693,13 +709,13 @@ window.shouldHideIntermissionClock = function (_k, intermissionRunning) {
   const isIntermission = intermissionRunning === true;
 
   // When the score is unofficial or official
-  const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
+  const isOfficial = WS.state[CHANNELS.officialScore] === true;
 
   // During overtime
-  const isOvertime = WS.state['ScoreBoard.CurrentGame.InOvertime'] === true;
+  const isOvertime = WS.state[CHANNELS.inOvertime] === true;
 
   // After the last period, which an unknown period count cannot establish
-  const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
+  const period = parseInt(WS.state[CHANNELS.currentPeriod]) || 0;
   const periodCount = getPeriodCount();
   const afterLastPeriod = periodCount !== null && period >= periodCount;
 
@@ -728,8 +744,8 @@ window.getIntermissionLabel = function (_k, periodNumber) {
   const periodCount = getPeriodCount();
 
   // Read intermission labels from the WS.state
-  const preGame = WS.state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)'];
-  const intermission = WS.state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)'];
+  const preGame = WS.state[CHANNELS.preGameLabel];
+  const intermission = WS.state[CHANNELS.intermissionLabel];
 
   // Before the game starts
   if (period === 0) {
@@ -748,10 +764,10 @@ window.getIntermissionLabel = function (_k, periodNumber) {
 // Read the game state the score labels depend on
 function getScoreLabelState() {
   return {
-    period: parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0,
-    isIntermission: WS.state['ScoreBoard.CurrentGame.Clock(Intermission).Running'] === true,
-    isOfficial: WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true,
-    isOvertime: WS.state['ScoreBoard.CurrentGame.InOvertime'] === true
+    period: parseInt(WS.state[CHANNELS.currentPeriod]) || 0,
+    isIntermission: WS.state[CHANNELS.intermissionRunning] === true,
+    isOfficial: WS.state[CHANNELS.officialScore] === true,
+    isOvertime: WS.state[CHANNELS.inOvertime] === true
   };
 }
 
@@ -911,14 +927,7 @@ function registerPenaltyCodeKey() {
     return;
   }
 
-  WS.Register(
-    [
-      'ScoreBoard.CurrentGame.PenaltyCode',
-      'ScoreBoard.CurrentGame.Team(1).Skater',
-      'ScoreBoard.CurrentGame.Team(2).Skater'
-    ],
-    schedulePenaltyCodeKeyRebuild
-  );
+  WS.Register([CHANNELS.penaltyCode, CHANNELS.team1Skaters, CHANNELS.team2Skaters], schedulePenaltyCodeKeyRebuild);
 }
 
 /*********************************
@@ -969,7 +978,7 @@ function loadCustomLogo() {
 // Determine the timeout banner text to display
 window.getTimeoutText = function (_k, timeoutOwner, officialReview) {
   // Official review
-  const isReview = officialReview === true || WS.state['ScoreBoard.CurrentGame.OfficialReview'] === true;
+  const isReview = officialReview === true || WS.state[CHANNELS.officialReview] === true;
   if (isReview) return LABELS.timeout.review;
 
   // Official timeout
@@ -1047,7 +1056,9 @@ function hideLoadingOverlayWhenReady() {
     const elapsed = Date.now() - startTime;
     const rulesArrived =
       typeof WS !== 'undefined' &&
-      [RULE_FOULOUT_COUNT, RULE_PERIOD_COUNT].every((channel) => typeof WS.state[channel] !== 'undefined');
+      [CHANNELS.ruleFouloutCount, CHANNELS.rulePeriodCount].every(
+        (channel) => typeof WS.state[channel] !== 'undefined'
+      );
 
     // Always show the loading overlay for the minimum display time
     if (elapsed < TIMING.minLoadDisplayMs) {

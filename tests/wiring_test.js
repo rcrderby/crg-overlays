@@ -41,16 +41,12 @@ Deno.test('every configuration key index.js reads exists in config.js', async ()
   const { window } = await loadOverlay();
   const configuration = window.AppConfig.PenaltiesOverlayConfig;
 
-  // The constant index.js assigns each configuration section to
-  const sections = {
-    CONFIG: 'config',
-    VALIDATION: 'validation',
-    CLASSES: 'classes',
-    LABELS: 'labels',
-    RULES: 'rules',
-    PENALTIES: 'penalties',
-    TIMING: 'timing'
-  };
+  // The constant index.js assigns each configuration section to.  `debug` has
+  // no constant, and index.js reads it straight from the configuration object
+  const { REQUIRED_SECTIONS } = await loadOverlay();
+  const sections = Object.fromEntries(
+    REQUIRED_SECTIONS.filter((section) => section !== 'debug').map((section) => [section.toUpperCase(), section])
+  );
 
   const missing = [];
   for (const [constant, section] of Object.entries(sections)) {
@@ -80,7 +76,7 @@ Deno.test('config.js provides every section index.js requires', async () => {
   const { window } = await loadOverlay();
   const configuration = window.AppConfig.PenaltiesOverlayConfig;
   const required = js
-    .match(/const requiredSections = \[(.*?)\]/)[1]
+    .match(/const REQUIRED_SECTIONS = \[(.*?)\]/)[1]
     .match(/'([^']+)'/g)
     .map((name) => name.slice(1, -1));
 

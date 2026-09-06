@@ -2,10 +2,14 @@
 
 import assert from 'node:assert/strict';
 import { loadOverlay } from './support/overlay.js';
-
-const FOULOUT_RULE = 'ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout)';
-const SKATER = 'ScoreBoard.CurrentGame.Team(1).Skater(abc123)';
-const COUNT_KEY = `${SKATER}.PenaltyCount`;
+import {
+  COUNT_KEY,
+  CURRENT_PERIOD,
+  FOULOUT_RULE,
+  INTERMISSION_RUNNING,
+  PERIOD_RULE,
+  SKATER
+} from './support/channels.js';
 
 // Build an overlay whose skater carries the given Penalty(0) status code
 function withSkater({ foulout = 7, penaltyZero } = {}) {
@@ -120,43 +124,39 @@ Deno.test('a team falls back to its CRG name, then to a numbered default', async
   assert.equal(typeof WS.state, 'object');
 });
 
-const PERIOD_RULE = 'ScoreBoard.CurrentGame.Rule(Period.Number)';
-const PERIOD_NUMBER = 'ScoreBoard.CurrentGame.CurrentPeriodNumber';
-const INTERMISSION = 'ScoreBoard.CurrentGame.Clock(Intermission).Running';
-
 // Build an overlay in a two period game at the given point
 function atGameState(state) {
   return loadOverlay({ state: { [PERIOD_RULE]: '2', ...state } });
 }
 
 Deno.test('"Coming Up" shows before the game starts and not after', async () => {
-  const beforeGame = await atGameState({ [PERIOD_NUMBER]: '0' });
+  const beforeGame = await atGameState({ [CURRENT_PERIOD]: '0' });
   assert.equal(beforeGame.window.shouldHideComingUp(), false);
 
-  const firstPeriod = await atGameState({ [PERIOD_NUMBER]: '1' });
+  const firstPeriod = await atGameState({ [CURRENT_PERIOD]: '1' });
   assert.equal(firstPeriod.window.shouldHideComingUp(), true);
 
-  const warmup = await atGameState({ [PERIOD_NUMBER]: '0', [INTERMISSION]: true });
+  const warmup = await atGameState({ [CURRENT_PERIOD]: '0', [INTERMISSION_RUNNING]: true });
   assert.equal(warmup.window.shouldHideComingUp(), true);
 });
 
 Deno.test('"Unofficial Score" shows after the final period, until the score is official', async () => {
-  const afterFinalPeriod = await atGameState({ [PERIOD_NUMBER]: '2', [INTERMISSION]: true });
+  const afterFinalPeriod = await atGameState({ [CURRENT_PERIOD]: '2', [INTERMISSION_RUNNING]: true });
   assert.equal(afterFinalPeriod.window.shouldHideUnofficialScore(), false);
 
-  const betweenPeriods = await atGameState({ [PERIOD_NUMBER]: '1', [INTERMISSION]: true });
+  const betweenPeriods = await atGameState({ [CURRENT_PERIOD]: '1', [INTERMISSION_RUNNING]: true });
   assert.equal(betweenPeriods.window.shouldHideUnofficialScore(), true);
 
   const official = await atGameState({
-    [PERIOD_NUMBER]: '2',
-    [INTERMISSION]: true,
+    [CURRENT_PERIOD]: '2',
+    [INTERMISSION_RUNNING]: true,
     'ScoreBoard.CurrentGame.OfficialScore': true
   });
   assert.equal(official.window.shouldHideUnofficialScore(), true);
 
   const overtime = await atGameState({
-    [PERIOD_NUMBER]: '2',
-    [INTERMISSION]: true,
+    [CURRENT_PERIOD]: '2',
+    [INTERMISSION_RUNNING]: true,
     'ScoreBoard.CurrentGame.InOvertime': true
   });
   assert.equal(overtime.window.shouldHideUnofficialScore(), true);

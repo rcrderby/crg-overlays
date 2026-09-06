@@ -3,14 +3,17 @@
 
 import assert from 'node:assert/strict';
 import { loadOverlay } from './support/overlay.js';
-
-const PERIOD_RULE = 'ScoreBoard.CurrentGame.Rule(Period.Number)';
-const PERIOD_NUMBER = 'ScoreBoard.CurrentGame.CurrentPeriodNumber';
-const OFFICIAL_SCORE = 'ScoreBoard.CurrentGame.OfficialScore';
-const OVERTIME = 'ScoreBoard.CurrentGame.InOvertime';
-const PRE_GAME_LABEL = 'ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)';
-const INTERMISSION_LABEL = 'ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)';
-const INTERMISSION_RUNNING = 'ScoreBoard.CurrentGame.Clock(Intermission).Running';
+import {
+  COUNT_KEY,
+  CURRENT_PERIOD,
+  FOULOUT_RULE,
+  INTERMISSION_LABEL,
+  INTERMISSION_RUNNING,
+  OFFICIAL_SCORE,
+  OVERTIME,
+  PERIOD_RULE,
+  PRE_GAME_LABEL
+} from './support/channels.js';
 
 // A two period game at the given point
 function atGameState(state = {}) {
@@ -85,33 +88,33 @@ Deno.test('the intermission label follows the point in the game', async () => {
 });
 
 Deno.test('the period clock shows only while a period is under way', async () => {
-  const running = await atGameState({ [PERIOD_NUMBER]: '1' });
+  const running = await atGameState({ [CURRENT_PERIOD]: '1' });
   assert.equal(running.window.shouldHidePeriodClock(null, false), false);
 
-  const beforeGame = await atGameState({ [PERIOD_NUMBER]: '0' });
+  const beforeGame = await atGameState({ [CURRENT_PERIOD]: '0' });
   assert.equal(beforeGame.window.shouldHidePeriodClock(null, false), true);
 
-  const intermission = await atGameState({ [PERIOD_NUMBER]: '1' });
+  const intermission = await atGameState({ [CURRENT_PERIOD]: '1' });
   assert.equal(intermission.window.shouldHidePeriodClock(null, true), true);
 
   for (const state of [{ [OFFICIAL_SCORE]: true }, { [OVERTIME]: true }]) {
-    const overlay = await atGameState({ [PERIOD_NUMBER]: '1', ...state });
+    const overlay = await atGameState({ [CURRENT_PERIOD]: '1', ...state });
     assert.equal(overlay.window.shouldHidePeriodClock(null, false), true);
   }
 });
 
 Deno.test('the intermission clock shows only between periods', async () => {
-  const betweenPeriods = await atGameState({ [PERIOD_NUMBER]: '1' });
+  const betweenPeriods = await atGameState({ [CURRENT_PERIOD]: '1' });
   assert.equal(betweenPeriods.window.shouldHideIntermissionClock(null, true), false);
 
-  const notRunning = await atGameState({ [PERIOD_NUMBER]: '1' });
+  const notRunning = await atGameState({ [CURRENT_PERIOD]: '1' });
   assert.equal(notRunning.window.shouldHideIntermissionClock(null, false), true);
 
   // After the final period, and once the score is official
-  const afterFinalPeriod = await atGameState({ [PERIOD_NUMBER]: '2' });
+  const afterFinalPeriod = await atGameState({ [CURRENT_PERIOD]: '2' });
   assert.equal(afterFinalPeriod.window.shouldHideIntermissionClock(null, true), true);
 
-  const official = await atGameState({ [PERIOD_NUMBER]: '1', [OFFICIAL_SCORE]: true });
+  const official = await atGameState({ [CURRENT_PERIOD]: '1', [OFFICIAL_SCORE]: true });
   assert.equal(official.window.shouldHideIntermissionClock(null, true), true);
 });
 
@@ -132,10 +135,6 @@ Deno.test('the small binding helpers behave', async () => {
 
 // The overlay displays after maxLoadWaitMs even when the ruleset never arrives.
 // Every reading of the ruleset must function without the ruleset arriving.
-const FOULOUT_RULE = 'ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout)';
-const SKATER = 'ScoreBoard.CurrentGame.Team(1).Skater(abc123)';
-const COUNT_KEY = `${SKATER}.PenaltyCount`;
-
 // A game the ruleset has not reached, at a given point
 function withoutRuleset(state = {}) {
   return loadOverlay({ state });
@@ -143,17 +142,17 @@ function withoutRuleset(state = {}) {
 
 Deno.test('an unknown period count hides the score labels rather than guessing', async () => {
   // Mid-game intermission: the label belongs to the end of the game, so it stays hidden
-  const midGame = await withoutRuleset({ [PERIOD_NUMBER]: '1', [INTERMISSION_RUNNING]: true });
+  const midGame = await withoutRuleset({ [CURRENT_PERIOD]: '1', [INTERMISSION_RUNNING]: true });
   assert.equal(midGame.window.shouldHideUnofficialScore(), true);
 
   // The same state with the ruleset present still shows it after the final period
-  const known = await atGameState({ [PERIOD_NUMBER]: '2', [INTERMISSION_RUNNING]: true });
+  const known = await atGameState({ [CURRENT_PERIOD]: '2', [INTERMISSION_RUNNING]: true });
   assert.equal(known.window.shouldHideUnofficialScore(), false);
 });
 
 Deno.test('an unknown period count keeps the intermission clock and its label together', async () => {
   const overlay = await withoutRuleset({
-    [PERIOD_NUMBER]: '1',
+    [CURRENT_PERIOD]: '1',
     [INTERMISSION_RUNNING]: true,
     [INTERMISSION_LABEL]: 'Intermission'
   });
