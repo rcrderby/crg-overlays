@@ -12,6 +12,7 @@ const INTERNALS = [
   'VALIDATION',
   'SETTING_SOURCES',
   'CONFIG',
+  'CLASSES',
   'LABELS',
   'PENALTIES',
   'RULES',
@@ -21,7 +22,10 @@ const INTERNALS = [
   'setOverlayOpacity',
   'setOverlayAnchor',
   'setOverlayFont',
-  'setPenaltyCodeKey'
+  'setPenaltyCodeKey',
+  'setBackgroundAnimation',
+  'setTimeoutAnimation',
+  'setOverlayVersion'
 ];
 
 // Read a file from the repository, whatever the working directory
@@ -46,10 +50,21 @@ export async function loadOverlay({ configSource, indexSource, search = '', stat
   const properties = {};
   const warnings = [];
 
+  // Classes the animation settings apply to the overlay element
+  const overlayClasses = new Set();
+  const overlayElement = {
+    dataset: {},
+    classList: {
+      add: (name) => overlayClasses.add(name),
+      remove: (name) => overlayClasses.delete(name),
+      contains: (name) => overlayClasses.has(name)
+    }
+  };
+
   const document = {
     documentElement: { style: { setProperty: (name, value) => (properties[name] = String(value)) } },
     addEventListener: () => {},
-    getElementById: () => null
+    getElementById: (id) => (id === 'overlay' ? overlayElement : null)
   };
   const consoleStub = {
     log: () => {},
@@ -77,5 +92,5 @@ export async function loadOverlay({ configSource, indexSource, search = '', stat
     `${index}\nreturn { ${INTERNALS.join(', ')} };`
   )(window, document, consoleStub, jQueryStub, () => 0, WS);
 
-  return { ...api, window, WS, properties, warnings };
+  return { ...api, window, WS, properties, warnings, overlayClasses };
 }

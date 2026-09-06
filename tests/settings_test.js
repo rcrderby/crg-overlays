@@ -165,3 +165,68 @@ Deno.test('a missing debug setting falls back to the configured default', async 
   assert.equal(DEBUG, false);
   assert.match(warnings.join(' '), /Debug logging not defined in config\.js/);
 });
+
+// Each animation option and the class it applies to the overlay
+const ANIMATIONS = [
+  {
+    name: 'background',
+    setting: 'backgroundAnimation',
+    method: 'setBackgroundAnimation',
+    parameter: 'background',
+    classes: { trace: 'background-trace', organic: 'background-organic', shine: 'background-shine', off: '' }
+  },
+  {
+    name: 'timeout',
+    setting: 'timeoutAnimation',
+    method: 'setTimeoutAnimation',
+    parameter: 'timeout',
+    classes: { glow: 'timeout-glow', pulse: 'timeout-pulse', shine: 'timeout-shine', off: '' }
+  }
+];
+
+for (const animation of ANIMATIONS) {
+  Deno.test(`each ${animation.name} animation applies its own class`, async () => {
+    for (const [option, className] of Object.entries(animation.classes)) {
+      const overlay = await loadOverlay({ search: `?${animation.parameter}=${option}` });
+      overlay[animation.method]();
+
+      const applied = [...overlay.overlayClasses];
+      assert.deepEqual(applied, className ? [className] : [], `${option} should apply "${className}"`);
+      assert.deepEqual(overlay.warnings, []);
+    }
+  });
+
+  Deno.test(`an invalid ${animation.name} animation falls back to the default`, async () => {
+    const overlay = await loadOverlay({ search: `?${animation.parameter}=sparkle` });
+    overlay[animation.method]();
+
+    const fallback = animation.classes[allowed[animation.setting].default];
+    assert.deepEqual([...overlay.overlayClasses], [fallback]);
+    assert.match(overlay.warnings.join(' '), /must be one of/);
+  });
+}
+
+Deno.test('the background and timeout animations do not disturb each other', async () => {
+  const overlay = await loadOverlay({ search: '?background=organic&timeout=pulse' });
+  overlay.setBackgroundAnimation();
+  overlay.setTimeoutAnimation();
+
+  assert.deepEqual([...overlay.overlayClasses].sort(), ['background-organic', 'timeout-pulse']);
+});
+
+Deno.test('the penalty code key accepts true and false, and rejects anything else', async () => {
+  for (const search of ['?key=true', '?key=false', '']) {
+    const overlay = await loadOverlay({ search });
+    overlay.setPenaltyCodeKey();
+    assert.deepEqual(overlay.warnings, [], `${search || '(default)'} should be accepted`);
+  }
+
+  const invalid = await loadOverlay({ search: '?key=sometimes' });
+  invalid.setPenaltyCodeKey();
+  assert.match(invalid.warnings.join(' '), /must be true or false/);
+});
+
+Deno.test('the overlay stamps its version on the page', async () => {
+  const { setOverlayVersion } = await loadOverlay();
+  assert.doesNotThrow(() => setOverlayVersion());
+});
