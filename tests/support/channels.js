@@ -19,3 +19,11 @@ export const PRE_GAME_LABEL = 'ScoreBoard.Settings.Setting(ScoreBoard.Intermissi
 // A skater to hang penalty state on
 export const SKATER = 'ScoreBoard.CurrentGame.Team(1).Skater(abc123)';
 export const COUNT_KEY = `${SKATER}.PenaltyCount`;
+
+// Channels the penalty code key watches
+export const PENALTY_CODE = 'ScoreBoard.CurrentGame.PenaltyCode';
+export const TEAM_1_SKATERS = 'ScoreBoard.CurrentGame.Team(1).Skater';
+export const TEAM_2_SKATERS = 'ScoreBoard.CurrentGame.Team(2).Skater';
+
+// Where CRG publishes the description of one penalty code
+export const penaltyCode = (code) => `${PENALTY_CODE}(${code})`;
