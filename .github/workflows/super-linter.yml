@@ -11,6 +11,11 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: read
+  statuses: write
+
 # Cancel superseded runs on a branch; never cancel main runs so the
 # post-merge run always completes.
 concurrency:
@@ -32,7 +37,7 @@ jobs:
       # checkout action documentation
       # https://github.com/marketplace/actions/checkout
       - name: Checkout Repository
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           # Full git history is needed to get a proper list of changed files within `super-linter`
           fetch-depth: 0
@@ -40,7 +45,7 @@ jobs:
       # Super Linter action documentation
       # https://github.com/marketplace/actions/super-linter
       - name: Lint Code Base
-        uses: super-linter/super-linter/slim@v8.7.0
+        uses: super-linter/super-linter/slim@4ce20838b8ab83717e78138c5b3a1407148e0918  # v8.7.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_ALL_CODEBASE: true
