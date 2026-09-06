@@ -110,32 +110,104 @@ function getUrlParameter(name) {
   return urlParams.get(name);
 }
 
-// Validate the debug logging setting
-function getDebugSetting() {
-  const urlDebug = getUrlParameter('debug');
-  const debugSource = urlDebug !== null ? SETTING_SOURCES.url : SETTING_SOURCES.config;
-  const debugToValidate = urlDebug !== null ? urlDebug.toLowerCase() : PenaltiesOverlayConfig.debug?.enabled;
-  const defaultDebug = VALIDATION.debug.default;
+/**************************
+ ** Setting Resolution   **
+ *************************/
 
-  // Validate the debug value
-  if (typeof debugToValidate === 'undefined' || debugToValidate === null) {
-    console.warn(`Debug logging not defined in ${debugSource} - using default (${defaultDebug}).`);
-    return defaultDebug;
+// Report a percentage the way the settings describe themselves
+function asPercent(value) {
+  return `${value}%`;
+}
+
+// URL parameters arrive as text, and some settings match without regard to case
+function lowercase(raw) {
+  return raw.toLowerCase();
+}
+
+// Accept a number inside the allowed range, rounded to two decimal points
+function inRange(allowed) {
+  return (value) => {
+    if (typeof value !== 'number' || isNaN(value)) {
+      return { reason: 'must be numeric', display: `"${value}"` };
+    }
+
+    if (value < allowed.min || value > allowed.max) {
+      return { reason: `must be in range ${allowed.min}-${allowed.max}`, display: `${value}` };
+    }
+
+    return { value: Math.round(value * 100) / 100 };
+  };
+}
+
+// Accept one of the allowed names
+function oneOf(choices) {
+  return (value) => {
+    if (typeof value !== 'string') {
+      return { reason: 'must be a string', display: `"${value}"` };
+    }
+
+    if (!choices.includes(value.toLowerCase())) {
+      return { reason: `must be one of ${choices.join(', ')}`, display: `"${value}"` };
+    }
+
+    return { value: value.toLowerCase() };
+  };
+}
+
+// Accept a boolean, or the text a URL parameter supplies for one
+function isBoolean(value) {
+  if (typeof value === 'boolean') {
+    return { value };
   }
 
-  if (typeof debugToValidate === 'boolean') {
-    return debugToValidate;
+  if (value === 'true' || value === 'false') {
+    return { value: value === 'true' };
   }
 
-  if (debugToValidate === 'true' || debugToValidate === 'false') {
-    return debugToValidate === 'true';
+  return { reason: 'must be true or false', display: `"${value}"` };
+}
+
+// Read a setting from its URL parameter, then config.js, then the validated default.
+// A validator returns the accepted value, or the reason the value cannot be used.
+function resolveSetting({ label, urlParam, configValue, fallback, validate, parse, describe = String }) {
+  const urlValue = getUrlParameter(urlParam);
+  const fromUrl = urlValue !== null;
+  const source = fromUrl ? SETTING_SOURCES.url : SETTING_SOURCES.config;
+  const value = fromUrl && parse ? parse(urlValue) : fromUrl ? urlValue : configValue;
+
+  if (typeof value === 'undefined' || value === null) {
+    console.warn(`${label} not defined in ${source} - using default (${describe(fallback)}).`);
+
+    return { value: fallback, source: SETTING_SOURCES.default };
   }
 
+  const result = validate(value);
+
+  if ('value' in result) {
+    return { value: result.value, source };
+  }
+
+  // The label opens the sentence above, and names the setting inside this one
+  const setting = label.charAt(0).toLowerCase() + label.slice(1);
   console.warn(
-    `Invalid debug logging value "${debugToValidate}" in ${debugSource} (must be true or false) - using default (${defaultDebug}).`
+    `Invalid ${setting} value ${result.display} in ${source} (${result.reason}) - using default (${describe(fallback)}).`
   );
 
-  return defaultDebug;
+  return { value: fallback, source: SETTING_SOURCES.default };
+}
+
+// Validate the debug logging setting
+function getDebugSetting() {
+  const { value } = resolveSetting({
+    label: 'Debug logging',
+    urlParam: 'debug',
+    configValue: PenaltiesOverlayConfig.debug?.enabled,
+    fallback: VALIDATION.debug.default,
+    parse: lowercase,
+    validate: isBoolean
+  });
+
+  return value;
 }
 
 // Log URL parameters
@@ -168,103 +240,42 @@ function logUrlParameters() {
 // Validate and set the overlay scale value
 function setOverlayScale() {
   const allowed = VALIDATION.scale;
-  let overlayScalePercent = allowed.default;
-  let scaleSource = SETTING_SOURCES.default;
-  let validationPassed = false;
-
-  // Check for URL parameter first to take precedence over the config.js setting
-  const urlScale = getUrlParameter('scale');
-  const configScale = CONFIG.overlayScale;
-
-  // Determine which scale value to use
-  let scaleToValidate;
-  if (urlScale !== null) {
-    scaleToValidate = parseFloat(urlScale);
-    scaleSource = SETTING_SOURCES.url;
-  } else {
-    scaleToValidate = configScale;
-    scaleSource = SETTING_SOURCES.config;
-  }
-
-  // Validate the scale value
-  if (typeof scaleToValidate === 'undefined' || scaleToValidate === null) {
-    console.warn(`Overlay scale not defined in ${scaleSource} - using default (${allowed.default}%).`);
-  } else if (typeof scaleToValidate !== 'number' || isNaN(scaleToValidate)) {
-    console.warn(
-      `Invalid overlay scale value "${scaleToValidate}" in ${scaleSource} (must be numeric) - using default (${allowed.default}%).`
-    );
-  } else if (scaleToValidate < allowed.min || scaleToValidate > allowed.max) {
-    console.warn(
-      `Invalid overlay scale value ${scaleToValidate} in ${scaleSource} (must be in range ${allowed.min}-${allowed.max}) - using default (${allowed.default}%).`
-    );
-  } else {
-    // Round scale to two decimal points
-    overlayScalePercent = Math.round(scaleToValidate * 100) / 100;
-    validationPassed = true;
-  }
-
-  // Reset scale source if validation failed
-  if (!validationPassed) {
-    scaleSource = SETTING_SOURCES.default;
-  }
+  const { value, source } = resolveSetting({
+    label: 'Overlay scale',
+    urlParam: 'scale',
+    configValue: CONFIG.overlayScale,
+    fallback: allowed.default,
+    parse: parseFloat,
+    describe: asPercent,
+    validate: inRange(allowed)
+  });
 
   // Convert percentage to decimal for CSS transform
-  const overlayScale = overlayScalePercent / 100;
-  document.documentElement.style.setProperty('--overlay-scale', overlayScale);
+  document.documentElement.style.setProperty('--overlay-scale', value / 100);
 
   if (DEBUG) {
-    console.log(`Overlay scaled to ${overlayScalePercent}% (from ${scaleSource}).`);
+    console.log(`Overlay scaled to ${value}% (from ${source}).`);
   }
 }
 
 // Validate and set the overlay width
 function setOverlayWidth() {
   const allowed = VALIDATION.width;
-  let overlayWidthPercent = allowed.default;
-  let widthSource = SETTING_SOURCES.default;
-  let validationPassed = false;
-
-  // Check for URL parameter first to take precedence over the config.js setting
-  const urlWidth = getUrlParameter('width');
-  const configWidth = CONFIG.overlayWidth;
-
-  // Determine which width value to use
-  let widthToValidate;
-  if (urlWidth !== null) {
-    widthToValidate = parseFloat(urlWidth);
-    widthSource = SETTING_SOURCES.url;
-  } else {
-    widthToValidate = configWidth;
-    widthSource = SETTING_SOURCES.config;
-  }
-
-  // Validate the width value
-  if (typeof widthToValidate === 'undefined' || widthToValidate === null) {
-    console.warn(`Overlay width not defined in ${widthSource} - using default (${allowed.default}%).`);
-  } else if (typeof widthToValidate !== 'number' || isNaN(widthToValidate)) {
-    console.warn(
-      `Invalid overlay width value "${widthToValidate}" in ${widthSource} (must be numeric) - using default (${allowed.default}%).`
-    );
-  } else if (widthToValidate < allowed.min || widthToValidate > allowed.max) {
-    console.warn(
-      `Invalid overlay width value ${widthToValidate} in ${widthSource} (must be in range ${allowed.min}-${allowed.max}) - using default (${allowed.default}%).`
-    );
-  } else {
-    // Round width to two decimal points
-    overlayWidthPercent = Math.round(widthToValidate * 100) / 100;
-    validationPassed = true;
-  }
-
-  // Reset width source if validation failed
-  if (!validationPassed) {
-    widthSource = SETTING_SOURCES.default;
-  }
+  const { value, source } = resolveSetting({
+    label: 'Overlay width',
+    urlParam: 'width',
+    configValue: CONFIG.overlayWidth,
+    fallback: allowed.default,
+    parse: parseFloat,
+    describe: asPercent,
+    validate: inRange(allowed)
+  });
 
   // Convert percentage to a decimal ratio of the video frame width
-  document.documentElement.style.setProperty('--overlay-width-ratio', overlayWidthPercent / 100);
+  document.documentElement.style.setProperty('--overlay-width-ratio', value / 100);
 
   if (DEBUG) {
-    console.log(`Overlay width set to ${overlayWidthPercent}% of the video frame (from ${widthSource}).`);
+    console.log(`Overlay width set to ${value}% of the video frame (from ${source}).`);
   }
 }
 
@@ -284,45 +295,14 @@ const TIMEOUT_ANIMATIONS = {
 };
 
 // Validate an animation setting and apply its class to the overlay
-function setAnimation(settingName, urlParam, configValue, animations, defaultName) {
-  let animation = defaultName;
-  let animationSource = SETTING_SOURCES.default;
-  let validationPassed = false;
-
-  // Check for URL parameter first to take precedence over the config.js setting
-  const urlAnimation = getUrlParameter(urlParam);
-
-  // Determine which animation value to use
-  let animationToValidate;
-  if (urlAnimation !== null) {
-    animationToValidate = urlAnimation;
-    animationSource = SETTING_SOURCES.url;
-  } else {
-    animationToValidate = configValue;
-    animationSource = SETTING_SOURCES.config;
-  }
-
-  // Validate the animation value
-  const allowedAnimations = Object.keys(animations);
-  if (typeof animationToValidate === 'undefined' || animationToValidate === null) {
-    console.warn(`${settingName} not defined in ${animationSource} - using default (${defaultName}).`);
-  } else if (typeof animationToValidate !== 'string') {
-    console.warn(
-      `Invalid ${settingName} value "${animationToValidate}" in ${animationSource} (must be a string) - using default (${defaultName}).`
-    );
-  } else if (!allowedAnimations.includes(animationToValidate.toLowerCase())) {
-    console.warn(
-      `Invalid ${settingName} value "${animationToValidate}" in ${animationSource} (must be one of ${allowedAnimations.join(', ')}) - using default (${defaultName}).`
-    );
-  } else {
-    animation = animationToValidate.toLowerCase();
-    validationPassed = true;
-  }
-
-  // Reset the source if validation failed
-  if (!validationPassed) {
-    animationSource = SETTING_SOURCES.default;
-  }
+function setAnimation(label, urlParam, configValue, animations, defaultName) {
+  const { value, source } = resolveSetting({
+    label,
+    urlParam,
+    configValue,
+    fallback: defaultName,
+    validate: oneOf(Object.keys(animations))
+  });
 
   // Remove any previously applied class before applying the chosen one
   const overlay = document.getElementById('overlay');
@@ -332,13 +312,13 @@ function setAnimation(settingName, urlParam, configValue, animations, defaultNam
         overlay.classList.remove(className);
       }
     }
-    if (animations[animation] !== '') {
-      overlay.classList.add(animations[animation]);
+    if (animations[value] !== '') {
+      overlay.classList.add(animations[value]);
     }
   }
 
   if (DEBUG) {
-    console.log(`${settingName} set to ${animation} (from ${animationSource}).`);
+    console.log(`${label} set to ${value} (from ${source}).`);
   }
 }
 
@@ -370,102 +350,41 @@ let penaltyCodeKeyPending = false;
 
 // Validate and set the penalty code key visibility
 function setPenaltyCodeKey() {
-  const defaultKey = VALIDATION.penaltyCodeKey.default;
-  let showKey = defaultKey;
-  let keySource = SETTING_SOURCES.default;
-  let validationPassed = false;
+  const { value, source } = resolveSetting({
+    label: 'Penalty code key',
+    urlParam: 'key',
+    configValue: CONFIG.penaltyCodeKey,
+    fallback: VALIDATION.penaltyCodeKey.default,
+    parse: lowercase,
+    describe: (visible) => (visible ? 'visible' : 'hidden'),
+    validate: isBoolean
+  });
 
-  // Check for URL parameter first to take precedence over the config.js setting
-  const urlKey = getUrlParameter('key');
-  const configKey = CONFIG.penaltyCodeKey;
-
-  // Determine which value to use
-  let keyToValidate;
-  if (urlKey !== null) {
-    keyToValidate = urlKey.toLowerCase();
-    keySource = SETTING_SOURCES.url;
-  } else {
-    keyToValidate = configKey;
-    keySource = SETTING_SOURCES.config;
-  }
-
-  // Validate the value
-  if (typeof keyToValidate === 'undefined' || keyToValidate === null) {
-    console.warn(
-      `Penalty code key not defined in ${keySource} - using default (${defaultKey ? 'visible' : 'hidden'}).`
-    );
-  } else if (typeof keyToValidate === 'boolean') {
-    showKey = keyToValidate;
-    validationPassed = true;
-  } else if (keyToValidate === 'true' || keyToValidate === 'false') {
-    showKey = keyToValidate === 'true';
-    validationPassed = true;
-  } else {
-    console.warn(
-      `Invalid penalty code key value "${keyToValidate}" in ${keySource} (must be true or false) - using default (${defaultKey ? 'visible' : 'hidden'}).`
-    );
-  }
-
-  // Reset the source if validation failed
-  if (!validationPassed) {
-    keySource = SETTING_SOURCES.default;
-  }
-
-  penaltyCodeKeyVisible = showKey;
+  penaltyCodeKeyVisible = value;
 
   if (DEBUG) {
-    console.log(`Penalty code key ${showKey ? 'enabled' : 'disabled'} (from ${keySource}).`);
+    console.log(`Penalty code key ${value ? 'enabled' : 'disabled'} (from ${source}).`);
   }
 }
 
 // Validate and set the overlay background opacity
 function setOverlayOpacity() {
   const allowed = VALIDATION.opacity;
-  let overlayOpacityPercent = allowed.default;
-  let opacitySource = SETTING_SOURCES.default;
-  let validationPassed = false;
-
-  // Check for URL parameter first to take precedence over the config.js setting
-  const urlOpacity = getUrlParameter('opacity');
-  const configOpacity = CONFIG.overlayOpacity;
-
-  // Determine which opacity value to use
-  let opacityToValidate;
-  if (urlOpacity !== null) {
-    opacityToValidate = parseFloat(urlOpacity);
-    opacitySource = SETTING_SOURCES.url;
-  } else {
-    opacityToValidate = configOpacity;
-    opacitySource = SETTING_SOURCES.config;
-  }
-
-  // Validate the opacity value
-  if (typeof opacityToValidate === 'undefined' || opacityToValidate === null) {
-    console.warn(`Overlay opacity not defined in ${opacitySource} - using default (${allowed.default}%).`);
-  } else if (typeof opacityToValidate !== 'number' || isNaN(opacityToValidate)) {
-    console.warn(
-      `Invalid overlay opacity value "${opacityToValidate}" in ${opacitySource} (must be numeric) - using default (${allowed.default}%).`
-    );
-  } else if (opacityToValidate < allowed.min || opacityToValidate > allowed.max) {
-    console.warn(
-      `Invalid overlay opacity value ${opacityToValidate} in ${opacitySource} (must be in range ${allowed.min}-${allowed.max}) - using default (${allowed.default}%).`
-    );
-  } else {
-    // Round opacity to two decimal points
-    overlayOpacityPercent = Math.round(opacityToValidate * 100) / 100;
-    validationPassed = true;
-  }
-
-  // Reset opacity source if validation failed
-  if (!validationPassed) {
-    opacitySource = SETTING_SOURCES.default;
-  }
+  const { value, source } = resolveSetting({
+    label: 'Overlay opacity',
+    urlParam: 'opacity',
+    configValue: CONFIG.overlayOpacity,
+    fallback: allowed.default,
+    parse: parseFloat,
+    describe: asPercent,
+    validate: inRange(allowed)
+  });
 
   // The value sets the alpha channel of the overlay background color
-  document.documentElement.style.setProperty('--overlay-opacity', `${overlayOpacityPercent}%`);
+  document.documentElement.style.setProperty('--overlay-opacity', `${value}%`);
 
   if (DEBUG) {
-    console.log(`Overlay background opacity set to ${overlayOpacityPercent}% (from ${opacitySource}).`);
+    console.log(`Overlay background opacity set to ${value}% (from ${source}).`);
   }
 }
 
@@ -478,52 +397,19 @@ const OVERLAY_ANCHORS = {
 
 // Validate and set the overlay anchor value
 function setOverlayAnchor() {
-  const defaultAnchor = VALIDATION.anchor.default;
-  let overlayAnchor = defaultAnchor;
-  let anchorSource = SETTING_SOURCES.default;
-  let validationPassed = false;
-
-  // Check for URL parameter first to take precedence over the config.js setting
-  const urlAnchor = getUrlParameter('anchor');
-  const configAnchor = CONFIG.overlayAnchor;
-
-  // Determine which anchor value to use
-  let anchorToValidate;
-  if (urlAnchor !== null) {
-    anchorToValidate = urlAnchor;
-    anchorSource = SETTING_SOURCES.url;
-  } else {
-    anchorToValidate = configAnchor;
-    anchorSource = SETTING_SOURCES.config;
-  }
-
-  // Validate the anchor value
-  const allowedAnchors = Object.keys(OVERLAY_ANCHORS);
-  if (typeof anchorToValidate === 'undefined' || anchorToValidate === null) {
-    console.warn(`Overlay anchor not defined in ${anchorSource} - using default (${defaultAnchor}).`);
-  } else if (typeof anchorToValidate !== 'string') {
-    console.warn(
-      `Invalid overlay anchor value "${anchorToValidate}" in ${anchorSource} (must be a string) - using default (${defaultAnchor}).`
-    );
-  } else if (!allowedAnchors.includes(anchorToValidate.toLowerCase())) {
-    console.warn(
-      `Invalid overlay anchor value "${anchorToValidate}" in ${anchorSource} (must be one of ${allowedAnchors.join(', ')}) - using default (${defaultAnchor}).`
-    );
-  } else {
-    overlayAnchor = anchorToValidate.toLowerCase();
-    validationPassed = true;
-  }
-
-  // Reset anchor source if validation failed
-  if (!validationPassed) {
-    anchorSource = SETTING_SOURCES.default;
-  }
+  const { value, source } = resolveSetting({
+    label: 'Overlay anchor',
+    urlParam: 'anchor',
+    configValue: CONFIG.overlayAnchor,
+    fallback: VALIDATION.anchor.default,
+    validate: oneOf(Object.keys(OVERLAY_ANCHORS))
+  });
 
   // Convert the anchor name to a CSS transform origin
-  document.documentElement.style.setProperty('--overlay-origin', OVERLAY_ANCHORS[overlayAnchor]);
+  document.documentElement.style.setProperty('--overlay-origin', OVERLAY_ANCHORS[value]);
 
   if (DEBUG) {
-    console.log(`Overlay anchored to ${overlayAnchor} (from ${anchorSource}).`);
+    console.log(`Overlay anchored to ${value} (from ${source}).`);
   }
 }
 
@@ -549,54 +435,21 @@ const OVERLAY_FONTS = {
 
 // Validate and set the overlay font pairing
 function setOverlayFont() {
-  const defaultFont = VALIDATION.font.default;
-  let overlayFont = defaultFont;
-  let fontSource = SETTING_SOURCES.default;
-  let validationPassed = false;
-
-  // Check for URL parameter first to take precedence over the config.js setting
-  const urlFont = getUrlParameter('font');
-  const configFont = CONFIG.overlayFont;
-
-  // Determine which font value to use
-  let fontToValidate;
-  if (urlFont !== null) {
-    fontToValidate = urlFont;
-    fontSource = SETTING_SOURCES.url;
-  } else {
-    fontToValidate = configFont;
-    fontSource = SETTING_SOURCES.config;
-  }
-
-  // Validate the font value
-  const allowedFonts = Object.keys(OVERLAY_FONTS);
-  if (typeof fontToValidate === 'undefined' || fontToValidate === null) {
-    console.warn(`Overlay font not defined in ${fontSource} - using default (${defaultFont}).`);
-  } else if (typeof fontToValidate !== 'string') {
-    console.warn(
-      `Invalid overlay font value "${fontToValidate}" in ${fontSource} (must be a string) - using default (${defaultFont}).`
-    );
-  } else if (!allowedFonts.includes(fontToValidate.toLowerCase())) {
-    console.warn(
-      `Invalid overlay font value "${fontToValidate}" in ${fontSource} (must be one of ${allowedFonts.join(', ')}) - using default (${defaultFont}).`
-    );
-  } else {
-    overlayFont = fontToValidate.toLowerCase();
-    validationPassed = true;
-  }
-
-  // Reset font source if validation failed
-  if (!validationPassed) {
-    fontSource = SETTING_SOURCES.default;
-  }
+  const { value, source } = resolveSetting({
+    label: 'Overlay font',
+    urlParam: 'font',
+    configValue: CONFIG.overlayFont,
+    fallback: VALIDATION.font.default,
+    validate: oneOf(Object.keys(OVERLAY_FONTS))
+  });
 
   // Apply the font to the display and body font variables
-  const pairing = OVERLAY_FONTS[overlayFont];
+  const pairing = OVERLAY_FONTS[value];
   document.documentElement.style.setProperty('--font-family-display', pairing.display);
   document.documentElement.style.setProperty('--font-family', pairing.body);
 
   if (DEBUG) {
-    console.log(`Overlay font set to ${overlayFont} (from ${fontSource}).`);
+    console.log(`Overlay font set to ${value} (from ${source}).`);
   }
 }
 
