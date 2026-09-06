@@ -10,6 +10,7 @@ const OFFICIAL_SCORE = 'ScoreBoard.CurrentGame.OfficialScore';
 const OVERTIME = 'ScoreBoard.CurrentGame.InOvertime';
 const PRE_GAME_LABEL = 'ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)';
 const INTERMISSION_LABEL = 'ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)';
+const INTERMISSION_RUNNING = 'ScoreBoard.CurrentGame.Clock(Intermission).Running';
 
 // A two period game at the given point
 function atGameState(state = {}) {
@@ -127,4 +128,58 @@ Deno.test('the small binding helpers behave', async () => {
   assert.equal(window.hasValue(null, ''), '');
   assert.equal(window.invertBoolean(null, true), false);
   assert.equal(window.invertBoolean(null, false), true);
+});
+
+// The overlay displays after maxLoadWaitMs even when the ruleset never arrives.
+// Every reading of the ruleset must function without the ruleset arriving.
+const FOULOUT_RULE = 'ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout)';
+const SKATER = 'ScoreBoard.CurrentGame.Team(1).Skater(abc123)';
+const COUNT_KEY = `${SKATER}.PenaltyCount`;
+
+// A game the ruleset has not reached, at a given point
+function withoutRuleset(state = {}) {
+  return loadOverlay({ state });
+}
+
+Deno.test('an unknown period count hides the score labels rather than guessing', async () => {
+  // Mid-game intermission: the label belongs to the end of the game, so it stays hidden
+  const midGame = await withoutRuleset({ [PERIOD_NUMBER]: '1', [INTERMISSION_RUNNING]: true });
+  assert.equal(midGame.window.shouldHideUnofficialScore(), true);
+
+  // The same state with the ruleset present still shows it after the final period
+  const known = await atGameState({ [PERIOD_NUMBER]: '2', [INTERMISSION_RUNNING]: true });
+  assert.equal(known.window.shouldHideUnofficialScore(), false);
+});
+
+Deno.test('an unknown period count keeps the intermission clock and its label together', async () => {
+  const overlay = await withoutRuleset({
+    [PERIOD_NUMBER]: '1',
+    [INTERMISSION_RUNNING]: true,
+    [INTERMISSION_LABEL]: 'Intermission'
+  });
+
+  // A running clock with no label reads as a broken overlay
+  assert.equal(overlay.window.shouldHideIntermissionClock(null, true), false);
+  assert.equal(overlay.window.getIntermissionLabel(null, '1'), 'Intermission');
+});
+
+Deno.test('an unknown foulout count leaves the penalty counts alone', async () => {
+  const { window } = await withoutRuleset();
+
+  // No count reads as a foulout, and no count earns a warning color
+  assert.equal(window.getPenaltyCountDisplay(COUNT_KEY, '9'), 9);
+  assert.equal(window.isPenaltyCountExpFoRe(COUNT_KEY, '9'), false);
+  assert.equal(window.isPenaltyCountWarning1(COUNT_KEY, '9'), false);
+  assert.equal(window.isPenaltyCountWarning2(COUNT_KEY, '9'), false);
+});
+
+Deno.test('a ruleset that supplies an unusable count is treated as unknown', async () => {
+  for (const value of ['', 'many', '0']) {
+    const { window } = await loadOverlay({ state: { [FOULOUT_RULE]: value } });
+    assert.equal(
+      window.getPenaltyCountDisplay(COUNT_KEY, '9'),
+      9,
+      `foulout count "${value}" should not foul anyone out`
+    );
+  }
 });

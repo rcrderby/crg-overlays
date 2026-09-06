@@ -658,19 +658,29 @@ const SKATER_PENALTY_CODE = /^ScoreBoard\.CurrentGame\.Team\(\d+\)\.Skater\(([^)
 const RULE_FOULOUT_COUNT = 'ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout)';
 const RULE_PERIOD_COUNT = 'ScoreBoard.CurrentGame.Rule(Period.Number)';
 
-// Number of penalties that result in a foulout
+// Number of penalties that result in a foulout, or null when the ruleset supplies no usable count
 function getFouloutCount() {
-  return parseInt(WS.state[RULE_FOULOUT_COUNT]);
+  const fouloutCount = parseInt(WS.state[RULE_FOULOUT_COUNT]);
+
+  return Number.isFinite(fouloutCount) && fouloutCount >= 1 ? fouloutCount : null;
 }
 
-// Number of periods in the game
+// Number of periods in the game, or null when the ruleset supplies no usable count
 function getPeriodCount() {
-  return parseInt(WS.state[RULE_PERIOD_COUNT]);
+  const periodCount = parseInt(WS.state[RULE_PERIOD_COUNT]);
+
+  return Number.isFinite(periodCount) && periodCount >= 1 ? periodCount : null;
 }
 
 // Penalty count that triggers a warning color, counted back from a foulout
 function getWarningCount(offset) {
-  const warningCount = getFouloutCount() - offset;
+  const fouloutCount = getFouloutCount();
+
+  if (fouloutCount === null) {
+    return null;
+  }
+
+  const warningCount = fouloutCount - offset;
 
   return warningCount >= 1 ? warningCount : null;
 }
@@ -732,7 +742,7 @@ window.isPenaltyCountExpFoRe = function (k, penaltyCount) {
 
   const fouloutCount = getFouloutCount();
 
-  return isRemoved || isExpelled || (fouloutCount >= 1 && count >= fouloutCount);
+  return isRemoved || isExpelled || (fouloutCount !== null && count >= fouloutCount);
 };
 
 // Determine the text to show for a player's penalty count
@@ -744,7 +754,7 @@ window.getPenaltyCountDisplay = function (k, penaltyCount) {
 
   if (isRemoved) return LABELS.removedDisplay;
   if (isExpelled) return LABELS.expelledDisplay;
-  if (fouloutCount >= 1 && count >= fouloutCount) return LABELS.fouloutDisplay;
+  if (fouloutCount !== null && count >= fouloutCount) return LABELS.fouloutDisplay;
 
   return count > 0 ? count : '';
 };
@@ -829,10 +839,12 @@ window.shouldHideIntermissionClock = function (_k, intermissionRunning) {
   // During overtime
   const isOvertime = WS.state['ScoreBoard.CurrentGame.InOvertime'] === true;
 
-  // After the last period
+  // After the last period, which an unknown period count cannot establish
   const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
+  const periodCount = getPeriodCount();
+  const afterLastPeriod = periodCount !== null && period >= periodCount;
 
-  return !isIntermission || isOfficial || isOvertime || period >= getPeriodCount();
+  return !isIntermission || isOfficial || isOvertime || afterLastPeriod;
 };
 
 /*************************
@@ -854,6 +866,7 @@ window.getPeriodLabel = function (_k, periodNumber) {
 // Get intermission label
 window.getIntermissionLabel = function (_k, periodNumber) {
   const period = parseInt(periodNumber) || 0;
+  const periodCount = getPeriodCount();
 
   // Read intermission labels from the WS.state
   const preGame = WS.state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)'];
@@ -863,14 +876,14 @@ window.getIntermissionLabel = function (_k, periodNumber) {
   if (period === 0) {
     return preGame || '';
   }
-  // Between periods
-  else if (period < getPeriodCount()) {
-    return intermission || '';
-  }
-  // After the final period, don't show the intermission label, "Unofficial" or "Official" labels will show instead
-  else {
+
+  // After the final period, where the "Unofficial" or "Official" labels show instead
+  if (periodCount !== null && period >= periodCount) {
     return '';
   }
+
+  // Between periods, and whenever the period count is unknown
+  return intermission || '';
 };
 
 // Read the game state the score labels depend on
@@ -887,7 +900,11 @@ function getScoreLabelState() {
 window.shouldHideUnofficialScore = function (_k) {
   const { period, isIntermission, isOfficial, isOvertime } = getScoreLabelState();
 
-  return period < getPeriodCount() || !isIntermission || isOfficial || isOvertime;
+  // The label names the score after the final period, which an unknown period count cannot establish
+  const periodCount = getPeriodCount();
+  const afterLastPeriod = periodCount !== null && period >= periodCount;
+
+  return !afterLastPeriod || !isIntermission || isOfficial || isOvertime;
 };
 
 // Hide the "Coming Up" label
