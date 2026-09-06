@@ -654,9 +654,17 @@ window.glowColorToShadow = function (_k, glowColor) {
 
 // WebSocket Channels to read the active ruleset
 const PENALTY_CODE_PREFIX = 'ScoreBoard.CurrentGame.PenaltyCode(';
-const SKATER_PENALTY_CODE = /^ScoreBoard\.CurrentGame\.Team\(\d+\)\.Skater\(([^)]+)\)\.Penalty\(\d+\)\.Code$/;
+const SKATER_CONTEXT = /^ScoreBoard\.CurrentGame\.Team\(\d+\)\.Skater\([^)]+\)/;
+const PENALTY_CODE_SUFFIX = /\.Penalty\(\d+\)\.Code$/;
 const RULE_FOULOUT_COUNT = 'ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout)';
 const RULE_PERIOD_COUNT = 'ScoreBoard.CurrentGame.Rule(Period.Number)';
+
+// Portion of a state key that names a player, or null when the key names something else
+function getSkaterContext(stateKey) {
+  const match = stateKey == null ? null : SKATER_CONTEXT.exec(stateKey);
+
+  return match === null ? null : match[0];
+}
 
 // Number of penalties that result in a foulout, or null when the ruleset supplies no usable count
 function getFouloutCount() {
@@ -691,14 +699,15 @@ function getWarningCount(offset) {
 
 // Private helper to check if a player is expelled or removed
 function checkPenaltyStatus(k) {
-  // Extract the player context from the key
-  const skaterContext = k.substring(
-    0,
-    k.lastIndexOf('.Skater(') + k.substring(k.lastIndexOf('.Skater(')).indexOf(')') + 1
-  );
+  const skaterContext = getSkaterContext(k);
+
+  // A key that names no player carries no penalty status
+  if (skaterContext === null) {
+    return { isExpelled: false, isRemoved: false };
+  }
 
   // Get Penalty(0).Code from WS.state
-  const penalty0Code = WS.state[skaterContext + '.Penalty(0).Code'];
+  const penalty0Code = WS.state[`${skaterContext}.Penalty(0).Code`];
 
   // Empty/undefined means a player is neither expelled nor removed
   if (!penalty0Code || penalty0Code === '') {
@@ -924,15 +933,18 @@ function getPenaltyCodesInPlay() {
   const hidden = {};
 
   for (const stateKey of Object.keys(WS.state)) {
-    const match = SKATER_PENALTY_CODE.exec(stateKey);
-    if (!match) {
+    if (!PENALTY_CODE_SUFFIX.test(stateKey)) {
+      continue;
+    }
+
+    const skaterContext = getSkaterContext(stateKey);
+    if (skaterContext === null) {
       continue;
     }
 
     // Filter inactive players
-    const skaterContext = stateKey.slice(0, stateKey.indexOf(').Penalty(') + 1);
     if (!(skaterContext in hidden)) {
-      hidden[skaterContext] = window.shouldHideSkater(null, WS.state[skaterContext + '.Flags']);
+      hidden[skaterContext] = window.shouldHideSkater(null, WS.state[`${skaterContext}.Flags`]);
     }
     if (hidden[skaterContext]) {
       continue;

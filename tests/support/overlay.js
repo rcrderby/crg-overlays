@@ -25,7 +25,9 @@ const INTERNALS = [
   'setPenaltyCodeKey',
   'setBackgroundAnimation',
   'setTimeoutAnimation',
-  'setOverlayVersion'
+  'setOverlayVersion',
+  'getSkaterContext',
+  'getPenaltyCodesInPlay'
 ];
 
 // Read a file from the repository, whatever the working directory

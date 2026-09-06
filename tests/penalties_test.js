@@ -161,3 +161,64 @@ Deno.test('"Unofficial Score" shows after the final period, until the score is o
   });
   assert.equal(overtime.window.shouldHideUnofficialScore(), true);
 });
+
+// CRG passes an enriched String object rather than a primitive, and the overlay
+// also reads plain keys out of WS.state, so the reader has to accept both
+Deno.test('the skater reader accepts every key shape CRG produces', async () => {
+  const { getSkaterContext } = await withSkater();
+
+  // What CRG passes to a binding: new String(prop) carrying its own properties
+  const enriched = new String(`${SKATER}.PenaltyCount`);
+  assert.equal(getSkaterContext(enriched), SKATER);
+
+  // What Object.keys(WS.state) yields
+  assert.equal(getSkaterContext(`${SKATER}.Penalty(3).Code`), SKATER);
+  assert.equal(getSkaterContext(SKATER), SKATER);
+
+  // Player identifiers are not always plain words
+  assert.equal(
+    getSkaterContext('ScoreBoard.CurrentGame.Team(2).Skater(a1b2-c3d4).Flags'),
+    'ScoreBoard.CurrentGame.Team(2).Skater(a1b2-c3d4)'
+  );
+});
+
+Deno.test('a key that names no skater reads as no skater', async () => {
+  const { getSkaterContext, window } = await withSkater();
+
+  for (const key of ['ScoreBoard.CurrentGame.PenaltyCode(B)', FOULOUT_RULE, '', null, undefined]) {
+    assert.equal(getSkaterContext(key), null, `${key} names no skater`);
+  }
+
+  // The penalty helpers report no status rather than reading a stray key
+  assert.equal(window.getPenaltyCountDisplay(FOULOUT_RULE, '3'), 3);
+  assert.equal(window.isPenaltyCountExpFoRe(FOULOUT_RULE, '3'), false);
+});
+
+Deno.test('the codes in play skip hidden skaters and status markers', async () => {
+  const TEAM_2 = 'ScoreBoard.CurrentGame.Team(2).Skater(def456)';
+  const { getPenaltyCodesInPlay } = await loadOverlay({
+    state: {
+      [`${SKATER}.Penalty(1).Code`]: 'C',
+      [`${SKATER}.Penalty(2).Code`]: 'B',
+      // Duplicated across players, and listed once
+      [`${TEAM_2}.Penalty(1).Code`]: 'B',
+      // Status markers and the unknown code carry no description
+      [`${TEAM_2}.Penalty(0).Code`]: 'FO',
+      [`${TEAM_2}.Penalty(2).Code`]: 'RE',
+      [`${TEAM_2}.Penalty(3).Code`]: '?'
+    }
+  });
+
+  assert.deepEqual(getPenaltyCodesInPlay(), ['B', 'C']);
+});
+
+Deno.test('a hidden skater contributes no codes', async () => {
+  const { getPenaltyCodesInPlay } = await loadOverlay({
+    state: {
+      [`${SKATER}.Flags`]: 'B',
+      [`${SKATER}.Penalty(1).Code`]: 'X'
+    }
+  });
+
+  assert.deepEqual(getPenaltyCodesInPlay(), []);
+});
