@@ -92,7 +92,7 @@
 
             <!-- Roster lines for each player -->
             <div class="roster-line"
-                 sbAttr="roster-number: RosterNumber | name-text: Name"
+                 sbAttr="roster-number: RosterNumber"
                  sbClass="sbHide: Flags: shouldHideSkater"
                  sbForeach="Skater:: roster-number: resort=RosterNumber">
               <div class="roster-number" sbDisplay="RosterNumber"></div>
@@ -103,8 +103,7 @@
 
               <!-- Penalty codes display -->
               <div class="penalty-codes">
-                <span sbAttr="penalty-number: Number"
-                      sbDisplay="Code"
+                <span sbDisplay="Code"
                       sbClass="sbHide: Code, Number: shouldHidePenaltyCode"
                       sbForeach="Penalty">
                 </span>
@@ -152,7 +151,7 @@
 
             <!-- Roster lines for each player -->
             <div class="roster-line"
-                 sbAttr="roster-number: RosterNumber | name-text: Name"
+                 sbAttr="roster-number: RosterNumber"
                  sbClass="sbHide: Flags: shouldHideSkater"
                  sbForeach="Skater:: roster-number: resort=RosterNumber">
               <div class="roster-number" sbDisplay="RosterNumber"></div>
@@ -163,8 +162,7 @@
 
               <!-- Penalty codes display -->
               <div class="penalty-codes">
-                <span sbAttr="penalty-number: Number"
-                      sbDisplay="Code"
+                <span sbDisplay="Code"
                       sbClass="sbHide: Code, Number: shouldHidePenaltyCode"
                       sbForeach="Penalty">
                 </span>
@@ -206,8 +204,7 @@
       <div id="game-info-main">
 
         <!-- Tournament Information -->
-        <div id="tournament-info"
-             sbAttr="data-gameno: EventInfo(GameNo)">
+        <div id="tournament-info">
           <span sbDisplay="EventInfo(Tournament)"></span>
           <span sbDisplay="EventInfo(GameNo): prependGameNo"></span>
         </div>

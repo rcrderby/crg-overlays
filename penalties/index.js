@@ -48,9 +48,9 @@ if (typeof PenaltiesOverlayConfig === 'undefined') {
 }
 
 // Validate required configuration structure
-const requiredSections = ['debug', 'config', 'validation', 'classes', 'labels', 'rules', 'penalties', 'timing'];
+const REQUIRED_SECTIONS = ['debug', 'config', 'validation', 'classes', 'labels', 'rules', 'penalties', 'timing'];
 
-const missingSections = requiredSections.filter((section) => !PenaltiesOverlayConfig[section]);
+const missingSections = REQUIRED_SECTIONS.filter((section) => !PenaltiesOverlayConfig[section]);
 
 if (missingSections.length > 0) {
   const errorMsg = `Configuration file (config.js) is missing required sections: ${missingSections.join(', ')}`;
@@ -74,10 +74,22 @@ const RULES = PenaltiesOverlayConfig.rules;
 const PENALTIES = PenaltiesOverlayConfig.penalties;
 const TIMING = PenaltiesOverlayConfig.timing;
 
-// Allowed URL parameters.  `debug` belongs here, because the overlay reads the
-// debug setting through getUrlParameter() before DEBUG exists, and an
-// unapproved parameter logs through DEBUG
-const ALLOWED_URL_PARAMS = ['anchor', 'background', 'debug', 'font', 'key', 'opacity', 'scale', 'timeout', 'width'];
+// Every setting a URL parameter overrides, with the term its messages use.
+// Unapproved URL parameter log via DEBUG
+const SETTINGS = {
+  anchor: { urlParam: 'anchor', label: 'Overlay anchor' },
+  background: { urlParam: 'background', label: 'Background animation' },
+  debug: { urlParam: 'debug', label: 'Debug logging' },
+  font: { urlParam: 'font', label: 'Overlay font' },
+  key: { urlParam: 'key', label: 'Penalty code key' },
+  opacity: { urlParam: 'opacity', label: 'Overlay opacity' },
+  scale: { urlParam: 'scale', label: 'Overlay scale' },
+  timeout: { urlParam: 'timeout', label: 'Timeout animation' },
+  width: { urlParam: 'width', label: 'Overlay width' }
+};
+
+// The allowlist follows the settings, so a renamed parameter cannot drift out of it
+const ALLOWED_URL_PARAMS = Object.values(SETTINGS).map((setting) => setting.urlParam);
 
 // Settings sources for validation messages
 const SETTING_SOURCES = {
@@ -92,6 +104,22 @@ console.log('Debug mode:', DEBUG);
 
 // Overlay version to display as a watermark and log to the console
 const OVERLAY_VERSION = '4.0.0';
+
+// CRG WebSocket channels the overlay reads
+const CHANNELS = {
+  currentPeriod: 'ScoreBoard.CurrentGame.CurrentPeriodNumber',
+  inOvertime: 'ScoreBoard.CurrentGame.InOvertime',
+  intermissionLabel: 'ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)',
+  intermissionRunning: 'ScoreBoard.CurrentGame.Clock(Intermission).Running',
+  officialReview: 'ScoreBoard.CurrentGame.OfficialReview',
+  officialScore: 'ScoreBoard.CurrentGame.OfficialScore',
+  penaltyCode: 'ScoreBoard.CurrentGame.PenaltyCode',
+  preGameLabel: 'ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)',
+  ruleFouloutCount: 'ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout)',
+  rulePeriodCount: 'ScoreBoard.CurrentGame.Rule(Period.Number)',
+  team1Skaters: 'ScoreBoard.CurrentGame.Team(1).Skater',
+  team2Skaters: 'ScoreBoard.CurrentGame.Team(2).Skater'
+};
 
 /*****************************
  ** URL Parameter Functions **
@@ -110,32 +138,103 @@ function getUrlParameter(name) {
   return urlParams.get(name);
 }
 
-// Validate the debug logging setting
-function getDebugSetting() {
-  const urlDebug = getUrlParameter('debug');
-  const debugSource = urlDebug !== null ? SETTING_SOURCES.url : SETTING_SOURCES.config;
-  const debugToValidate = urlDebug !== null ? urlDebug.toLowerCase() : PenaltiesOverlayConfig.debug?.enabled;
-  const defaultDebug = VALIDATION.debug.default;
+/**************************
+ ** Setting Resolution   **
+ *************************/
 
-  // Validate the debug value
-  if (typeof debugToValidate === 'undefined' || debugToValidate === null) {
-    console.warn(`Debug logging not defined in ${debugSource} - using default (${defaultDebug}).`);
-    return defaultDebug;
+// Report a percentage the way the settings describe themselves
+function asPercent(value) {
+  return `${value}%`;
+}
+
+// URL parameters arrive as text, and some settings match without regard to case
+function lowercase(raw) {
+  return raw.toLowerCase();
+}
+
+// Accept a number inside the allowed range, rounded to two decimal points
+function inRange(allowed) {
+  return (value) => {
+    if (typeof value !== 'number' || isNaN(value)) {
+      return { reason: 'must be numeric', display: `"${value}"` };
+    }
+
+    if (value < allowed.min || value > allowed.max) {
+      return { reason: `must be in range ${allowed.min}-${allowed.max}`, display: `${value}` };
+    }
+
+    return { value: Math.round(value * 100) / 100 };
+  };
+}
+
+// Accept one of the allowed names
+function oneOf(choices) {
+  return (value) => {
+    if (typeof value !== 'string') {
+      return { reason: 'must be a string', display: `"${value}"` };
+    }
+
+    if (!choices.includes(value.toLowerCase())) {
+      return { reason: `must be one of ${choices.join(', ')}`, display: `"${value}"` };
+    }
+
+    return { value: value.toLowerCase() };
+  };
+}
+
+// Accept a boolean, or the text a URL parameter supplies for one
+function isBoolean(value) {
+  if (typeof value === 'boolean') {
+    return { value };
   }
 
-  if (typeof debugToValidate === 'boolean') {
-    return debugToValidate;
+  if (value === 'true' || value === 'false') {
+    return { value: value === 'true' };
   }
 
-  if (debugToValidate === 'true' || debugToValidate === 'false') {
-    return debugToValidate === 'true';
+  return { reason: 'must be true or false', display: `"${value}"` };
+}
+
+// Read a setting from its URL parameter, then config.js, then the validated default.
+// A validator returns the accepted value, or the reason the value cannot be used.
+function resolveSetting({ label, urlParam, configValue, fallback, validate, parse, describe = String }) {
+  const urlValue = getUrlParameter(urlParam);
+  const fromUrl = urlValue !== null;
+  const source = fromUrl ? SETTING_SOURCES.url : SETTING_SOURCES.config;
+  const value = fromUrl && parse ? parse(urlValue) : fromUrl ? urlValue : configValue;
+
+  if (typeof value === 'undefined' || value === null) {
+    console.warn(`${label} not defined in ${source} - using default (${describe(fallback)}).`);
+
+    return { value: fallback, source: SETTING_SOURCES.default };
   }
 
+  const result = validate(value);
+
+  if ('value' in result) {
+    return { value: result.value, source };
+  }
+
+  // The label opens the sentence above, and names the setting inside this one
+  const setting = label.charAt(0).toLowerCase() + label.slice(1);
   console.warn(
-    `Invalid debug logging value "${debugToValidate}" in ${debugSource} (must be true or false) - using default (${defaultDebug}).`
+    `Invalid ${setting} value ${result.display} in ${source} (${result.reason}) - using default (${describe(fallback)}).`
   );
 
-  return defaultDebug;
+  return { value: fallback, source: SETTING_SOURCES.default };
+}
+
+// Validate the debug logging setting
+function getDebugSetting() {
+  const { value } = resolveSetting({
+    ...SETTINGS.debug,
+    configValue: PenaltiesOverlayConfig.debug?.enabled,
+    fallback: VALIDATION.debug.default,
+    parse: lowercase,
+    validate: isBoolean
+  });
+
+  return value;
 }
 
 // Log URL parameters
@@ -168,103 +267,40 @@ function logUrlParameters() {
 // Validate and set the overlay scale value
 function setOverlayScale() {
   const allowed = VALIDATION.scale;
-  let overlayScalePercent = allowed.default;
-  let scaleSource = SETTING_SOURCES.default;
-  let validationPassed = false;
-
-  // Check for URL parameter first to take precedence over the config.js setting
-  const urlScale = getUrlParameter('scale');
-  const configScale = CONFIG.overlayScale;
-
-  // Determine which scale value to use
-  let scaleToValidate;
-  if (urlScale !== null) {
-    scaleToValidate = parseFloat(urlScale);
-    scaleSource = SETTING_SOURCES.url;
-  } else {
-    scaleToValidate = configScale;
-    scaleSource = SETTING_SOURCES.config;
-  }
-
-  // Validate the scale value
-  if (typeof scaleToValidate === 'undefined' || scaleToValidate === null) {
-    console.warn(`Overlay scale not defined in ${scaleSource} - using default (${allowed.default}%).`);
-  } else if (typeof scaleToValidate !== 'number' || isNaN(scaleToValidate)) {
-    console.warn(
-      `Invalid overlay scale value "${scaleToValidate}" in ${scaleSource} (must be numeric) - using default (${allowed.default}%).`
-    );
-  } else if (scaleToValidate < allowed.min || scaleToValidate > allowed.max) {
-    console.warn(
-      `Invalid overlay scale value ${scaleToValidate} in ${scaleSource} (must be in range ${allowed.min}-${allowed.max}) - using default (${allowed.default}%).`
-    );
-  } else {
-    // Round scale to two decimal points
-    overlayScalePercent = Math.round(scaleToValidate * 100) / 100;
-    validationPassed = true;
-  }
-
-  // Reset scale source if validation failed
-  if (!validationPassed) {
-    scaleSource = SETTING_SOURCES.default;
-  }
+  const { value, source } = resolveSetting({
+    ...SETTINGS.scale,
+    configValue: CONFIG.overlayScale,
+    fallback: allowed.default,
+    parse: parseFloat,
+    describe: asPercent,
+    validate: inRange(allowed)
+  });
 
   // Convert percentage to decimal for CSS transform
-  const overlayScale = overlayScalePercent / 100;
-  document.documentElement.style.setProperty('--overlay-scale', overlayScale);
+  document.documentElement.style.setProperty('--overlay-scale', value / 100);
 
   if (DEBUG) {
-    console.log(`Overlay scaled to ${overlayScalePercent}% (from ${scaleSource}).`);
+    console.log(`Overlay scaled to ${value}% (from ${source}).`);
   }
 }
 
 // Validate and set the overlay width
 function setOverlayWidth() {
   const allowed = VALIDATION.width;
-  let overlayWidthPercent = allowed.default;
-  let widthSource = SETTING_SOURCES.default;
-  let validationPassed = false;
-
-  // Check for URL parameter first to take precedence over the config.js setting
-  const urlWidth = getUrlParameter('width');
-  const configWidth = CONFIG.overlayWidth;
-
-  // Determine which width value to use
-  let widthToValidate;
-  if (urlWidth !== null) {
-    widthToValidate = parseFloat(urlWidth);
-    widthSource = SETTING_SOURCES.url;
-  } else {
-    widthToValidate = configWidth;
-    widthSource = SETTING_SOURCES.config;
-  }
-
-  // Validate the width value
-  if (typeof widthToValidate === 'undefined' || widthToValidate === null) {
-    console.warn(`Overlay width not defined in ${widthSource} - using default (${allowed.default}%).`);
-  } else if (typeof widthToValidate !== 'number' || isNaN(widthToValidate)) {
-    console.warn(
-      `Invalid overlay width value "${widthToValidate}" in ${widthSource} (must be numeric) - using default (${allowed.default}%).`
-    );
-  } else if (widthToValidate < allowed.min || widthToValidate > allowed.max) {
-    console.warn(
-      `Invalid overlay width value ${widthToValidate} in ${widthSource} (must be in range ${allowed.min}-${allowed.max}) - using default (${allowed.default}%).`
-    );
-  } else {
-    // Round width to two decimal points
-    overlayWidthPercent = Math.round(widthToValidate * 100) / 100;
-    validationPassed = true;
-  }
-
-  // Reset width source if validation failed
-  if (!validationPassed) {
-    widthSource = SETTING_SOURCES.default;
-  }
+  const { value, source } = resolveSetting({
+    ...SETTINGS.width,
+    configValue: CONFIG.overlayWidth,
+    fallback: allowed.default,
+    parse: parseFloat,
+    describe: asPercent,
+    validate: inRange(allowed)
+  });
 
   // Convert percentage to a decimal ratio of the video frame width
-  document.documentElement.style.setProperty('--overlay-width-ratio', overlayWidthPercent / 100);
+  document.documentElement.style.setProperty('--overlay-width-ratio', value / 100);
 
   if (DEBUG) {
-    console.log(`Overlay width set to ${overlayWidthPercent}% of the video frame (from ${widthSource}).`);
+    console.log(`Overlay width set to ${value}% of the video frame (from ${source}).`);
   }
 }
 
@@ -284,45 +320,13 @@ const TIMEOUT_ANIMATIONS = {
 };
 
 // Validate an animation setting and apply its class to the overlay
-function setAnimation(settingName, urlParam, configValue, animations, defaultName) {
-  let animation = defaultName;
-  let animationSource = SETTING_SOURCES.default;
-  let validationPassed = false;
-
-  // Check for URL parameter first to take precedence over the config.js setting
-  const urlAnimation = getUrlParameter(urlParam);
-
-  // Determine which animation value to use
-  let animationToValidate;
-  if (urlAnimation !== null) {
-    animationToValidate = urlAnimation;
-    animationSource = SETTING_SOURCES.url;
-  } else {
-    animationToValidate = configValue;
-    animationSource = SETTING_SOURCES.config;
-  }
-
-  // Validate the animation value
-  const allowedAnimations = Object.keys(animations);
-  if (typeof animationToValidate === 'undefined' || animationToValidate === null) {
-    console.warn(`${settingName} not defined in ${animationSource} - using default (${defaultName}).`);
-  } else if (typeof animationToValidate !== 'string') {
-    console.warn(
-      `Invalid ${settingName} value "${animationToValidate}" in ${animationSource} (must be a string) - using default (${defaultName}).`
-    );
-  } else if (!allowedAnimations.includes(animationToValidate.toLowerCase())) {
-    console.warn(
-      `Invalid ${settingName} value "${animationToValidate}" in ${animationSource} (must be one of ${allowedAnimations.join(', ')}) - using default (${defaultName}).`
-    );
-  } else {
-    animation = animationToValidate.toLowerCase();
-    validationPassed = true;
-  }
-
-  // Reset the source if validation failed
-  if (!validationPassed) {
-    animationSource = SETTING_SOURCES.default;
-  }
+function setAnimation(setting, configValue, animations, defaultName) {
+  const { value, source } = resolveSetting({
+    ...setting,
+    configValue,
+    fallback: defaultName,
+    validate: oneOf(Object.keys(animations))
+  });
 
   // Remove any previously applied class before applying the chosen one
   const overlay = document.getElementById('overlay');
@@ -332,21 +336,20 @@ function setAnimation(settingName, urlParam, configValue, animations, defaultNam
         overlay.classList.remove(className);
       }
     }
-    if (animations[animation] !== '') {
-      overlay.classList.add(animations[animation]);
+    if (animations[value] !== '') {
+      overlay.classList.add(animations[value]);
     }
   }
 
   if (DEBUG) {
-    console.log(`${settingName} set to ${animation} (from ${animationSource}).`);
+    console.log(`${setting.label} set to ${value} (from ${source}).`);
   }
 }
 
 // Validate and set the background animation
 function setBackgroundAnimation() {
   setAnimation(
-    'Background animation',
-    'background',
+    SETTINGS.background,
     CONFIG.backgroundAnimation,
     BACKGROUND_ANIMATIONS,
     VALIDATION.backgroundAnimation.default
@@ -355,13 +358,7 @@ function setBackgroundAnimation() {
 
 // Validate and set the timeout banner animation
 function setTimeoutAnimation() {
-  setAnimation(
-    'Timeout animation',
-    'timeout',
-    CONFIG.timeoutAnimation,
-    TIMEOUT_ANIMATIONS,
-    VALIDATION.timeoutAnimation.default
-  );
+  setAnimation(SETTINGS.timeout, CONFIG.timeoutAnimation, TIMEOUT_ANIMATIONS, VALIDATION.timeoutAnimation.default);
 }
 
 // Penalty code key state
@@ -370,102 +367,39 @@ let penaltyCodeKeyPending = false;
 
 // Validate and set the penalty code key visibility
 function setPenaltyCodeKey() {
-  const defaultKey = VALIDATION.penaltyCodeKey.default;
-  let showKey = defaultKey;
-  let keySource = SETTING_SOURCES.default;
-  let validationPassed = false;
+  const { value, source } = resolveSetting({
+    ...SETTINGS.key,
+    configValue: CONFIG.penaltyCodeKey,
+    fallback: VALIDATION.penaltyCodeKey.default,
+    parse: lowercase,
+    describe: (visible) => (visible ? 'visible' : 'hidden'),
+    validate: isBoolean
+  });
 
-  // Check for URL parameter first to take precedence over the config.js setting
-  const urlKey = getUrlParameter('key');
-  const configKey = CONFIG.penaltyCodeKey;
-
-  // Determine which value to use
-  let keyToValidate;
-  if (urlKey !== null) {
-    keyToValidate = urlKey.toLowerCase();
-    keySource = SETTING_SOURCES.url;
-  } else {
-    keyToValidate = configKey;
-    keySource = SETTING_SOURCES.config;
-  }
-
-  // Validate the value
-  if (typeof keyToValidate === 'undefined' || keyToValidate === null) {
-    console.warn(
-      `Penalty code key not defined in ${keySource} - using default (${defaultKey ? 'visible' : 'hidden'}).`
-    );
-  } else if (typeof keyToValidate === 'boolean') {
-    showKey = keyToValidate;
-    validationPassed = true;
-  } else if (keyToValidate === 'true' || keyToValidate === 'false') {
-    showKey = keyToValidate === 'true';
-    validationPassed = true;
-  } else {
-    console.warn(
-      `Invalid penalty code key value "${keyToValidate}" in ${keySource} (must be true or false) - using default (${defaultKey ? 'visible' : 'hidden'}).`
-    );
-  }
-
-  // Reset the source if validation failed
-  if (!validationPassed) {
-    keySource = SETTING_SOURCES.default;
-  }
-
-  penaltyCodeKeyVisible = showKey;
+  penaltyCodeKeyVisible = value;
 
   if (DEBUG) {
-    console.log(`Penalty code key ${showKey ? 'enabled' : 'disabled'} (from ${keySource}).`);
+    console.log(`Penalty code key ${value ? 'enabled' : 'disabled'} (from ${source}).`);
   }
 }
 
 // Validate and set the overlay background opacity
 function setOverlayOpacity() {
   const allowed = VALIDATION.opacity;
-  let overlayOpacityPercent = allowed.default;
-  let opacitySource = SETTING_SOURCES.default;
-  let validationPassed = false;
-
-  // Check for URL parameter first to take precedence over the config.js setting
-  const urlOpacity = getUrlParameter('opacity');
-  const configOpacity = CONFIG.overlayOpacity;
-
-  // Determine which opacity value to use
-  let opacityToValidate;
-  if (urlOpacity !== null) {
-    opacityToValidate = parseFloat(urlOpacity);
-    opacitySource = SETTING_SOURCES.url;
-  } else {
-    opacityToValidate = configOpacity;
-    opacitySource = SETTING_SOURCES.config;
-  }
-
-  // Validate the opacity value
-  if (typeof opacityToValidate === 'undefined' || opacityToValidate === null) {
-    console.warn(`Overlay opacity not defined in ${opacitySource} - using default (${allowed.default}%).`);
-  } else if (typeof opacityToValidate !== 'number' || isNaN(opacityToValidate)) {
-    console.warn(
-      `Invalid overlay opacity value "${opacityToValidate}" in ${opacitySource} (must be numeric) - using default (${allowed.default}%).`
-    );
-  } else if (opacityToValidate < allowed.min || opacityToValidate > allowed.max) {
-    console.warn(
-      `Invalid overlay opacity value ${opacityToValidate} in ${opacitySource} (must be in range ${allowed.min}-${allowed.max}) - using default (${allowed.default}%).`
-    );
-  } else {
-    // Round opacity to two decimal points
-    overlayOpacityPercent = Math.round(opacityToValidate * 100) / 100;
-    validationPassed = true;
-  }
-
-  // Reset opacity source if validation failed
-  if (!validationPassed) {
-    opacitySource = SETTING_SOURCES.default;
-  }
+  const { value, source } = resolveSetting({
+    ...SETTINGS.opacity,
+    configValue: CONFIG.overlayOpacity,
+    fallback: allowed.default,
+    parse: parseFloat,
+    describe: asPercent,
+    validate: inRange(allowed)
+  });
 
   // The value sets the alpha channel of the overlay background color
-  document.documentElement.style.setProperty('--overlay-opacity', `${overlayOpacityPercent}%`);
+  document.documentElement.style.setProperty('--overlay-opacity', `${value}%`);
 
   if (DEBUG) {
-    console.log(`Overlay background opacity set to ${overlayOpacityPercent}% (from ${opacitySource}).`);
+    console.log(`Overlay background opacity set to ${value}% (from ${source}).`);
   }
 }
 
@@ -478,52 +412,18 @@ const OVERLAY_ANCHORS = {
 
 // Validate and set the overlay anchor value
 function setOverlayAnchor() {
-  const defaultAnchor = VALIDATION.anchor.default;
-  let overlayAnchor = defaultAnchor;
-  let anchorSource = SETTING_SOURCES.default;
-  let validationPassed = false;
-
-  // Check for URL parameter first to take precedence over the config.js setting
-  const urlAnchor = getUrlParameter('anchor');
-  const configAnchor = CONFIG.overlayAnchor;
-
-  // Determine which anchor value to use
-  let anchorToValidate;
-  if (urlAnchor !== null) {
-    anchorToValidate = urlAnchor;
-    anchorSource = SETTING_SOURCES.url;
-  } else {
-    anchorToValidate = configAnchor;
-    anchorSource = SETTING_SOURCES.config;
-  }
-
-  // Validate the anchor value
-  const allowedAnchors = Object.keys(OVERLAY_ANCHORS);
-  if (typeof anchorToValidate === 'undefined' || anchorToValidate === null) {
-    console.warn(`Overlay anchor not defined in ${anchorSource} - using default (${defaultAnchor}).`);
-  } else if (typeof anchorToValidate !== 'string') {
-    console.warn(
-      `Invalid overlay anchor value "${anchorToValidate}" in ${anchorSource} (must be a string) - using default (${defaultAnchor}).`
-    );
-  } else if (!allowedAnchors.includes(anchorToValidate.toLowerCase())) {
-    console.warn(
-      `Invalid overlay anchor value "${anchorToValidate}" in ${anchorSource} (must be one of ${allowedAnchors.join(', ')}) - using default (${defaultAnchor}).`
-    );
-  } else {
-    overlayAnchor = anchorToValidate.toLowerCase();
-    validationPassed = true;
-  }
-
-  // Reset anchor source if validation failed
-  if (!validationPassed) {
-    anchorSource = SETTING_SOURCES.default;
-  }
+  const { value, source } = resolveSetting({
+    ...SETTINGS.anchor,
+    configValue: CONFIG.overlayAnchor,
+    fallback: VALIDATION.anchor.default,
+    validate: oneOf(Object.keys(OVERLAY_ANCHORS))
+  });
 
   // Convert the anchor name to a CSS transform origin
-  document.documentElement.style.setProperty('--overlay-origin', OVERLAY_ANCHORS[overlayAnchor]);
+  document.documentElement.style.setProperty('--overlay-origin', OVERLAY_ANCHORS[value]);
 
   if (DEBUG) {
-    console.log(`Overlay anchored to ${overlayAnchor} (from ${anchorSource}).`);
+    console.log(`Overlay anchored to ${value} (from ${source}).`);
   }
 }
 
@@ -549,54 +449,20 @@ const OVERLAY_FONTS = {
 
 // Validate and set the overlay font pairing
 function setOverlayFont() {
-  const defaultFont = VALIDATION.font.default;
-  let overlayFont = defaultFont;
-  let fontSource = SETTING_SOURCES.default;
-  let validationPassed = false;
-
-  // Check for URL parameter first to take precedence over the config.js setting
-  const urlFont = getUrlParameter('font');
-  const configFont = CONFIG.overlayFont;
-
-  // Determine which font value to use
-  let fontToValidate;
-  if (urlFont !== null) {
-    fontToValidate = urlFont;
-    fontSource = SETTING_SOURCES.url;
-  } else {
-    fontToValidate = configFont;
-    fontSource = SETTING_SOURCES.config;
-  }
-
-  // Validate the font value
-  const allowedFonts = Object.keys(OVERLAY_FONTS);
-  if (typeof fontToValidate === 'undefined' || fontToValidate === null) {
-    console.warn(`Overlay font not defined in ${fontSource} - using default (${defaultFont}).`);
-  } else if (typeof fontToValidate !== 'string') {
-    console.warn(
-      `Invalid overlay font value "${fontToValidate}" in ${fontSource} (must be a string) - using default (${defaultFont}).`
-    );
-  } else if (!allowedFonts.includes(fontToValidate.toLowerCase())) {
-    console.warn(
-      `Invalid overlay font value "${fontToValidate}" in ${fontSource} (must be one of ${allowedFonts.join(', ')}) - using default (${defaultFont}).`
-    );
-  } else {
-    overlayFont = fontToValidate.toLowerCase();
-    validationPassed = true;
-  }
-
-  // Reset font source if validation failed
-  if (!validationPassed) {
-    fontSource = SETTING_SOURCES.default;
-  }
+  const { value, source } = resolveSetting({
+    ...SETTINGS.font,
+    configValue: CONFIG.overlayFont,
+    fallback: VALIDATION.font.default,
+    validate: oneOf(Object.keys(OVERLAY_FONTS))
+  });
 
   // Apply the font to the display and body font variables
-  const pairing = OVERLAY_FONTS[overlayFont];
+  const pairing = OVERLAY_FONTS[value];
   document.documentElement.style.setProperty('--font-family-display', pairing.display);
   document.documentElement.style.setProperty('--font-family', pairing.body);
 
   if (DEBUG) {
-    console.log(`Overlay font set to ${overlayFont} (from ${fontSource}).`);
+    console.log(`Overlay font set to ${value} (from ${source}).`);
   }
 }
 
@@ -606,7 +472,7 @@ function setOverlayFont() {
 
 // Check if a value exists for cases when a value isn't truthy
 window.hasValue = function (_k, v) {
-  return v && v !== '';
+  return Boolean(v);
 };
 
 /******************************
@@ -652,25 +518,43 @@ window.glowColorToShadow = function (_k, glowColor) {
  ** Game Rule Functions **
  ************************/
 
-// WebSocket Channels to read the active ruleset
-const PENALTY_CODE_PREFIX = 'ScoreBoard.CurrentGame.PenaltyCode(';
-const SKATER_PENALTY_CODE = /^ScoreBoard\.CurrentGame\.Team\(\d+\)\.Skater\(([^)]+)\)\.Penalty\(\d+\)\.Code$/;
-const RULE_FOULOUT_COUNT = 'ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout)';
-const RULE_PERIOD_COUNT = 'ScoreBoard.CurrentGame.Rule(Period.Number)';
+// Patterns that read a player out of a state key
+const SKATER_CONTEXT = /^ScoreBoard\.CurrentGame\.Team\(\d+\)\.Skater\([^)]+\)/;
+const PENALTY_CODE_SUFFIX = /\.Penalty\(\d+\)\.Code$/;
 
-// Number of penalties that result in a foulout
-function getFouloutCount() {
-  return parseInt(WS.state[RULE_FOULOUT_COUNT]);
+// Penalty code definitions are in the penalty code channel
+const PENALTY_CODE_PREFIX = `${CHANNELS.penaltyCode}(`;
+
+// Portion of a state key that names a player, or null when the key names something else
+function getSkaterContext(stateKey) {
+  const match = stateKey == null ? null : SKATER_CONTEXT.exec(stateKey);
+
+  return match === null ? null : match[0];
 }
 
-// Number of periods in the game
+// Number of penalties that result in a foulout, or null when the ruleset supplies no usable count
+function getFouloutCount() {
+  const fouloutCount = parseInt(WS.state[CHANNELS.ruleFouloutCount]);
+
+  return Number.isFinite(fouloutCount) && fouloutCount >= 1 ? fouloutCount : null;
+}
+
+// Number of periods in the game, or null when the ruleset supplies no usable count
 function getPeriodCount() {
-  return parseInt(WS.state[RULE_PERIOD_COUNT]);
+  const periodCount = parseInt(WS.state[CHANNELS.rulePeriodCount]);
+
+  return Number.isFinite(periodCount) && periodCount >= 1 ? periodCount : null;
 }
 
 // Penalty count that triggers a warning color, counted back from a foulout
 function getWarningCount(offset) {
-  const warningCount = getFouloutCount() - offset;
+  const fouloutCount = getFouloutCount();
+
+  if (fouloutCount === null) {
+    return null;
+  }
+
+  const warningCount = fouloutCount - offset;
 
   return warningCount >= 1 ? warningCount : null;
 }
@@ -681,14 +565,15 @@ function getWarningCount(offset) {
 
 // Private helper to check if a player is expelled or removed
 function checkPenaltyStatus(k) {
-  // Extract the player context from the key
-  const skaterContext = k.substring(
-    0,
-    k.lastIndexOf('.Skater(') + k.substring(k.lastIndexOf('.Skater(')).indexOf(')') + 1
-  );
+  const skaterContext = getSkaterContext(k);
+
+  // A key that names no player carries no penalty status
+  if (skaterContext === null) {
+    return { isExpelled: false, isRemoved: false };
+  }
 
   // Get Penalty(0).Code from WS.state
-  const penalty0Code = WS.state[skaterContext + '.Penalty(0).Code'];
+  const penalty0Code = WS.state[`${skaterContext}.Penalty(0).Code`];
 
   // Empty/undefined means a player is neither expelled nor removed
   if (!penalty0Code || penalty0Code === '') {
@@ -732,7 +617,7 @@ window.isPenaltyCountExpFoRe = function (k, penaltyCount) {
 
   const fouloutCount = getFouloutCount();
 
-  return isRemoved || isExpelled || (fouloutCount >= 1 && count >= fouloutCount);
+  return isRemoved || isExpelled || (fouloutCount !== null && count >= fouloutCount);
 };
 
 // Determine the text to show for a player's penalty count
@@ -744,7 +629,7 @@ window.getPenaltyCountDisplay = function (k, penaltyCount) {
 
   if (isRemoved) return LABELS.removedDisplay;
   if (isExpelled) return LABELS.expelledDisplay;
-  if (fouloutCount >= 1 && count >= fouloutCount) return LABELS.fouloutDisplay;
+  if (fouloutCount !== null && count >= fouloutCount) return LABELS.fouloutDisplay;
 
   return count > 0 ? count : '';
 };
@@ -804,16 +689,16 @@ window.getTeamNameWithDefault = function (k, alternateName) {
 // Determine if the period clock should be hidden
 window.shouldHidePeriodClock = function (_k, intermissionRunning) {
   // Pre-game, when no intermission clock is running (Coming Up)
-  const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
+  const period = parseInt(WS.state[CHANNELS.currentPeriod]) || 0;
 
   // When the intermission clock is running
   const isIntermission = intermissionRunning === true;
 
   // When the score is unofficial or official
-  const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
+  const isOfficial = WS.state[CHANNELS.officialScore] === true;
 
   // During overtime
-  const isOvertime = WS.state['ScoreBoard.CurrentGame.InOvertime'] === true;
+  const isOvertime = WS.state[CHANNELS.inOvertime] === true;
 
   return period === 0 || isIntermission || isOfficial || isOvertime;
 };
@@ -824,15 +709,17 @@ window.shouldHideIntermissionClock = function (_k, intermissionRunning) {
   const isIntermission = intermissionRunning === true;
 
   // When the score is unofficial or official
-  const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true;
+  const isOfficial = WS.state[CHANNELS.officialScore] === true;
 
   // During overtime
-  const isOvertime = WS.state['ScoreBoard.CurrentGame.InOvertime'] === true;
+  const isOvertime = WS.state[CHANNELS.inOvertime] === true;
 
-  // After the last period
-  const period = parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0;
+  // After the last period, which an unknown period count cannot establish
+  const period = parseInt(WS.state[CHANNELS.currentPeriod]) || 0;
+  const periodCount = getPeriodCount();
+  const afterLastPeriod = periodCount !== null && period >= periodCount;
 
-  return !isIntermission || isOfficial || isOvertime || period >= getPeriodCount();
+  return !isIntermission || isOfficial || isOvertime || afterLastPeriod;
 };
 
 /*************************
@@ -854,32 +741,33 @@ window.getPeriodLabel = function (_k, periodNumber) {
 // Get intermission label
 window.getIntermissionLabel = function (_k, periodNumber) {
   const period = parseInt(periodNumber) || 0;
+  const periodCount = getPeriodCount();
 
   // Read intermission labels from the WS.state
-  const preGame = WS.state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)'];
-  const intermission = WS.state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)'];
+  const preGame = WS.state[CHANNELS.preGameLabel];
+  const intermission = WS.state[CHANNELS.intermissionLabel];
 
   // Before the game starts
   if (period === 0) {
     return preGame || '';
   }
-  // Between periods
-  else if (period < getPeriodCount()) {
-    return intermission || '';
-  }
-  // After the final period, don't show the intermission label, "Unofficial" or "Official" labels will show instead
-  else {
+
+  // After the final period, where the "Unofficial" or "Official" labels show instead
+  if (periodCount !== null && period >= periodCount) {
     return '';
   }
+
+  // Between periods, and whenever the period count is unknown
+  return intermission || '';
 };
 
 // Read the game state the score labels depend on
 function getScoreLabelState() {
   return {
-    period: parseInt(WS.state['ScoreBoard.CurrentGame.CurrentPeriodNumber']) || 0,
-    isIntermission: WS.state['ScoreBoard.CurrentGame.Clock(Intermission).Running'] === true,
-    isOfficial: WS.state['ScoreBoard.CurrentGame.OfficialScore'] === true,
-    isOvertime: WS.state['ScoreBoard.CurrentGame.InOvertime'] === true
+    period: parseInt(WS.state[CHANNELS.currentPeriod]) || 0,
+    isIntermission: WS.state[CHANNELS.intermissionRunning] === true,
+    isOfficial: WS.state[CHANNELS.officialScore] === true,
+    isOvertime: WS.state[CHANNELS.inOvertime] === true
   };
 }
 
@@ -887,7 +775,11 @@ function getScoreLabelState() {
 window.shouldHideUnofficialScore = function (_k) {
   const { period, isIntermission, isOfficial, isOvertime } = getScoreLabelState();
 
-  return period < getPeriodCount() || !isIntermission || isOfficial || isOvertime;
+  // The label names the score after the final period, which an unknown period count cannot establish
+  const periodCount = getPeriodCount();
+  const afterLastPeriod = periodCount !== null && period >= periodCount;
+
+  return !afterLastPeriod || !isIntermission || isOfficial || isOvertime;
 };
 
 // Hide the "Coming Up" label
@@ -907,15 +799,18 @@ function getPenaltyCodesInPlay() {
   const hidden = {};
 
   for (const stateKey of Object.keys(WS.state)) {
-    const match = SKATER_PENALTY_CODE.exec(stateKey);
-    if (!match) {
+    if (!PENALTY_CODE_SUFFIX.test(stateKey)) {
+      continue;
+    }
+
+    const skaterContext = getSkaterContext(stateKey);
+    if (skaterContext === null) {
       continue;
     }
 
     // Filter inactive players
-    const skaterContext = stateKey.slice(0, stateKey.indexOf(').Penalty(') + 1);
     if (!(skaterContext in hidden)) {
-      hidden[skaterContext] = window.shouldHideSkater(null, WS.state[skaterContext + '.Flags']);
+      hidden[skaterContext] = window.shouldHideSkater(null, WS.state[`${skaterContext}.Flags`]);
     }
     if (hidden[skaterContext]) {
       continue;
@@ -1032,14 +927,7 @@ function registerPenaltyCodeKey() {
     return;
   }
 
-  WS.Register(
-    [
-      'ScoreBoard.CurrentGame.PenaltyCode',
-      'ScoreBoard.CurrentGame.Team(1).Skater',
-      'ScoreBoard.CurrentGame.Team(2).Skater'
-    ],
-    schedulePenaltyCodeKeyRebuild
-  );
+  WS.Register([CHANNELS.penaltyCode, CHANNELS.team1Skaters, CHANNELS.team2Skaters], schedulePenaltyCodeKeyRebuild);
 }
 
 /*********************************
@@ -1090,7 +978,7 @@ function loadCustomLogo() {
 // Determine the timeout banner text to display
 window.getTimeoutText = function (_k, timeoutOwner, officialReview) {
   // Official review
-  const isReview = officialReview === true || WS.state['ScoreBoard.CurrentGame.OfficialReview'] === true;
+  const isReview = officialReview === true || WS.state[CHANNELS.officialReview] === true;
   if (isReview) return LABELS.timeout.review;
 
   // Official timeout
@@ -1168,7 +1056,9 @@ function hideLoadingOverlayWhenReady() {
     const elapsed = Date.now() - startTime;
     const rulesArrived =
       typeof WS !== 'undefined' &&
-      [RULE_FOULOUT_COUNT, RULE_PERIOD_COUNT].every((channel) => typeof WS.state[channel] !== 'undefined');
+      [CHANNELS.ruleFouloutCount, CHANNELS.rulePeriodCount].every(
+        (channel) => typeof WS.state[channel] !== 'undefined'
+      );
 
     // Always show the loading overlay for the minimum display time
     if (elapsed < TIMING.minLoadDisplayMs) {

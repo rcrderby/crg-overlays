@@ -1,0 +1,54 @@
+# Attach a packaged overlay and its checksums to a published release
+# https://docs.github.com/en/repositories/releasing-projects-on-github
+
+---
+# Name of the action
+name: Publish Release Assets
+
+# Events that trigger the action
+on:
+  release:
+    types: [published]
+
+# Uploading a release asset is the only write this workflow needs
+permissions:
+  contents: write
+
+jobs:
+  publish-assets:
+    name: Publish Release Assets
+    runs-on: ubuntu-latest
+
+    steps:
+      # checkout action documentation
+      # https://github.com/marketplace/actions/checkout
+      - name: Checkout Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      # The watermark identifies a deployment from a screenshot, so a release
+      # that disagrees with it would misreport the version in use
+      - name: Verify the overlay version matches the release tag
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          version="$(grep -oE "OVERLAY_VERSION = '[^']+'" penalties/index.js | cut -d"'" -f2)"
+
+          if [ "${TAG#v}" != "${version}" ]; then
+            echo "Release tag ${TAG} does not match OVERLAY_VERSION ${version}" >&2
+            exit 1
+          fi
+
+          echo "Overlay version ${version} matches release tag ${TAG}"
+
+      # The overlay folder is the only part of the repository CRG needs
+      - name: Package the overlay
+        run: zip --quiet --recurse-paths penalties.zip penalties
+
+      - name: Generate checksums
+        run: sha256sum penalties.zip > SHA256SUMS
+
+      - name: Attach the assets to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "${TAG}" penalties.zip SHA256SUMS

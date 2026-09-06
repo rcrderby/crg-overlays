@@ -97,9 +97,19 @@ To make this overlay available to your video streaming team, you need to downloa
 **Download the overlay files:**
 
 1. Navigate to the [Releases page](https://github.com/rcrderby/crg-overlays/releases "Releases Page") of this repository.
-2. Click on one of the **Source code** links in the **Assets** section of the latest release to download a compressed/zipped copy of the overlay files.
-3. Extract the `.zip` or `tar.gz` file you downloaded.
-4. From the extracted files, locate the `penalties` folder; you will copy this folder to your instance of CRG.
+2. From the **Assets** section of the latest release, download `penalties.zip`.
+3. Optionally, download `SHA256SUMS` from the same section and confirm the download matches:
+
+    | Platform | Command |
+    | - | - |
+    | Linux | `sha256sum -c SHA256SUMS` |
+    | macOS | `shasum -a 256 -c SHA256SUMS` |
+    | Windows | `Get-FileHash penalties.zip -Algorithm SHA256` |
+
+4. Extract `penalties.zip`, which contains the `penalties` folder you will copy to your instance of CRG.
+
+> [!NOTE]
+> Releases before 4.0.0 have no `penalties.zip`.  Download a **Source code** link instead, extract it, and locate the `penalties` folder inside.
 
 **Copy the overlay files to CRG:**
 
