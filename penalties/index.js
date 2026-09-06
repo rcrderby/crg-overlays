@@ -472,7 +472,7 @@ function setOverlayFont() {
 
 // Check if a value exists for cases when a value isn't truthy
 window.hasValue = function (_k, v) {
-  return v && v !== '';
+  return Boolean(v);
 };
 
 /******************************

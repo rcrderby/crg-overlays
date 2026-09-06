@@ -43,9 +43,6 @@
                 "yaml.customTags": [],
                 "yaml.validate": true,
                 
-                // Set the default terminal application to bash
-                "#terminal.integrated.defaultProfile.linux#": "/bin/bash",
-                
                 // Customize YAML formatting
                 "[yaml]": {
                     "editor.autoIndent": "keep",

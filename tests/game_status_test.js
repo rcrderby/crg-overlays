@@ -128,7 +128,7 @@ Deno.test('a team glow color becomes a text shadow, and its absence falls back',
 Deno.test('the small binding helpers behave', async () => {
   const { window } = await atGameState();
   assert.equal(window.hasValue(null, 'Bad Apples'), true);
-  assert.equal(window.hasValue(null, ''), '');
+  assert.equal(window.hasValue(null, ''), false);
   assert.equal(window.invertBoolean(null, true), false);
   assert.equal(window.invertBoolean(null, false), true);
 });
