@@ -74,10 +74,22 @@ const RULES = PenaltiesOverlayConfig.rules;
 const PENALTIES = PenaltiesOverlayConfig.penalties;
 const TIMING = PenaltiesOverlayConfig.timing;
 
-// Allowed URL parameters.  `debug` belongs here, because the overlay reads the
-// debug setting through getUrlParameter() before DEBUG exists, and an
-// unapproved parameter logs through DEBUG
-const ALLOWED_URL_PARAMS = ['anchor', 'background', 'debug', 'font', 'key', 'opacity', 'scale', 'timeout', 'width'];
+// Every setting a URL parameter overrides, with the term its messages use.
+// Unapproved URL parameter log via DEBUG
+const SETTINGS = {
+  anchor: { urlParam: 'anchor', label: 'Overlay anchor' },
+  background: { urlParam: 'background', label: 'Background animation' },
+  debug: { urlParam: 'debug', label: 'Debug logging' },
+  font: { urlParam: 'font', label: 'Overlay font' },
+  key: { urlParam: 'key', label: 'Penalty code key' },
+  opacity: { urlParam: 'opacity', label: 'Overlay opacity' },
+  scale: { urlParam: 'scale', label: 'Overlay scale' },
+  timeout: { urlParam: 'timeout', label: 'Timeout animation' },
+  width: { urlParam: 'width', label: 'Overlay width' }
+};
+
+// The allowlist follows the settings, so a renamed parameter cannot drift out of it
+const ALLOWED_URL_PARAMS = Object.values(SETTINGS).map((setting) => setting.urlParam);
 
 // Settings sources for validation messages
 const SETTING_SOURCES = {
@@ -199,8 +211,7 @@ function resolveSetting({ label, urlParam, configValue, fallback, validate, pars
 // Validate the debug logging setting
 function getDebugSetting() {
   const { value } = resolveSetting({
-    label: 'Debug logging',
-    urlParam: 'debug',
+    ...SETTINGS.debug,
     configValue: PenaltiesOverlayConfig.debug?.enabled,
     fallback: VALIDATION.debug.default,
     parse: lowercase,
@@ -241,8 +252,7 @@ function logUrlParameters() {
 function setOverlayScale() {
   const allowed = VALIDATION.scale;
   const { value, source } = resolveSetting({
-    label: 'Overlay scale',
-    urlParam: 'scale',
+    ...SETTINGS.scale,
     configValue: CONFIG.overlayScale,
     fallback: allowed.default,
     parse: parseFloat,
@@ -262,8 +272,7 @@ function setOverlayScale() {
 function setOverlayWidth() {
   const allowed = VALIDATION.width;
   const { value, source } = resolveSetting({
-    label: 'Overlay width',
-    urlParam: 'width',
+    ...SETTINGS.width,
     configValue: CONFIG.overlayWidth,
     fallback: allowed.default,
     parse: parseFloat,
@@ -295,10 +304,9 @@ const TIMEOUT_ANIMATIONS = {
 };
 
 // Validate an animation setting and apply its class to the overlay
-function setAnimation(label, urlParam, configValue, animations, defaultName) {
+function setAnimation(setting, configValue, animations, defaultName) {
   const { value, source } = resolveSetting({
-    label,
-    urlParam,
+    ...setting,
     configValue,
     fallback: defaultName,
     validate: oneOf(Object.keys(animations))
@@ -318,15 +326,14 @@ function setAnimation(label, urlParam, configValue, animations, defaultName) {
   }
 
   if (DEBUG) {
-    console.log(`${label} set to ${value} (from ${source}).`);
+    console.log(`${setting.label} set to ${value} (from ${source}).`);
   }
 }
 
 // Validate and set the background animation
 function setBackgroundAnimation() {
   setAnimation(
-    'Background animation',
-    'background',
+    SETTINGS.background,
     CONFIG.backgroundAnimation,
     BACKGROUND_ANIMATIONS,
     VALIDATION.backgroundAnimation.default
@@ -335,13 +342,7 @@ function setBackgroundAnimation() {
 
 // Validate and set the timeout banner animation
 function setTimeoutAnimation() {
-  setAnimation(
-    'Timeout animation',
-    'timeout',
-    CONFIG.timeoutAnimation,
-    TIMEOUT_ANIMATIONS,
-    VALIDATION.timeoutAnimation.default
-  );
+  setAnimation(SETTINGS.timeout, CONFIG.timeoutAnimation, TIMEOUT_ANIMATIONS, VALIDATION.timeoutAnimation.default);
 }
 
 // Penalty code key state
@@ -351,8 +352,7 @@ let penaltyCodeKeyPending = false;
 // Validate and set the penalty code key visibility
 function setPenaltyCodeKey() {
   const { value, source } = resolveSetting({
-    label: 'Penalty code key',
-    urlParam: 'key',
+    ...SETTINGS.key,
     configValue: CONFIG.penaltyCodeKey,
     fallback: VALIDATION.penaltyCodeKey.default,
     parse: lowercase,
@@ -371,8 +371,7 @@ function setPenaltyCodeKey() {
 function setOverlayOpacity() {
   const allowed = VALIDATION.opacity;
   const { value, source } = resolveSetting({
-    label: 'Overlay opacity',
-    urlParam: 'opacity',
+    ...SETTINGS.opacity,
     configValue: CONFIG.overlayOpacity,
     fallback: allowed.default,
     parse: parseFloat,
@@ -398,8 +397,7 @@ const OVERLAY_ANCHORS = {
 // Validate and set the overlay anchor value
 function setOverlayAnchor() {
   const { value, source } = resolveSetting({
-    label: 'Overlay anchor',
-    urlParam: 'anchor',
+    ...SETTINGS.anchor,
     configValue: CONFIG.overlayAnchor,
     fallback: VALIDATION.anchor.default,
     validate: oneOf(Object.keys(OVERLAY_ANCHORS))
@@ -436,8 +434,7 @@ const OVERLAY_FONTS = {
 // Validate and set the overlay font pairing
 function setOverlayFont() {
   const { value, source } = resolveSetting({
-    label: 'Overlay font',
-    urlParam: 'font',
+    ...SETTINGS.font,
     configValue: CONFIG.overlayFont,
     fallback: VALIDATION.font.default,
     validate: oneOf(Object.keys(OVERLAY_FONTS))

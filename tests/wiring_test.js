@@ -135,3 +135,28 @@ Deno.test('the README documents every configuration key', async () => {
   assert.deepEqual(undocumented, [], `config.js keys the README does not document: ${undocumented.join(', ')}`);
   assert.deepEqual(stale, [], `README rows for keys config.js no longer has: ${stale.join(', ')}`);
 });
+
+// The settings table names each URL parameter once.  These checks identify any
+// parameter that no setting reads, or that the README no longer documents.
+Deno.test('every URL parameter the overlay accepts reaches a setting', async () => {
+  const { SETTINGS, ALLOWED_URL_PARAMS } = await loadOverlay();
+
+  // The allowlist is derived, so it cannot disagree with the table
+  assert.deepEqual(
+    ALLOWED_URL_PARAMS,
+    Object.values(SETTINGS).map((setting) => setting.urlParam)
+  );
+
+  // Each entry is spread into a resolveSetting call, or passed to setAnimation
+  const unused = Object.keys(SETTINGS).filter((name) => !js.includes(`SETTINGS.${name}`));
+  assert.deepEqual(unused, [], `the settings table names parameters nothing reads: ${unused.join(', ')}`);
+});
+
+Deno.test('the README documents every URL parameter', async () => {
+  const readme = await readSource('penalties/README.md');
+  const { ALLOWED_URL_PARAMS } = await loadOverlay();
+
+  // Renaming a parameter invalidates the example URLs a streaming team copies
+  const undocumented = ALLOWED_URL_PARAMS.filter((name) => !new RegExp(`[?&]${name}=`).test(readme));
+  assert.deepEqual(undocumented, [], `URL parameters the README does not show: ${undocumented.join(', ')}`);
+});

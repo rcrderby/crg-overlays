@@ -6,28 +6,36 @@
 
 const REPO = new URL('../../', import.meta.url);
 
-// Names index.js keeps in module scope, exposed so tests can reach them
+// Names index.js keeps in module scope, exposed so tests can reach them.
+// Grouped by what each name is, then alphabetical within a group.
 const INTERNALS = [
-  'DEBUG',
-  'VALIDATION',
-  'SETTING_SOURCES',
-  'CONFIG',
+  // Constants, including the configuration sections config.js supplies
+  'ALLOWED_URL_PARAMS',
   'CLASSES',
+  'CONFIG',
+  'DEBUG',
   'LABELS',
   'PENALTIES',
   'RULES',
+  'SETTINGS',
+  'SETTING_SOURCES',
   'TIMING',
-  'setOverlayScale',
-  'setOverlayWidth',
-  'setOverlayOpacity',
+  'VALIDATION',
+
+  // Functions that apply a setting
+  'setBackgroundAnimation',
   'setOverlayAnchor',
   'setOverlayFont',
-  'setPenaltyCodeKey',
-  'setBackgroundAnimation',
-  'setTimeoutAnimation',
+  'setOverlayOpacity',
+  'setOverlayScale',
   'setOverlayVersion',
-  'getSkaterContext',
-  'getPenaltyCodesInPlay'
+  'setOverlayWidth',
+  'setPenaltyCodeKey',
+  'setTimeoutAnimation',
+
+  // Functions that read game data
+  'getPenaltyCodesInPlay',
+  'getSkaterContext'
 ];
 
 // Read a file from the repository, whatever the working directory
