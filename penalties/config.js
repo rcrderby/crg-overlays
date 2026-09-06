@@ -35,7 +35,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
     filteredSkaterFlags: ['ALT', 'B', 'BA'],
 
     // Default roster shadow properties
-    defaultRosterShadowProperties: '.5px .5px 1px',
+    defaultRosterShadowProperties: '0.5px 0.5px 1px',
 
     // Text displayed on the "loading" screen
     loadingOverlayText: 'Loading game data...',
