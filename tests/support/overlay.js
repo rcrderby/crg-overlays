@@ -33,6 +33,13 @@ const INTERNALS = [
   'setOverlayWidth',
   'setPenaltyCodeKey',
   'setTimeoutAnimation',
+  'setTitleBannerText',
+
+  // Functions that apply and follow the settings page
+  'applyOverlaySettings',
+  'registerOverlaySettings',
+  'settingChannel',
+  'storedSetting',
 
   // Functions that build and size the penalty code key
   'buildPenaltyCodeKey',
@@ -127,6 +134,35 @@ function penaltyCodeKeyDom({ available = 0, codeWidth = 0, fontSize = 15 } = {})
   };
 }
 
+// Names admin/index.js keeps in module scope, exposed so tests can reach them
+const SETTINGS_PAGE_INTERNALS = ['CONFIG', 'READY_CHANNEL', 'SETTINGS', 'VALIDATION', 'settingChannel', 'settingValue'];
+
+// Run config.js and the settings page's index.js.  The page reaches the DOM
+// only from its 'ready' callback, which does not run here
+export async function loadSettingsPage({ configSource, state = {} } = {}) {
+  const config = configSource ?? (await readSource('penalties/config.js'));
+  const index = await readSource('penalties/admin/index.js');
+
+  const window = { location: { href: 'http://scoreboard:8000/custom/overlay/penalties/admin/' } };
+  new Function('window', config)(window);
+
+  const WS = scoreboard(state);
+  const consoleStub = { log: () => {}, error: () => {} };
+
+  // jQuery is called with the 'ready' callback, which must not run here
+  const jQueryStub = () => ({ each: () => {}, on: () => ({}), attr: () => ({}) });
+
+  const api = new Function(
+    'window',
+    'console',
+    '$',
+    'WS',
+    `${index}\nreturn { ${SETTINGS_PAGE_INTERNALS.join(', ')} };`
+  )(window, consoleStub, jQueryStub, WS);
+
+  return { ...api, window, WS };
+}
+
 // Run config.js and index.js, and return their functions plus what they wrote
 export async function loadOverlay({ configSource, indexSource, search = '', state = {}, dom = {} } = {}) {
   const config = configSource ?? (await readSource('penalties/config.js'));
@@ -165,9 +201,23 @@ export async function loadOverlay({ configSource, indexSource, search = '', stat
     error: (message) => warnings.push(message)
   };
 
+  // Text the overlay writes into the page, keyed by the selector it wrote to
+  const text = {};
+
   // jQuery is called with the 'ready' callback, which must not run here
-  const jQueryStub = (selector) =>
-    typeof selector === 'function' ? { text: () => {}, attr: () => {} } : keyDom.jQuery(selector);
+  const jQueryStub = (selector) => {
+    if (typeof selector === 'function') {
+      return { text: () => {}, attr: () => {} };
+    }
+
+    const element = keyDom.jQuery(selector);
+    const record = (value) => {
+      text[selector] = value;
+      return element;
+    };
+
+    return { ...element, text: (value) => (value === undefined ? text[selector] : record(value)) };
+  };
 
   // Timers the overlay sets, run only when a test asks for them
   const timers = [];
@@ -188,5 +238,5 @@ export async function loadOverlay({ configSource, indexSource, search = '', stat
   // Run every pending timer, and report what was waiting
   const runTimers = () => timers.splice(0).map((timer) => (timer.callback(), timer));
 
-  return { ...api, window, WS, properties, warnings, overlayClasses, key: keyDom.rendered, timers, runTimers };
+  return { ...api, window, WS, properties, warnings, overlayClasses, text, key: keyDom.rendered, timers, runTimers };
 }

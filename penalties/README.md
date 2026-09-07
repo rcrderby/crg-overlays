@@ -6,6 +6,7 @@
 - [Features](#features "Overlay Features")
 - [Compatibility](#compatibility "Overlay CRG Compatibility")
 - [Usage](#usage "Overlay Usage Instructions")
+- [Settings Page](#settings-page "Overlay Settings Page")
 - [Display Options](#display-options "Overlay Display Options")
   - [Scale Adjustments](#scale-adjustments "Scale Adjustments")
   - [Width Adjustments](#width-adjustments "Width Adjustments")
@@ -161,9 +162,16 @@ To add a custom logo to the left side game information area of the overlay:
 
 The logo will display in the game information area of the overlay after a browser refresh.
 
+## Admin Page
+
+The overlay has an admin page that allows you to adjust configurable options at `https://<crg-ip-address>:8000/custom/overlay/penalties/admin`.[^1]
+
 ## Display Options
 
 Your video streaming team can customize the overlay using URL parameters.  Combine multiple URL parameters with the `&` symbol, for example `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=90&anchor=bottom`.  Each URL parameter has a matching setting in the [Configuration File](#configuration-file "Configuration File Section").
+
+> [!IMPORTANT]
+> URL parameters take precedence over the [Admin Page](#admin-page "Admin Page Section").  Use one when you want a source to keep a value the settings page cannot change.
 
 ### Scale Adjustments
 
@@ -336,6 +344,8 @@ The overlay logs its settings and the decisions it makes during a game to the br
 
 A configuration file named [config.js](./config.js) allows you to customize various overlay settings.  Some settings are safe to change, and others are best left at their default values.
 
+The configuration file valuesare a starting point.  A URL parameter takes precedence over the [Admin Page](#admin-page "Settings Page Section"), which in turn takes precedence over this file.
+
 ### Common Customizations
 
 - `config.overlayScale` to adjust the overlay scale - between 1 and 100 (default is `100`).
@@ -411,6 +421,7 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | `penaltyCodes.max` | Most penalty codes a roster row displays | integer | `9` | :warning: |
   | `scale` | Allowed range and default for `overlayScale` | object | `1` to `100`, default `100` | :warning: |
   | `timeoutAnimation` | Default for `timeoutAnimation` | object | `glow` | :warning: |
+  | `title` | Default for `titleBannerText` | object | `PENALTIES` | :warning: |
   | `width` | Allowed range and default for `overlayWidth` | object | `70` to `100`, default `85` | :warning: |
 
   ---

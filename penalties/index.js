@@ -75,26 +75,50 @@ const PENALTIES = PenaltiesOverlayConfig.penalties;
 const TIMING = PenaltiesOverlayConfig.timing;
 
 // Every setting a URL parameter overrides, with the term its messages use.
-// Unapproved URL parameter log via DEBUG
+// Unapproved URL parameters log via DEBUG
 const SETTINGS = {
-  anchor: { urlParam: 'anchor', label: 'Overlay anchor' },
-  background: { urlParam: 'background', label: 'Background animation' },
+  anchor: { urlParam: 'anchor', setting: 'Anchor', label: 'Overlay anchor' },
+  background: { urlParam: 'background', setting: 'BackgroundAnimation', label: 'Background animation' },
   debug: { urlParam: 'debug', label: 'Debug logging' },
-  font: { urlParam: 'font', label: 'Overlay font' },
-  key: { urlParam: 'key', label: 'Penalty code key' },
-  opacity: { urlParam: 'opacity', label: 'Overlay opacity' },
-  scale: { urlParam: 'scale', label: 'Overlay scale' },
-  timeout: { urlParam: 'timeout', label: 'Timeout animation' },
-  width: { urlParam: 'width', label: 'Overlay width' }
+  font: { urlParam: 'font', setting: 'Font', label: 'Overlay font' },
+  key: { urlParam: 'key', setting: 'PenaltyCodeKey', label: 'Penalty code key' },
+  opacity: { urlParam: 'opacity', setting: 'Opacity', label: 'Overlay opacity' },
+  scale: { urlParam: 'scale', setting: 'Scale', label: 'Overlay scale' },
+  timeout: { urlParam: 'timeout', setting: 'TimeoutAnimation', label: 'Timeout animation' },
+  title: { setting: 'TitleText', label: 'Title text' },
+  width: { urlParam: 'width', setting: 'Width', label: 'Overlay width' }
 };
 
 // The allowlist follows the settings, so a renamed parameter cannot drift out of it
-const ALLOWED_URL_PARAMS = Object.values(SETTINGS).map((setting) => setting.urlParam);
+const ALLOWED_URL_PARAMS = Object.values(SETTINGS)
+  .map((setting) => setting.urlParam)
+  .filter(Boolean);
+
+// The admin page writes these channels, which CRG persists and pushes to
+// every open overlay.  Each setting holds a string; empty settings are unset
+const SETTING_CHANNEL_PREFIX = 'ScoreBoard.Settings.Setting(Penalties.Overlay.';
+
+// Scoreboard channel for settings storage
+function settingChannel(name) {
+  return `${SETTING_CHANNEL_PREFIX}${name})`;
+}
+
+// A setting's stored value, or 'undefined' when not set by the admin page
+function storedSetting(name) {
+  if (!name || typeof WS === 'undefined') {
+    return undefined;
+  }
+
+  const stored = WS.state[settingChannel(name)];
+
+  return typeof stored === 'string' && stored.trim() !== '' ? stored : undefined;
+}
 
 // Settings sources for validation messages
 const SETTING_SOURCES = {
   config: 'config.js',
   default: 'default',
+  settings: 'the admin page',
   url: 'URL parameter'
 };
 
@@ -183,6 +207,14 @@ function oneOf(choices) {
 }
 
 // Accept a boolean, or the text a URL parameter supplies for one
+function isText(value) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    return { reason: 'must be text', display: `"${value}"` };
+  }
+
+  return { value: value.trim() };
+}
+
 function isBoolean(value) {
   if (typeof value === 'boolean') {
     return { value };
@@ -197,11 +229,20 @@ function isBoolean(value) {
 
 // Read a setting from its URL parameter, then config.js, then the validated default.
 // A validator returns the accepted value, or the reason the value cannot be used.
-function resolveSetting({ label, urlParam, configValue, fallback, validate, parse, describe = String }) {
-  const urlValue = getUrlParameter(urlParam);
-  const fromUrl = urlValue !== null;
-  const source = fromUrl ? SETTING_SOURCES.url : SETTING_SOURCES.config;
-  const value = fromUrl && parse ? parse(urlValue) : fromUrl ? urlValue : configValue;
+function resolveSetting({ label, urlParam, setting, configValue, fallback, validate, parse, describe = String }) {
+  const urlValue = urlParam ? getUrlParameter(urlParam) : null;
+  const storedValue = urlValue === null ? storedSetting(setting) : undefined;
+
+  // URL parameters take precedence over admin page settings,
+  // The admin page takes precedence over config.js settings
+  const raw = urlValue !== null ? urlValue : storedValue;
+  const source =
+    urlValue !== null
+      ? SETTING_SOURCES.url
+      : storedValue !== undefined
+        ? SETTING_SOURCES.settings
+        : SETTING_SOURCES.config;
+  const value = raw !== undefined && raw !== null ? (parse ? parse(raw) : raw) : configValue;
 
   if (typeof value === 'undefined' || value === null) {
     console.warn(`${label} not defined in ${source} - using default (${describe(fallback)}).`);
@@ -216,9 +257,9 @@ function resolveSetting({ label, urlParam, configValue, fallback, validate, pars
   }
 
   // The label opens the sentence above, and names the setting inside this one
-  const setting = label.charAt(0).toLowerCase() + label.slice(1);
+  const described = label.charAt(0).toLowerCase() + label.slice(1);
   console.warn(
-    `Invalid ${setting} value ${result.display} in ${source} (${result.reason}) - using default (${describe(fallback)}).`
+    `Invalid ${described} value ${result.display} in ${source} (${result.reason}) - using default (${describe(fallback)}).`
   );
 
   return { value: fallback, source: SETTING_SOURCES.default };
@@ -364,6 +405,22 @@ function setTimeoutAnimation() {
 // Penalty code key state
 let penaltyCodeKeyVisible = true;
 let penaltyCodeKeyPending = false;
+
+// Validate and set the overlay title text
+function setTitleBannerText() {
+  const { value, source } = resolveSetting({
+    ...SETTINGS.title,
+    configValue: CONFIG.titleBannerText,
+    fallback: VALIDATION.title.default,
+    validate: isText
+  });
+
+  $(CLASSES.penaltiesTitleH1Selector).text(value);
+
+  if (DEBUG) {
+    console.log(`Overlay title set to "${value}" (from ${source}).`);
+  }
+}
 
 // Validate and set the penalty code key visibility
 function setPenaltyCodeKey() {
@@ -912,6 +969,35 @@ function fitPenaltyCodeKey() {
   }
 }
 
+// Apply all display settings
+function applyOverlaySettings() {
+  const keyWasVisible = penaltyCodeKeyVisible;
+
+  setOverlayScale();
+  setOverlayWidth();
+  setOverlayAnchor();
+  setOverlayOpacity();
+  setOverlayFont();
+  setBackgroundAnimation();
+  setTimeoutAnimation();
+  setPenaltyCodeKey();
+  setTitleBannerText();
+
+  // Rebuild keys from WebSocket data
+  if (penaltyCodeKeyVisible !== keyWasVisible) {
+    schedulePenaltyCodeKeyRebuild();
+  }
+}
+
+// Register admin page changes, so the overlay doesn't require a reload
+function registerOverlaySettings() {
+  const channels = Object.values(SETTINGS)
+    .filter((setting) => setting.setting)
+    .map((setting) => settingChannel(setting.setting));
+
+  WS.Register(channels, applyOverlaySettings);
+}
+
 // Rebuild once after a burst of WebSocket updates rather than on each one
 function schedulePenaltyCodeKeyRebuild() {
   if (penaltyCodeKeyPending) {
@@ -923,10 +1009,6 @@ function schedulePenaltyCodeKeyRebuild() {
 
 // Register the WebSocket paths the penalty code key depends on
 function registerPenaltyCodeKey() {
-  if (!penaltyCodeKeyVisible) {
-    return;
-  }
-
   WS.Register([CHANNELS.penaltyCode, CHANNELS.team1Skaters, CHANNELS.team2Skaters], schedulePenaltyCodeKeyRebuild);
 }
 
@@ -1109,28 +1191,8 @@ $(function () {
   // Log URL parameters
   logUrlParameters();
 
-  // Set the overlay scale percentage
-  setOverlayScale();
-
-  // Set the overlay width
-  setOverlayWidth();
-
-  // Set the point the overlay scales from
-  setOverlayAnchor();
-
-  // Set the overlay background opacity
-  setOverlayOpacity();
-
-  // Set the font pairing
-  setOverlayFont();
-
-  // Set the background animation
-  setBackgroundAnimation();
-
-  // Set the timeout banner animation
-  setTimeoutAnimation();
-  // Set the penalty code key visibility
-  setPenaltyCodeKey();
+  // Apply the overlay display settings
+  applyOverlaySettings();
 
   // Show the overlay version
   setOverlayVersion();
@@ -1140,9 +1202,6 @@ $(function () {
 
   // Set the loading overlay text
   $(CLASSES.loadingOverlayTextSelector).text(CONFIG.loadingOverlayText);
-
-  // Set the overlay title text
-  $(CLASSES.penaltiesTitleH1Selector).text(CONFIG.titleBannerText);
 
   // Attempt to load a custom logo
   loadCustomLogo();
@@ -1156,6 +1215,7 @@ $(function () {
       WS.Connect();
       WS.AutoRegister();
       registerPenaltyCodeKey();
+      registerOverlaySettings();
       console.log('WebSocket connected.');
 
       // Attempt to retry the WebSocket connection if it is not yet available

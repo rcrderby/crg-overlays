@@ -137,10 +137,13 @@ Deno.test('the README documents every configuration key', async () => {
 Deno.test('every URL parameter the overlay accepts reaches a setting', async () => {
   const { SETTINGS, ALLOWED_URL_PARAMS } = await loadOverlay();
 
-  // The allowlist is derived, so it cannot disagree with the table
+  // The allowlist is derived, so it cannot disagree with the table.  A setting
+  // the admin page owns, such as the title text, carries no parameter
   assert.deepEqual(
     ALLOWED_URL_PARAMS,
-    Object.values(SETTINGS).map((setting) => setting.urlParam)
+    Object.values(SETTINGS)
+      .map((setting) => setting.urlParam)
+      .filter(Boolean)
   );
 
   // Each entry is spread into a resolveSetting call, or passed to setAnimation

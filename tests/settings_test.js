@@ -230,3 +230,92 @@ Deno.test('the overlay stamps its version on the page', async () => {
   const { setOverlayVersion } = await loadOverlay();
   assert.doesNotThrow(() => setOverlayVersion());
 });
+
+// The admin page writes to the scoreboard, which the overlay reads.  A URL
+// parameter pins one browser source, so it has to outrank what the page stores
+const SETTING = (name) => `ScoreBoard.Settings.Setting(Penalties.Overlay.${name})`;
+
+Deno.test('a stored setting is used when no URL parameter pins the source', async () => {
+  const { setOverlayWidth, properties, warnings } = await loadOverlay({
+    state: { [SETTING('Width')]: '92' }
+  });
+  setOverlayWidth();
+
+  assert.equal(properties['--overlay-width-ratio'], '0.92');
+  assert.deepEqual(warnings, []);
+});
+
+Deno.test('a URL parameter outranks the settings page', async () => {
+  const { setOverlayWidth, properties } = await loadOverlay({
+    search: '?width=75',
+    state: { [SETTING('Width')]: '92' }
+  });
+  setOverlayWidth();
+
+  assert.equal(properties['--overlay-width-ratio'], '0.75');
+});
+
+Deno.test('an unset setting falls back to config.js', async () => {
+  for (const stored of ['', '   ']) {
+    const { setOverlayWidth, properties } = await loadOverlay({ state: { [SETTING('Width')]: stored } });
+    setOverlayWidth();
+    assert.equal(properties['--overlay-width-ratio'], '0.85', `"${stored}" should read as unset`);
+  }
+});
+
+Deno.test('an invalid stored setting names the settings page in the warning', async () => {
+  const { setOverlayWidth, properties, warnings } = await loadOverlay({
+    state: { [SETTING('Width')]: '140' }
+  });
+  setOverlayWidth();
+
+  assert.equal(properties['--overlay-width-ratio'], '0.85');
+  assert.match(warnings.join(' '), /in the settings page \(must be in range 70-100\)/);
+});
+
+Deno.test('every kind of setting reads from the scoreboard', async () => {
+  const overlay = await loadOverlay({
+    state: {
+      [SETTING('Scale')]: '90',
+      [SETTING('Opacity')]: '60',
+      [SETTING('Anchor')]: 'bottom',
+      [SETTING('Font')]: 'anton',
+      [SETTING('BackgroundAnimation')]: 'organic',
+      [SETTING('TimeoutAnimation')]: 'pulse',
+      [SETTING('TitleText')]: 'PENALTY BOX'
+    }
+  });
+  overlay.applyOverlaySettings();
+
+  assert.equal(overlay.properties['--overlay-scale'], '0.9');
+  assert.equal(overlay.properties['--overlay-opacity'], '60%');
+  assert.equal(overlay.properties['--overlay-origin'], 'bottom center');
+  assert.match(overlay.properties['--font-family'], /Chivo/);
+  assert.deepEqual([...overlay.overlayClasses].sort(), ['background-organic', 'timeout-pulse']);
+  assert.deepEqual(overlay.warnings, []);
+});
+
+Deno.test('the title comes from the settings page, then config.js', async () => {
+  const titleSelector = (await loadOverlay()).CLASSES.penaltiesTitleH1Selector;
+
+  const stored = await loadOverlay({ state: { [SETTING('TitleText')]: 'PENALTY BOX' } });
+  stored.setTitleBannerText();
+  assert.equal(stored.text[titleSelector], 'PENALTY BOX');
+
+  const unset = await loadOverlay();
+  unset.setTitleBannerText();
+  assert.equal(unset.text[titleSelector], 'PENALTIES');
+});
+
+Deno.test('the overlay follows every setting the page can write', async () => {
+  const overlay = await loadOverlay();
+  overlay.registerOverlaySettings();
+
+  const registered = overlay.WS.registrations.at(-1).paths;
+  const expected = Object.values(overlay.SETTINGS)
+    .filter((setting) => setting.setting)
+    .map((setting) => overlay.settingChannel(setting.setting));
+
+  assert.deepEqual(registered, expected);
+  assert.equal(registered.length, 9, 'nine settings belong to the settings page');
+});
