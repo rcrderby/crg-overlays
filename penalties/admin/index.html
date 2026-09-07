@@ -1,0 +1,212 @@
+<!-- Settings page for the Custom Penalty Display Overlay -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+  <title>Penalties Overlay Settings</title>
+  <meta charset="UTF-8">
+
+  <!-- Required CRG Javascript files -->
+  <script type="text/javascript" src="/external/jquery/jquery.js"></script>
+  <script type="text/javascript" src="/external/jquery-ui/jquery-ui.js"></script>
+
+  <!-- The overlay's bundled font faces, for the font samples -->
+  <link rel="stylesheet" href="../fonts.css">
+
+  <!-- The overlay's configuration file, for its defaults and allowed ranges -->
+  <script type="text/javascript" src="../config.js"></script>
+
+  <!-- This automatically loads index.js and index.css -->
+  <script type="text/javascript" src="/json/core.js"></script>
+</head>
+
+<body>
+
+  <div id="settings">
+    <div id="settings-header">
+      <h1>Penalties Overlay</h1>
+      <div id="settings-actions">
+        <button id="copy-url" type="button">Copy overlay URL</button>
+        <button id="reset-settings" type="button">Reset to defaults</button>
+      </div>
+    </div>
+
+    <p id="settings-intro">
+      Changes save to the scoreboard and reach every open overlay immediately.  Settings are not stored in this browser,
+      so the streaming computer follows along without a refresh.
+    </p>
+
+    <div id="settings-layout">
+      <div id="settings-controls">
+
+        <!-- Fitting the overlay to the video frame -->
+        <div class="setting-group">
+          <h2>Fit</h2>
+
+          <div class="setting-row">
+            <label for="scale-range">Scale</label>
+            <input id="scale-range" type="range" data-setting="Scale" data-preview="--overlay-scale"
+                   data-preview-ratio="true">
+            <div class="setting-number">
+              <input type="number" data-setting="Scale">
+              <span>%</span>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <label for="width-range">Width</label>
+            <input id="width-range" type="range" data-setting="Width"
+                   data-preview="--overlay-width-ratio" data-preview-ratio="true">
+            <div class="setting-number">
+              <input type="number" data-setting="Width">
+              <span>%</span>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <label>Scales from</label>
+            <div class="setting-choices" data-setting="Anchor">
+              <button class="setting-choice" type="button" data-value="top">Top</button>
+              <button class="setting-choice" type="button" data-value="center">Center</button>
+              <button class="setting-choice" type="button" data-value="bottom">Bottom</button>
+            </div>
+            <div></div>
+          </div>
+        </div>
+
+        <!-- How the overlay looks -->
+        <div class="setting-group">
+          <h2>Look</h2>
+
+          <div class="setting-row">
+            <label for="opacity-range">Background opacity</label>
+            <input id="opacity-range" type="range" data-setting="Opacity"
+                   data-preview="--overlay-opacity" data-preview-unit="%">
+            <div class="setting-number">
+              <input type="number" data-setting="Opacity">
+              <span>%</span>
+            </div>
+          </div>
+
+          <div class="setting-row setting-row-wide">
+            <label>Font</label>
+            <div class="setting-cards setting-choices" data-setting="Font">
+              <button class="setting-card setting-choice" type="button" data-value="saira">
+                <span class="setting-card-name">Saira</span>
+                <span class="setting-card-display font-saira-display">PENALTIES</span>
+                <span class="setting-card-body font-saira-body"><b>04</b> Player Name</span>
+              </button>
+              <button class="setting-card setting-choice" type="button" data-value="league-gothic">
+                <span class="setting-card-name">League Gothic</span>
+                <span class="setting-card-display font-league-gothic-display">PENALTIES</span>
+                <span class="setting-card-body font-league-gothic-body"><b>04</b> Player Name</span>
+              </button>
+              <button class="setting-card setting-choice" type="button" data-value="anton">
+                <span class="setting-card-name">Anton</span>
+                <span class="setting-card-display font-anton-display">PENALTIES</span>
+                <span class="setting-card-body font-anton-body"><b>04</b> Player Name</span>
+              </button>
+              <button class="setting-card setting-choice" type="button" data-value="bricolage">
+                <span class="setting-card-name">Bricolage</span>
+                <span class="setting-card-display font-bricolage-display">PENALTIES</span>
+                <span class="setting-card-body font-bricolage-body"><b>04</b> Player Name</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="setting-row setting-row-wide">
+            <label>Background</label>
+            <div class="setting-tiles setting-choices" data-setting="BackgroundAnimation">
+              <button class="setting-tile setting-choice" type="button" data-value="trace">
+                <span class="setting-tile-name">Trace</span>
+                <span class="setting-stage setting-stage-trace"></span>
+              </button>
+              <button class="setting-tile setting-choice" type="button" data-value="organic">
+                <span class="setting-tile-name">Organic</span>
+                <span class="setting-stage setting-stage-organic">
+                  <i class="setting-pool setting-pool-primary"></i><i class="setting-pool setting-pool-secondary"></i>
+                </span>
+              </button>
+              <button class="setting-tile setting-choice" type="button" data-value="shine">
+                <span class="setting-tile-name">Shine</span>
+                <span class="setting-stage setting-stage-shine"></span>
+              </button>
+              <button class="setting-tile setting-choice" type="button" data-value="off">
+                <span class="setting-tile-name">Off</span>
+                <span class="setting-stage"><i class="setting-stage-none">None</i></span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- The game information area, and the roster panels beneath it -->
+        <div class="setting-group">
+          <h2>Game information</h2>
+
+          <div class="setting-row setting-row-wide">
+            <label>Timeout banner</label>
+            <div class="setting-tiles setting-choices" data-setting="TimeoutAnimation">
+              <button class="setting-tile setting-choice" type="button" data-value="glow">
+                <span class="setting-tile-name">Glow</span>
+                <span class="setting-stage"><i class="setting-banner setting-banner-glow">Timeout</i></span>
+              </button>
+              <button class="setting-tile setting-choice" type="button" data-value="pulse">
+                <span class="setting-tile-name">Pulse</span>
+                <span class="setting-stage"><i class="setting-banner setting-banner-pulse">Timeout</i></span>
+              </button>
+              <button class="setting-tile setting-choice" type="button" data-value="shine">
+                <span class="setting-tile-name">Shine</span>
+                <span class="setting-stage"><i class="setting-banner setting-banner-shine">Timeout</i></span>
+              </button>
+              <button class="setting-tile setting-choice" type="button" data-value="off">
+                <span class="setting-tile-name">Off</span>
+                <span class="setting-stage"><i class="setting-banner">Timeout</i></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <label>Penalties key</label>
+            <div class="setting-choices setting-switch-row" data-setting="PenaltyCodeKey">
+              <button class="setting-switch setting-choice" type="button" data-value="true"
+                      aria-label="Show the penalties key"></button>
+              <span class="setting-switch-note">Only visible when there are penalties</span>
+            </div>
+            <div></div>
+          </div>
+
+          <div class="setting-row">
+            <label for="title-text">Title text</label>
+            <input id="title-text" type="text" maxlength="40" data-setting="TitleText">
+            <div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- The overlay itself, so the preview cannot drift from what airs -->
+      <div id="settings-preview">
+        <div id="preview-frame">
+          <div id="preview-bar">
+            <span id="preview-dot"></span>
+            <span id="preview-label">Live view</span>
+
+            <!-- What sits behind the overlay, so its opacity is visible -->
+            <span id="preview-backdrop-label">Behind</span>
+            <div id="preview-backdrops">
+              <button class="preview-backdrop selected" type="button" data-backdrop="checker">Checker</button>
+              <button class="preview-backdrop" type="button" data-backdrop="light">Light</button>
+              <button class="preview-backdrop" type="button" data-backdrop="dark">Dark</button>
+            </div>
+          </div>
+          <div id="preview-stage" data-backdrop="checker">
+            <iframe id="preview-overlay" src="../" title="Overlay preview" scrolling="no"></iframe>
+          </div>
+        </div>
+        <p id="preview-note">
+          The preview is the overlay itself, so it shows exactly what a browser source shows.  A slider moves it while
+          you drag, and saves the value when you let go.
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
