@@ -610,9 +610,8 @@ input[type='text'] {
   position: relative;
 }
 
-/* The overlay is see-through, so the preview shows what it sits on.  The
-   squares are drawn in panel pixels, so they hold still while the overlay
-   scales */
+/* Overlay transparency background preview options.
+   The checker squares are drawn in panel pixels, and are static as the overlay scales */
 #preview-stage[data-backdrop='checker'] {
   background-color: #6f6f78;
   background-image:
