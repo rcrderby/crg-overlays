@@ -112,6 +112,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Timeout banner animation
     timeoutAnimation: { default: 'glow' },
 
+    // Title banner text
+    title: { default: 'PENALTIES' },
+
     // Overlay width percentage of the video frame
     width: { min: 70, max: 100, default: 85 }
   },
