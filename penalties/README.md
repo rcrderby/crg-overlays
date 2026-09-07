@@ -6,7 +6,16 @@
 - [Features](#features "Overlay Features")
 - [Compatibility](#compatibility "Overlay CRG Compatibility")
 - [Usage](#usage "Overlay Usage Instructions")
-- [Customization](#customization "Overlay Customization")
+- [Display Options](#display-options "Overlay Display Options")
+  - [Scale Adjustments](#scale-adjustments "Scale Adjustments")
+  - [Width Adjustments](#width-adjustments "Width Adjustments")
+  - [Position Adjustments](#position-adjustments "Position Adjustments")
+  - [Background Opacity](#background-opacity "Background Opacity")
+  - [Font Selection](#font-selection "Font Selection")
+  - [Animation Options](#animation-options "Animation Options")
+  - [Penalty Code Key](#penalty-code-key "Penalty Code Key")
+  - [Debug Logging](#debug-logging "Debug Logging")
+- [Configuration File](#configuration-file "Overlay Configuration File")
 - [Configuration Reference](#configuration-reference "Configuration File Reference")
 - [Upgrading from 3.x](#upgrading-from-3x "Upgrade Notes")
 
@@ -30,7 +39,7 @@ Video streaming teams often display an overlay with penalty data during timeouts
 
 ## Features
 
-The overlay gets the information and settings it needs from CRG, so you can just set up your game(s) and expect the overlay to work.  The overlay displays information from CRG in two separate areas: one for rosters and penalties, and one for game information.
+The overlay gets the information and settings it needs from CRG, so you can prepare a game and expect the overlay to work.  The overlay displays information from CRG in two separate areas: one for rosters and penalties, and one for game information.
 
 ### Rosters & Penalties Area
 
@@ -98,7 +107,7 @@ To make this overlay available to your video streaming team, you need to downloa
 
 1. Navigate to the [Releases page](https://github.com/rcrderby/crg-overlays/releases "Releases Page") of this repository.
 2. From the **Assets** section of the latest release, download `penalties.zip`.
-3. Optionally, download `SHA256SUMS` from the same section and confirm the download matches:
+3. Optionally, download `SHA256SUMS` from the same section and confirm the download matches the checksum:
 
     | Platform | Command |
     | - | - |
@@ -107,9 +116,6 @@ To make this overlay available to your video streaming team, you need to downloa
     | Windows | `Get-FileHash penalties.zip -Algorithm SHA256` |
 
 4. Extract `penalties.zip`, which contains the `penalties` folder you will copy to your instance of CRG.
-
-> [!NOTE]
-> Releases before 4.0.0 have no `penalties.zip`.  Download a **Source code** link instead, extract it, and locate the `penalties` folder inside.
 
 **Copy the overlay files to CRG:**
 
@@ -127,7 +133,7 @@ To make this overlay available to your video streaming team, you need to downloa
 
 ### Open Broadcaster Software (OBS) Details
 
-Provide this information to your video streaming team to give them access to the overlay:
+Provide this information to your video streaming team to give them access to the overlay by adding a "Browser" source in OBS:
 
 | Setting | Value |
 | - | - |
@@ -141,121 +147,6 @@ Provide this information to your video streaming team to give them access to the
 | Refresh browser when scene becomes active | Unchecked |
 | Page permissions | `Read access to OBS status information` |
 
-#### Scale Adjustments
-
-You can adjust the scale of the overlay to fit your broadcast display with the `scale` URL parameter.  For example:
-
-| Scale | URL |
-| - | - |
-| Default scale (100%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=100` |
-| Scale down 5% (95%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=95` |
-| Scale down 10% (90%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=90` |
-
-> [!TIP]
-> The allowed `scale` parameter range is `1` to `100`.  See the `overlayScale` setting in the [Configuration Section](#configuration-reference "Configuration Section") for details.
-
-#### Width Adjustments
-
-The overlay is narrower than the video frame so it doesn't crowd the edges.  Use the `width` URL parameter to adjust the overlay width.
-
-| Width | URL |
-| - | - |
-| Default (85%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?width=85` |
-| Wider (95%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?width=95` |
-| Narrower (75%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?width=75` |
-
-> [!TIP]
-> The allowed `width` parameter range is `70` to `100`.  Narrowing the overlay takes space from the player name column, so long player names may begin to truncate below about `75`.  See the `overlayWidth` setting in the [Configuration Section](#configuration-reference "Configuration Section") for details.
-
-#### Position Adjustments
-
-The overlay scales from the top of the frame by default, so scaling down leaves empty space at the bottom.  Use the `anchor` URL parameter to change the point it scales from.  For example:
-
-| Anchor | URL |
-| - | - |
-| Top of the frame (default) | `https://<crg-ip-address>:8000/custom/overlay/penalties?anchor=top` |
-| Middle of the frame | `https://<crg-ip-address>:8000/custom/overlay/penalties?anchor=center` |
-| Bottom of the frame | `https://<crg-ip-address>:8000/custom/overlay/penalties?anchor=bottom` |
-
-You can combine the `anchor` and `scale` parameters to fit your needs:
-
-`https://<crg-ip-address>:8000/custom/overlay/penalties?scale=90&anchor=bottom`
-
-> [!TIP]
-> The allowed `anchor` parameter values are `top`, `center`, and `bottom`. See the `overlayAnchor` setting in the [Configuration Section](#configuration-reference "Configuration Section") for details.
-
-#### Background Opacity
-
-Use the `opacity` URL parameter to adjust how visible the video stream is through the overlay background:
-
-| Opacity | URL |
-| - | - |
-| Default (98%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?opacity=98` |
-| Lightly translucent (85%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?opacity=85` |
-| Heavily translucent (60%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?opacity=60` |
-
-> [!TIP]
-> The allowed `opacity` parameter range is `0` to `100`, where `100` is solid and `0` is invisible.  This affects the overlay background only; player names and penalty codes stay fully opaque.  See the `overlayOpacity` setting in the [Configuration Section](#configuration-reference "Configuration Section") for details.
-
-#### Font Selection
-
-The overlay bundles four font pairings and uses `saira` as its default.  Use the `font` URL parameter to choose another font:
-
-| Pairing | Headings | Body text | URL |
-| - | - | - | - |
-| `saira` (default) | Saira Condensed | Saira | `https://<crg-ip-address>:8000/custom/overlay/penalties?font=saira` |
-| `league-gothic` | League Gothic | Barlow | `https://<crg-ip-address>:8000/custom/overlay/penalties?font=league-gothic` |
-| `anton` | Anton | Chivo | `https://<crg-ip-address>:8000/custom/overlay/penalties?font=anton` |
-| `bricolage` | Bricolage Grotesque | Barlow Condensed | `https://<crg-ip-address>:8000/custom/overlay/penalties?font=bricolage` |
-
-> [!NOTE]
-> The overlay loads these fonts from its own `fonts` folder rather than from a web font service, so the fonts work correctly on a scoreboard computer with no Internet connection.  All of the fonts use the SIL Open Font License; see [`fonts/OFL.txt`](./fonts/OFL.txt) for details.
-
-#### Animation Options
-
-The overlay has animation for its background and timeout banner.  Use the `background` and `timeout` URL parameters to change or disable either one:
-
-| Background | Effect | URL |
-| - | - | - |
-| `trace` (default) | A gradient travels around the overlay border | `https://<crg-ip-address>:8000/custom/overlay/penalties?background=trace` |
-| `organic` | Soft pools of light drift across the panel | `https://<crg-ip-address>:8000/custom/overlay/penalties?background=organic` |
-| `shine` | A single band of light crosses diagonally | `https://<crg-ip-address>:8000/custom/overlay/penalties?background=shine` |
-| `off` | No background animation | `https://<crg-ip-address>:8000/custom/overlay/penalties?background=off` |
-
-| Timeout banner | Effect | URL |
-| - | - | - |
-| `glow` (default) | The banner color breathes | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=glow` |
-| `pulse` | A ring expands away from the banner | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=pulse` |
-| `shine` | A band of light crosses the banner | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=shine` |
-| `off` | No timeout banner animation | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=off` |
-
-> [!NOTE]
-> Browsers that request reduced motion will see no overlay or timeout banner animation.
-
-#### Penalty Code Key
-
-The overlay lists definitions for any penalty codes in use during a game.  Use the `key` URL parameter to hide it:
-
-| Key | URL |
-| - | - |
-| Visible (default) | `https://<crg-ip-address>:8000/custom/overlay/penalties?key=true` |
-| Hidden | `https://<crg-ip-address>:8000/custom/overlay/penalties?key=false` |
-
-> [!NOTE]
-> CRG provides penalty code definitions from the active ruleset.  Codes with no definition do not appear in the key, nor does the unknown penalty code (`?`), which says only that a penalty has not been identified.  The key always occupies one line, reducing its text size as needed, so every code fits.
-
-#### Debug Logging
-
-The overlay logs its settings the decisions it makes during a game to the browser console.  Use the `debug` URL parameter to enable logging:
-
-| Debug logging | URL |
-| - | - |
-| Off (default) | `https://<crg-ip-address>:8000/custom/overlay/penalties?debug=false` |
-| On | `https://<crg-ip-address>:8000/custom/overlay/penalties?debug=true` |
-
-> [!TIP]
-> Open the browser developer tools to read the console.  Warnings about invalid settings always appear, whether debug logging is on or off.  See the `debug.enabled` setting in the [Configuration Section](#configuration-reference "Configuration Section") for details.
-
 ### Optional Custom Logo
 
 To add a custom logo to the left side game information area of the overlay:
@@ -268,15 +159,182 @@ To add a custom logo to the left side game information area of the overlay:
 6. Open the `logos` folder.
 7. Copy and paste or move the `banner-logo.png` file into the `logos` folder.
 
-The logo will display in the game information area of the overlay once you refresh your browser.
+The logo will display in the game information area of the overlay after a browser refresh.
 
-## Customization
+## Display Options
 
-A configuration file named [config.js](./config.js) allows you to customize various overlay settings.  Please note that some settings are safe to change, and others are best left at their default values:
+Your video streaming team can customize the overlay using URL parameters.  Combine multiple URL parameters with the `&` symbol, for example `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=90&anchor=bottom`.  Each URL parameter has a matching setting in the [Configuration File](#configuration-file "Configuration File Section").
 
-- :white_check_mark: - Safe to change
-- :warning: - Proceed with caution
-- :x: - Not recommended
+### Scale Adjustments
+
+Adjust the scale of the overlay to fit a broadcast display with the `scale` URL parameter.  Expand `Scale Details` for examples.
+
+<details>
+  <summary>
+    Scale Details
+  </summary>
+
+  | Scale | URL |
+  | - | - |
+  | Default scale (100%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=100` |
+  | Scale down 5% (95%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=95` |
+  | Scale down 10% (90%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=90` |
+
+</details>
+
+> [!TIP]
+> The allowed `scale` parameter range is `1` to `100`.  See the `overlayScale` setting in the [Configuration Section](#configuration-reference "Configuration Section") for details.
+
+### Width Adjustments
+
+Use the `width` URL parameter to adjust the overlay width.  Expand `Width Details` for examples.
+
+<details>
+  <summary>
+    Width Details
+  </summary>
+
+  | Width | URL |
+  | - | - |
+  | Default (85%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?width=85` |
+  | Wider (95%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?width=95` |
+  | Narrower (75%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?width=75` |
+
+</details>
+
+> [!TIP]
+> The allowed `width` parameter range is `70` to `100`.  Narrowing the overlay takes space from the player name column, so long player names may begin to truncate below about `75`.  See the `overlayWidth` setting in the [Configuration Section](#configuration-reference "Configuration Section") for details.
+
+### Position Adjustments
+
+The overlay scales from the top of the frame by default, so scaling down leaves empty space at the bottom.  Use the `anchor` URL parameter to change the point it scales from.  Expand `Position Details` for examples.
+
+<details>
+  <summary>
+    Position Details
+  </summary>
+
+  | Anchor | URL |
+  | - | - |
+  | Top of the frame (default) | `https://<crg-ip-address>:8000/custom/overlay/penalties?anchor=top` |
+  | Middle of the frame | `https://<crg-ip-address>:8000/custom/overlay/penalties?anchor=center` |
+  | Bottom of the frame | `https://<crg-ip-address>:8000/custom/overlay/penalties?anchor=bottom` |
+
+</details>
+
+> [!TIP]
+> The allowed `anchor` parameter values are `top`, `center`, and `bottom`. See the `overlayAnchor` setting in the [Configuration Section](#configuration-reference "Configuration Section") for details.
+
+### Background Opacity
+
+Use the `opacity` URL parameter to adjust how visible the video stream is through the overlay background.  Expand `Opacity Details` for examples.
+
+<details>
+  <summary>
+    Opacity Details
+  </summary>
+
+  | Opacity | URL |
+  | - | - |
+  | Default (98%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?opacity=98` |
+  | Lightly translucent (85%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?opacity=85` |
+  | Heavily translucent (60%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?opacity=60` |
+
+</details>
+
+> [!TIP]
+> The allowed `opacity` parameter range is `0` to `100`, where `100` is solid and `0` is invisible.  This affects the overlay background only; player names and penalty codes stay fully opaque.  See the `overlayOpacity` setting in the [Configuration Section](#configuration-reference "Configuration Section") for details.
+
+### Font Selection
+
+The overlay bundles four font pairings and uses `saira` as its default.  Use the `font` URL parameter to choose another font.  Expand `Font Details` for the available pairings.
+
+<details>
+  <summary>
+    Font Details
+  </summary>
+
+  | Pairing | Headings | Body text | URL |
+  | - | - | - | - |
+  | `saira` (default) | Saira Condensed | Saira | `https://<crg-ip-address>:8000/custom/overlay/penalties?font=saira` |
+  | `league-gothic` | League Gothic | Barlow | `https://<crg-ip-address>:8000/custom/overlay/penalties?font=league-gothic` |
+  | `anton` | Anton | Chivo | `https://<crg-ip-address>:8000/custom/overlay/penalties?font=anton` |
+  | `bricolage` | Bricolage Grotesque | Barlow Condensed | `https://<crg-ip-address>:8000/custom/overlay/penalties?font=bricolage` |
+
+</details>
+
+> [!NOTE]
+> The overlay loads these fonts from its own `fonts` folder rather than from a web font service, so the fonts work correctly on a scoreboard computer with no Internet connection.  All of the fonts use the SIL Open Font License; see [`fonts/OFL.txt`](./fonts/OFL.txt) for details.
+
+### Animation Options
+
+The overlay has animation for its background and timeout banner.  Use the `background` and `timeout` URL parameters to change or disable either one.  Expand `Animation Details` for the available effects.
+
+<details>
+  <summary>
+    Animation Details
+  </summary>
+
+  | Background | Effect | URL |
+  | - | - | - |
+  | `trace` (default) | A gradient travels around the overlay border | `https://<crg-ip-address>:8000/custom/overlay/penalties?background=trace` |
+  | `organic` | Soft pools of light drift across the panel | `https://<crg-ip-address>:8000/custom/overlay/penalties?background=organic` |
+  | `shine` | A single band of light crosses diagonally | `https://<crg-ip-address>:8000/custom/overlay/penalties?background=shine` |
+  | `off` | No background animation | `https://<crg-ip-address>:8000/custom/overlay/penalties?background=off` |
+
+  | Timeout banner | Effect | URL |
+  | - | - | - |
+  | `glow` (default) | The banner color breathes | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=glow` |
+  | `pulse` | A ring expands away from the banner | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=pulse` |
+  | `shine` | A band of light crosses the banner | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=shine` |
+  | `off` | No timeout banner animation | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=off` |
+
+</details>
+
+> [!NOTE]
+> Browsers that request reduced motion will see no overlay or timeout banner animation.
+
+### Penalty Code Key
+
+The overlay lists definitions for any penalty codes in use during a game.  Use the `key` URL parameter to hide it.  Expand `Penalty Code Key Details` for examples.
+
+<details>
+  <summary>
+    Penalty Code Key Details
+  </summary>
+
+  | Key | URL |
+  | - | - |
+  | Visible (default) | `https://<crg-ip-address>:8000/custom/overlay/penalties?key=true` |
+  | Hidden | `https://<crg-ip-address>:8000/custom/overlay/penalties?key=false` |
+
+</details>
+
+> [!NOTE]
+> CRG provides penalty code definitions from the active ruleset.  Codes with no definition do not appear in the key, nor does the unknown penalty code (`?`), which says only that a penalty has not been identified.  The key always occupies one line, reducing its text size as needed, so every code fits.
+
+### Debug Logging
+
+The overlay logs its settings and the decisions it makes during a game to the browser console.  Use the `debug` URL parameter to enable logging.  Expand `Debug Details` for examples.
+
+<details>
+  <summary>
+    Debug Details
+  </summary>
+
+  | Debug logging | URL |
+  | - | - |
+  | Off (default) | `https://<crg-ip-address>:8000/custom/overlay/penalties?debug=false` |
+  | On | `https://<crg-ip-address>:8000/custom/overlay/penalties?debug=true` |
+
+</details>
+
+> [!TIP]
+> Open the browser developer tools to read the console.  Warnings about invalid settings always appear, whether debug logging is on or off.  See the `debug.enabled` setting in the [Configuration Section](#configuration-reference "Configuration Section") for details.
+
+## Configuration File
+
+A configuration file named [config.js](./config.js) allows you to customize various overlay settings.  Some settings are safe to change, and others are best left at their default values.
 
 ### Common Customizations
 
@@ -291,7 +349,7 @@ A configuration file named [config.js](./config.js) allows you to customize vari
 - `config.titleBannerText` to adjust the title text (default is `PENALTIES`).
 
 > [!WARNING]
-> Changes to `config.js` require a page refresh to take effect.
+> Changes to `config.js` require a page refresh to take effect, and corresponding URL parameter customizations take priority over values in `config.js`.
 
 ## Configuration Reference
 
@@ -301,6 +359,14 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   <summary>
     Configuration File Details
   </summary>
+
+  The **Adjustable** column says how safe a setting is to change:
+
+- :white_check_mark: - Safe to change
+- :warning: - Proceed with caution
+- :x: - Not recommended
+
+  ---
 
   ***debug*** **Section**
 
