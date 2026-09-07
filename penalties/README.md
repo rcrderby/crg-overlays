@@ -6,7 +6,7 @@
 - [Features](#features "Overlay Features")
 - [Compatibility](#compatibility "Overlay CRG Compatibility")
 - [Usage](#usage "Overlay Usage Instructions")
-- [Settings Page](#settings-page "Overlay Settings Page")
+- [Admin Page](#admin-page "Overlay Settings Page")
 - [Display Options](#display-options "Overlay Display Options")
   - [Scale Adjustments](#scale-adjustments "Scale Adjustments")
   - [Width Adjustments](#width-adjustments "Width Adjustments")
