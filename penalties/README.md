@@ -342,9 +342,9 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
 Replace the entire `penalties` folder rather than copying individual files into it.
 
 > [!IMPORTANT]
-> Do not keep a `config.js` file from 3.x.  Version 4.0.0 adds a `validation` section that the overlay requires, and an older file will produce a configuration error.
+> Do not keep a `config.js` file from 3.x.  Version 4.x adds a `validation` section that the overlay requires, and an older file will produce a configuration error.
 
-Version 4.0.0 reads more of its behavior from CRG, so these settings no longer exist:
+Version 4.x reads more of its behavior from CRG, so these settings no longer exist:
 
 | Removed setting | Replacement |
 | - | - |
