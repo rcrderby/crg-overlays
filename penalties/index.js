@@ -74,8 +74,8 @@ const RULES = PenaltiesOverlayConfig.rules;
 const PENALTIES = PenaltiesOverlayConfig.penalties;
 const TIMING = PenaltiesOverlayConfig.timing;
 
-// Every setting, the channel the admin page stores it in, and the term its
-// messages use.  `debug` has no channel: config.js and a URL parameter set it
+// Every setting, its scoreboard channel, and the term its messages use
+// `debug` has no channel; config.js and a URL parameter set it
 const SETTINGS = {
   anchor: { setting: 'Anchor', label: 'Overlay anchor' },
   background: { setting: 'BackgroundAnimation', label: 'Background animation' },
@@ -90,8 +90,8 @@ const SETTINGS = {
   width: { setting: 'Width', label: 'Overlay width' }
 };
 
-// The admin page writes these channels, which CRG persists and pushes to
-// every open overlay.  Each setting holds a string; empty settings are unset
+// Channel prefix for the settings the admin page writes
+// Each setting holds a string, and an empty string reads as unset
 const SETTING_CHANNEL_PREFIX = 'ScoreBoard.Settings.Setting(Penalties.Overlay.';
 
 // Scoreboard channel for settings storage
@@ -118,8 +118,7 @@ const SETTING_SOURCES = {
   url: 'URL parameter'
 };
 
-// The one setting a URL parameter carries, so a browser source can be
-// troubleshot without editing config.js on the streaming computer
+// The only setting the URL carries, for troubleshooting one browser source
 const DEBUG_URL_PARAM = 'debug';
 
 // The debug parameter's value, or 'null' when the URL does not carry it
@@ -215,10 +214,9 @@ function isBoolean(value) {
   return { reason: 'must be true or false', display: `"${value}"` };
 }
 
-// Read a setting from the admin page, then config.js, then the validated
-// default.  Debug logging is the one setting that also reads a URL parameter,
-// which outranks both.  A validator returns the accepted value, or the reason
-// the value cannot be used
+// Read a setting from the admin page, then config.js, then the validated default
+// A URL parameter, which only `debug` carries, outranks both
+// A validator returns the accepted value, or the reason it cannot be used
 function resolveSetting({
   label,
   setting,
@@ -251,7 +249,7 @@ function resolveSetting({
     return { value: result.value, source };
   }
 
-  // The label opens the sentence above, and names the setting inside this one
+  // The label opens the sentence above, and names the setting in this one
   const described = label.charAt(0).toLowerCase() + label.slice(1);
   console.warn(
     `Invalid ${described} value ${result.display} in ${source} (${result.reason}) - using default (${describe(fallback)}).`
@@ -274,8 +272,7 @@ function getDebugSetting() {
   return value;
 }
 
-// Version 4.0 read every setting from the URL, so a browser source carried over
-// from it says where those settings live now
+// Warn that the overlay ignores every URL parameter except `debug`
 function warnAboutUrlParameters() {
   const ignored = [...new URLSearchParams(window.location.search).keys()].filter((name) => name !== DEBUG_URL_PARAM);
 
@@ -882,8 +879,7 @@ function getPenaltyCodesInPlay() {
     }
   }
 
-  // Foul-outs and removals are status markers, not penalties with a description,
-  // and the unknown code says only that the penalty has not been identified
+  // Status markers and the unknown code have no description to show
   codes.delete(PENALTIES.fouloutCode);
   codes.delete(PENALTIES.removedCode);
   codes.delete(PENALTIES.unknownCode);
@@ -953,16 +949,14 @@ function fitPenaltyCodeKey() {
   items.style.removeProperty('--font-penalty-code-key-size');
   const available = items.clientWidth;
 
-  // Sum the codes rather than read scrollWidth, which misses content that
-  // overflows to the left of a centered row.  Use offsetWidth so the overlay's
-  // scale transform does not shrink the measurement and hide an overflow
+  // Sum the codes, because scrollWidth misses overflow left of a centered row
+  // `offsetWidth` ignores the overlay scale transform, which would hide an overflow
   const natural = [...items.children].reduce((total, code) => total + code.offsetWidth, 0);
   if (available === 0 || natural <= available) {
     return;
   }
 
-  // Every dimension in the key is proportional to this size, so the width
-  // shrinks linearly with it and a single measurement captures the size
+  // The key's dimensions are proportional to this size, so its width shrinks linearly
   const configuredSize = parseFloat(getComputedStyle(items.children[0]).fontSize);
   const fittedSize = Math.floor(configuredSize * (available / natural));
   items.style.setProperty('--font-penalty-code-key-size', `${fittedSize}px`);
@@ -1192,7 +1186,7 @@ $(function () {
     console.log('Initializing Penalties Overlay...');
   }
 
-  // Point an upgraded browser source at where its settings live now
+  // Report any URL parameter the overlay ignores
   warnAboutUrlParameters();
 
   // Apply the overlay display settings

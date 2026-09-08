@@ -2,8 +2,7 @@
  ** Penalties Overlay Admin Page Logic **
  ***************************************/
 
-// The overlay's configuration file, which holds the defaults and the allowed
-// ranges this page presents
+// The overlay's configuration file, which holds the defaults and allowed ranges
 const PenaltiesOverlayConfig = window.AppConfig?.PenaltiesOverlayConfig;
 
 if (!PenaltiesOverlayConfig) {
@@ -25,7 +24,7 @@ function settingChannel(name) {
 }
 
 // CRG covers a page with its loading screen until a registered channel sends a value
-// Settings not known to the scoreboard sends no value, so the admin page registers a known channel
+// A setting the scoreboard does not hold sends no value, so the page registers a known channel
 const READY_CHANNEL = 'ScoreBoard.Version(release)';
 
 // Every setting the page writes, and where the overlay reads each from config.js
@@ -43,11 +42,10 @@ const SETTINGS = {
   Width: { config: 'overlayWidth', validation: 'width' }
 };
 
-// The functions that show a control its value, so the page can paint them
+// The functions that show each control its value, for the first paint
 const painters = [];
 
-// The value the overlay is showing, which is the scoreboard setting, then the
-// configured value, then the default, exactly as the overlay resolves it
+// The value the overlay is showing: the scoreboard setting, then config.js, then the default
 function settingValue(name) {
   const setting = SETTINGS[name];
   const value = [WS.state[settingChannel(name)], CONFIG[setting.config], VALIDATION[setting.validation].default].find(
@@ -110,9 +108,8 @@ function paintChoices(group, name) {
  ** Fields **
  ***********/
 
-// Sliders, number boxes and the title field.  CRG's own binding leaves a field
-// empty until a setting exists, which would hide the value the overlay is
-// showing, so the page binds these itself
+// Bind the sliders, number boxes and the title field
+// CRG's own binding leaves a field empty until a setting exists, so the page binds them
 function registerFields() {
   $('input[data-setting]').each(function () {
     const field = $(this);
@@ -125,15 +122,14 @@ function registerFields() {
       field.attr({ min: limits.min, max: limits.max });
     }
 
-    // The title text reaches the overlay as it is typed, while a slider waits
-    // for the operator to let go
+    // Commit text as it is typed, and a slider value when the operator lets go
     field.on(field.attr('type') === 'text' ? 'input' : 'change', function () {
       WS.Set(channel, isTickBox(field) ? String(tickBoxValue(field)) : String(field.val()));
     });
 
     const paint = paintField(field, name);
 
-    // An empty field reads as the value the overlay falls back to
+    // Repaint on blur, so an empty field shows the value the overlay falls back to
     field.on('blur', paint);
 
     painters.push(paint);
@@ -146,14 +142,14 @@ function isTickBox(field) {
   return field.attr('type') === 'checkbox';
 }
 
-// Get tick box value
+// The value a tick box stores, inverted for the title's Hide box
 function tickBoxValue(field) {
   const ticked = field.prop('checked');
 
   return field.data('invert') ? !ticked : ticked;
 }
 
-// Show the value the overlay is showing, unless the box is ticked
+// Show the value the overlay is showing, unless the operator is in the field
 function paintField(field, name) {
   return function () {
     if (field.is(':focus')) {
@@ -206,7 +202,7 @@ function previewDocument() {
  ** Preview Backdrop **
  *********************/
 
-// Preview backdrop options
+// Switch the preview backdrop when a button is clicked
 function registerBackdrops() {
   const stage = $('#preview-stage');
   const buttons = $('.preview-backdrop');
@@ -271,7 +267,7 @@ function registerActions() {
   });
 }
 
-// When the clipboard API is unavailable fall back to a selection available for manual copy
+// Fall back to a selection the operator can copy when the clipboard API is unavailable
 function copyText(text) {
   if (navigator.clipboard && window.isSecureContext) {
     return navigator.clipboard.writeText(text).then(

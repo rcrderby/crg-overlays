@@ -1,6 +1,5 @@
-// CRG WebSocket channels and the skater the tests build state around.
-// index.js names these channels independently, so a typo on either side
-// fails a test rather than agreeing with itself
+// CRG WebSocket channels and the skater the tests build state around
+// index.js names these channels itself, so a typo on either side fails a test
 
 // Game state
 export const CURRENT_PERIOD = 'ScoreBoard.CurrentGame.CurrentPeriodNumber';

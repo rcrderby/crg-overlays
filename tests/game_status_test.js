@@ -1,5 +1,4 @@
-// The game information helpers: which column a timeout banner lands in, and
-// which clock and label the overlay shows for a game state
+// The game information helpers: timeout banner column, clock, and game state label
 
 import assert from 'node:assert/strict';
 import { loadOverlay } from './support/overlay.js';
@@ -133,8 +132,7 @@ Deno.test('the small binding helpers behave', async () => {
   assert.equal(window.invertBoolean(null, false), true);
 });
 
-// The overlay displays after maxLoadWaitMs even when the ruleset never arrives.
-// Every reading of the ruleset must function without the ruleset arriving.
+// The overlay displays after `maxLoadWaitMs` whether or not the ruleset arrives
 // A game the ruleset has not reached, at a given point
 function withoutRuleset(state = {}) {
   return loadOverlay({ state });

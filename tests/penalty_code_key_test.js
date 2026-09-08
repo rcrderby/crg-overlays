@@ -157,8 +157,7 @@ Deno.test('the key registers the channels it depends on', async () => {
   assert.deepEqual(overlay.WS.registrations[0].paths, [PENALTY_CODE, TEAM_1_SKATERS, TEAM_2_SKATERS]);
 });
 
-// The admin page can turn the key on during a game, and the overlay has no
-// second chance to register, so a key that starts hidden still subscribes
+// The admin page can turn the key on during a game, and the overlay registers only once
 Deno.test('a key that is turned off still registers, so it can be turned on', async () => {
   const overlay = await loadOverlay({ state: withCodes({ [overlaySetting('PenaltyCodeKey')]: 'false' }) });
   overlay.setPenaltyCodeKey();

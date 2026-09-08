@@ -252,7 +252,7 @@ Deno.test('the overlay takes no settings from the URL', async () => {
   assert.equal(properties['--overlay-width-ratio'], '0.92');
 });
 
-Deno.test('an upgraded browser source is told where its settings live now', async () => {
+Deno.test('a browser source is told which URL parameters the overlay ignores', async () => {
   const carried = await loadOverlay({ search: '?scale=90&anchor=bottom' });
   carried.warnAboutUrlParameters();
   assert.match(carried.warnings.join(' '), /Ignoring URL parameters \(scale, anchor\)/);

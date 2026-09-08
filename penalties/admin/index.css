@@ -23,7 +23,7 @@
   --settings-sample-duration: 3.4s;
 }
 
-/* Reset, because CRG injects its own stylesheets ahead of this one.  The
+/* Reset, because CRG injects its own stylesheets ahead of this one
    ':where' carries no specificity, so the rules below outrank it */
 :where(#settings) *,
 :where(#settings) *::before,
@@ -76,8 +76,7 @@ body {
   max-width: 76ch;
 }
 
-/* The controls stay narrow enough to read in one column, so the settings run
-   down the page rather than across it */
+/* The controls stay narrow, so the settings run down the page rather than across it */
 #settings-layout {
   display: grid;
   gap: 32px;
@@ -199,8 +198,7 @@ input[type='text'] {
   flex: 1;
 }
 
-/* A selected item keeps its own background, so a font sample or an animation
-   stays as readable as the ones beside it, and is marked around its edge */
+/* A selected item keeps its background and is marked at its edge, so the sample stays readable */
 .setting-choice.selected,
 .preview-backdrop.selected {
   border-color: var(--settings-accent-line);
@@ -332,8 +330,7 @@ input[type='text'] {
   letter-spacing: 0.1em;
 }
 
-/* The overlay's own trace: a gradient whose angle turns, painted into the
-   border box, with the content box masked out so only the border shows */
+/* The overlay's trace: a turning gradient in the border box, with the content box masked out */
 @property --settings-trace-angle {
   syntax: '<angle>';
   inherits: false;

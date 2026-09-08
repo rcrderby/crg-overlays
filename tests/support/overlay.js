@@ -1,12 +1,9 @@
-// Load the overlay scripts outside a browser to test their logic.
-//
-// index.js reads its configuration from 'window.AppConfig', registers its display
-// helpers on 'window', and defers everything else to jQuery's 'ready' callback.
-// Stubbing 'window', 'document', 'console', 'jQuery', and 'WS' is sufficient for testing
+// Load the overlay scripts outside a browser to test their logic
+// Stubs for 'window', 'document', 'console', 'jQuery' and 'WS' are enough to run index.js
 
 const REPO = new URL('../../', import.meta.url);
 
-// Names index.js keeps in module scope, exposed so tests can reach them.
+// Names index.js keeps in module scope, exposed so tests can reach them
 // Grouped by what each name is, then alphabetical within a group
 const INTERNALS = [
   // Constants, including the configuration sections config.js supplies
@@ -74,9 +71,8 @@ export function scoreboard(state = {}) {
   };
 }
 
-// A jQuery and DOM stand-in, enough for the penalty code key to build itself and
-// to report the widths it measures.  Nothing here lays anything out, so the test
-// supplies the widths that decide whether the key has to shrink
+// A jQuery and DOM stand-in for the penalty code key
+// Nothing lays anything out, so the test supplies the widths that decide the fit
 function penaltyCodeKeyDom({ available = 0, codeWidth = 0, fontSize = 15 } = {}) {
   const node = (tag) => {
     const self = {
@@ -140,8 +136,8 @@ function penaltyCodeKeyDom({ available = 0, codeWidth = 0, fontSize = 15 } = {})
 // Names admin/index.js keeps in module scope, exposed so tests can reach them
 const ADMIN_PAGE_INTERNALS = ['CONFIG', 'READY_CHANNEL', 'SETTINGS', 'VALIDATION', 'settingChannel', 'settingValue'];
 
-// Run config.js and the admin page's index.js.  The page reaches the DOM only
-// from its 'ready' callback, which does not run here
+// Run config.js and the admin page's index.js
+// The page reaches the DOM from its 'ready' callback, which does not run here
 export async function loadAdminPage({ configSource, state = {} } = {}) {
   const config = configSource ?? (await readSource('penalties/config.js'));
   const index = await readSource('penalties/admin/index.js');

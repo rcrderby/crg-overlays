@@ -1,4 +1,4 @@
-// index.html names functions and index.js names configuration keys as strings.
+// index.html names functions and index.js names configuration keys as strings
 // These checks identify when one or the other is renamed
 
 import assert from 'node:assert/strict';
@@ -13,10 +13,8 @@ const isCrgHelper = (name) => name.startsWith('sb');
 // Functions index.js publishes for the bindings to call
 const defined = new Set([...js.matchAll(/window\.([A-Za-z0-9_]+)\s*=\s*function/g)].map((match) => match[1]));
 
-// Functions index.html asks CRG to call.
-// A binding clause ends with the function name.
-// This overlay names its functions in camelCase.
-// CRG paths are capitalized
+// Functions index.html asks CRG to call
+// A binding clause ends with the function name, which is camelCase, while CRG paths are capitalized
 const referenced = new Set();
 for (const attribute of html.matchAll(/sb(?:display|class|attr|css)="([\s\S]*?)"/gi)) {
   for (const clause of attribute[1].split('|')) {
@@ -41,8 +39,8 @@ Deno.test('every configuration key index.js reads exists in config.js', async ()
   const { window } = await loadOverlay();
   const configuration = window.AppConfig.PenaltiesOverlayConfig;
 
-  // The constant index.js assigns each configuration section to.  `debug` has
-  // no constant, and index.js reads it straight from the configuration object
+  // The constant index.js assigns each configuration section to
+  // `debug` has no constant, and index.js reads it from the configuration object
   const { REQUIRED_SECTIONS } = await loadOverlay();
   const sections = Object.fromEntries(
     REQUIRED_SECTIONS.filter((section) => section !== 'debug').map((section) => [section.toUpperCase(), section])
@@ -103,8 +101,7 @@ Deno.test('the README documents every configuration key', async () => {
   const stale = [];
 
   for (const [name, section] of Object.entries(configuration)) {
-    // Each section has its own table, running until the next section heading
-    // or the end of the reference block, whichever comes first
+    // Each table runs to the next section heading, or the end of the reference block
     const start = readme.indexOf(`***${name}*** **Section**`);
     assert.notEqual(start, -1, `the README has no table for the ${name} section`);
     const ends = [readme.indexOf('*** **Section**', start + 20), readme.indexOf('</details>', start)].filter(
@@ -132,8 +129,8 @@ Deno.test('the README documents every configuration key', async () => {
   assert.deepEqual(stale, [], `README rows for keys config.js no longer has: ${stale.join(', ')}`);
 });
 
-// Every entry in the settings table is spread into a resolveSetting call, or
-// passed to setAnimation.  This check identifies a setting nothing reads
+// Every setting is spread into a resolveSetting call, or passed to setAnimation
+// This check identifies a setting nothing reads
 Deno.test('every setting the overlay names is read', async () => {
   const { SETTINGS } = await loadOverlay();
 
@@ -141,8 +138,8 @@ Deno.test('every setting the overlay names is read', async () => {
   assert.deepEqual(unused, [], `the settings table names settings nothing reads: ${unused.join(', ')}`);
 });
 
-// Settings come from the admin page and config.js, and debug logging also
-// reads a URL parameter.  This check identifies another one finding its way in
+// Settings come from the admin page and config.js, and `debug` from a URL parameter
+// This check identifies another parameter finding its way in
 Deno.test('debug logging is the only setting the URL carries', async () => {
   const reads = [...js.matchAll(/URLSearchParams\(window\.location\.search\)([\s\S]{0,60})/g)].map((match) => match[1]);
 

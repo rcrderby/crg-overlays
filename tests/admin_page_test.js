@@ -1,5 +1,5 @@
-// The admin page names each setting as a string, in its markup and in its own
-// script.  These checks identify when the overlay and the page disagree
+// The admin page names each setting as a string, in its markup and in its script
+// These checks identify when the overlay and the page disagree
 
 import assert from 'node:assert/strict';
 import { loadOverlay, loadAdminPage, readSource } from './support/overlay.js';
@@ -41,8 +41,7 @@ Deno.test('the admin page reads its defaults and ranges from the configuration f
 Deno.test('the admin page loads what CRG needs before CRG loads itself', () => {
   const scripts = [...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map((match) => match[1]);
 
-  // core.js loads the file upload plugin and jQuery UI at the same time, and
-  // the plugin calls jQuery UI, so the page loads jQuery UI first
+  // core.js loads the file upload plugin and jQuery UI together, and the plugin calls jQuery UI
   assert.ok(scripts.indexOf('/external/jquery-ui/jquery-ui.js') < scripts.indexOf('/json/core.js'));
 
   // index.js reads the overlay's configuration file
@@ -83,8 +82,7 @@ Deno.test('the admin page and the overlay name the same channels', async () => {
 Deno.test('the admin page registers a channel the scoreboard always holds', async () => {
   const page = await loadAdminPage();
 
-  // CRG hides the page behind its loading screen until a registered channel
-  // reports a value, and an unset setting reports nothing
+  // CRG hides the page until a registered channel reports a value, and an unset setting reports none
   assert.match(page.READY_CHANNEL, /^ScoreBoard\./);
   assert.equal(page.READY_CHANNEL.startsWith('ScoreBoard.Settings.Setting('), false);
   assert.match(js, /WS\.Register\(\[READY_CHANNEL\]\)/);
