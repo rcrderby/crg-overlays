@@ -134,7 +134,15 @@ function penaltyCodeKeyDom({ available = 0, codeWidth = 0, fontSize = 15 } = {})
 }
 
 // Names admin/index.js keeps in module scope, exposed so tests can reach them
-const ADMIN_PAGE_INTERNALS = ['CONFIG', 'READY_CHANNEL', 'SETTINGS', 'VALIDATION', 'settingChannel', 'settingValue'];
+const ADMIN_PAGE_INTERNALS = [
+  'CONFIG',
+  'READY_CHANNEL',
+  'SETTINGS',
+  'VALIDATION',
+  'committedValue',
+  'settingChannel',
+  'settingValue'
+];
 
 // Run config.js and the admin page's index.js
 // The page reaches the DOM from its 'ready' callback, which does not run here

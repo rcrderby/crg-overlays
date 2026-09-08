@@ -125,7 +125,14 @@ function registerFields() {
 
     // Commit text as it is typed, and a slider value when the operator lets go
     field.on(field.attr('type') === 'text' ? 'input' : 'change', function () {
-      WS.Set(channel, isTickBox(field) ? String(tickBoxValue(field)) : String(field.val()));
+      const value = committedValue(field, name);
+
+      WS.Set(channel, value);
+
+      // Show what was stored, which a number box may have held to its range
+      if (field.attr('type') === 'number') {
+        field.val(value === '' ? settingValue(name) : value);
+      }
     });
 
     const paint = paintField(field, name);
@@ -136,6 +143,29 @@ function registerFields() {
     painters.push(paint);
     WS.Register([channel], paint);
   });
+}
+
+// The value a field stores, held to the range in the configuration file
+// An empty number box clears the setting, which falls back to config.js
+function committedValue(field, name) {
+  if (isTickBox(field)) {
+    return String(tickBoxValue(field));
+  }
+
+  const raw = String(field.val()).trim();
+  const limits = VALIDATION[SETTINGS[name].validation];
+
+  if (limits.min === undefined) {
+    return raw;
+  }
+
+  const number = Number(raw);
+
+  if (raw === '' || !Number.isFinite(number)) {
+    return '';
+  }
+
+  return String(Math.min(Math.max(number, limits.min), limits.max));
 }
 
 // Determine if the field is a tick box

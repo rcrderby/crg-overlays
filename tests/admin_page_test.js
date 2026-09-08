@@ -130,3 +130,41 @@ Deno.test('a setting with nothing behind it reads as blank', async () => {
 
   assert.equal(page.settingValue('TitleText'), '');
 });
+
+// A field stands in for the jQuery object the page binds
+const field = ({ type = 'number', value = '', ticked = false, invert = false }) => ({
+  attr: () => type,
+  val: () => value,
+  prop: () => ticked,
+  data: () => invert
+});
+
+Deno.test('a number box holds its value to the configured range', async () => {
+  const page = await loadAdminPage();
+  const { min, max } = page.VALIDATION.width;
+
+  assert.equal(page.committedValue(field({ value: String(max + 40) }), 'Width'), String(max));
+  assert.equal(page.committedValue(field({ value: String(min - 40) }), 'Width'), String(min));
+  assert.equal(page.committedValue(field({ value: '92' }), 'Width'), '92');
+});
+
+Deno.test('an empty number box clears the setting', async () => {
+  const page = await loadAdminPage();
+
+  assert.equal(page.committedValue(field({ value: '' }), 'Width'), '');
+  assert.equal(page.committedValue(field({ value: 'wide' }), 'Width'), '');
+});
+
+Deno.test('a setting with no range keeps what the field holds', async () => {
+  const page = await loadAdminPage();
+
+  assert.equal(page.committedValue(field({ type: 'text', value: 'PENALTY BOX' }), 'TitleText'), 'PENALTY BOX');
+});
+
+Deno.test('a tick box stores the opposite of what it shows', async () => {
+  const page = await loadAdminPage();
+  const box = (ticked) => field({ type: 'checkbox', ticked, invert: true });
+
+  assert.equal(page.committedValue(box(true), 'TitleVisible'), 'false');
+  assert.equal(page.committedValue(box(false), 'TitleVisible'), 'true');
+});
