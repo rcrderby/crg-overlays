@@ -6,16 +6,7 @@
 - [Features](#features "Overlay Features")
 - [Compatibility](#compatibility "Overlay CRG Compatibility")
 - [Usage](#usage "Overlay Usage Instructions")
-- [Admin Page](#admin-page "Overlay Settings Page")
-- [Display Options](#display-options "Overlay Display Options")
-  - [Scale Adjustments](#scale-adjustments "Scale Adjustments")
-  - [Width Adjustments](#width-adjustments "Width Adjustments")
-  - [Position Adjustments](#position-adjustments "Position Adjustments")
-  - [Background Opacity](#background-opacity "Background Opacity")
-  - [Font Selection](#font-selection "Font Selection")
-  - [Animation Options](#animation-options "Animation Options")
-  - [Penalty Code Key](#penalty-code-key "Penalty Code Key")
-  - [Debug Logging](#debug-logging "Debug Logging")
+- [Admin Page](#admin-page "Overlay Admin Page")
 - [Configuration File](#configuration-file "Overlay Configuration File")
 - [Configuration Reference](#configuration-reference "Configuration File Reference")
 - [Upgrading from 3.x](#upgrading-from-3x "Upgrade Notes")
@@ -66,6 +57,9 @@ The overlay gets the information and settings it needs from CRG, so you can prep
   - "RE" for head official removals.
 - Displays up to nine penalty codes for each player (CRG maximum).
 - Displays the total count of penalties for each team.
+- Displays a key of the penalty codes in play below the rosters.
+  - Reads the code definitions from the active ruleset, so a code with no definition does not appear, nor does the unknown code ("?"), which says only that a penalty has not been identified.
+  - Keeps the key on one line, reducing its text size as needed, so every code fits.
 
 ### Game Information Area
 
@@ -162,204 +156,39 @@ To add a custom logo to the left side game information area of the overlay:
 
 The logo will display in the game information area of the overlay after a browser refresh.
 
+### Fonts
+
+The overlay bundles four font pairings and loads them from its own `fonts` folder rather than from a web font service, so they work on a scoreboard computer with no internet connection.
+
+> [!NOTE]
+> All of the fonts use the SIL Open Font License; see [`fonts/OFL.txt`](./fonts/OFL.txt) for details.
+
+### Troubleshooting
+
+The overlay logs the settings it reads and the decisions it makes during a game to the browser console.  Add the `debug` URL parameter to a browser source to turn logging on for that source:
+
+| Debug logging | URL |
+| - | - |
+| Off (default) | `https://<crg-ip-address>:8000/custom/overlay/penalties`[^1] |
+| On | `https://<crg-ip-address>:8000/custom/overlay/penalties?debug=true`[^1] |
+
+> [!TIP]
+> Open your browser's developer tools to read the console.  Warnings about invalid settings always appear, whether debug logging is on or off.  To log from every browser source, set `debug.enabled` to `true` in [config.js](./config.js) instead.
+
 ## Admin Page
 
 The overlay has an admin page that allows you to adjust configurable options at `https://<crg-ip-address>:8000/custom/overlay/penalties/admin`.[^1]
 
-## Display Options
-
-Your video streaming team can customize the overlay using URL parameters.  Combine multiple URL parameters with the `&` symbol, for example `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=90&anchor=bottom`.  Each URL parameter has a matching setting in the [Configuration File](#configuration-file "Configuration File Section").
-
-> [!IMPORTANT]
-> URL parameters take precedence over the [Admin Page](#admin-page "Admin Page Section").  Use one when you want a source to keep a value the settings page cannot change.
-
-### Scale Adjustments
-
-Adjust the scale of the overlay to fit a broadcast display with the `scale` URL parameter.  Expand `Scale Details` for examples.
-
-<details>
-  <summary>
-    Scale Details
-  </summary>
-
-  | Scale | URL |
-  | - | - |
-  | Default scale (100%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=100` |
-  | Scale down 5% (95%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=95` |
-  | Scale down 10% (90%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?scale=90` |
-
-</details>
-
-> [!TIP]
-> The allowed `scale` parameter range is `1` to `100`.  See the `overlayScale` setting in the [Configuration Section](#configuration-reference "Configuration Section") for details.
-
-### Width Adjustments
-
-Use the `width` URL parameter to adjust the overlay width.  Expand `Width Details` for examples.
-
-<details>
-  <summary>
-    Width Details
-  </summary>
-
-  | Width | URL |
-  | - | - |
-  | Default (85%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?width=85` |
-  | Wider (95%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?width=95` |
-  | Narrower (75%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?width=75` |
-
-</details>
-
-> [!TIP]
-> The allowed `width` parameter range is `70` to `100`.  Narrowing the overlay takes space from the player name column, so long player names may begin to truncate below about `75`.  See the `overlayWidth` setting in the [Configuration Section](#configuration-reference "Configuration Section") for details.
-
-### Position Adjustments
-
-The overlay scales from the top of the frame by default, so scaling down leaves empty space at the bottom.  Use the `anchor` URL parameter to change the point it scales from.  Expand `Position Details` for examples.
-
-<details>
-  <summary>
-    Position Details
-  </summary>
-
-  | Anchor | URL |
-  | - | - |
-  | Top of the frame (default) | `https://<crg-ip-address>:8000/custom/overlay/penalties?anchor=top` |
-  | Middle of the frame | `https://<crg-ip-address>:8000/custom/overlay/penalties?anchor=center` |
-  | Bottom of the frame | `https://<crg-ip-address>:8000/custom/overlay/penalties?anchor=bottom` |
-
-</details>
-
-> [!TIP]
-> The allowed `anchor` parameter values are `top`, `center`, and `bottom`. See the `overlayAnchor` setting in the [Configuration Section](#configuration-reference "Configuration Section") for details.
-
-### Background Opacity
-
-Use the `opacity` URL parameter to adjust how visible the video stream is through the overlay background.  Expand `Opacity Details` for examples.
-
-<details>
-  <summary>
-    Opacity Details
-  </summary>
-
-  | Opacity | URL |
-  | - | - |
-  | Default (98%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?opacity=98` |
-  | Lightly translucent (85%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?opacity=85` |
-  | Heavily translucent (60%) | `https://<crg-ip-address>:8000/custom/overlay/penalties?opacity=60` |
-
-</details>
-
-> [!TIP]
-> The allowed `opacity` parameter range is `0` to `100`, where `100` is solid and `0` is invisible.  This affects the overlay background only; player names and penalty codes stay fully opaque.  See the `overlayOpacity` setting in the [Configuration Section](#configuration-reference "Configuration Section") for details.
-
-### Font Selection
-
-The overlay bundles four font pairings and uses `saira` as its default.  Use the `font` URL parameter to choose another font.  Expand `Font Details` for the available pairings.
-
-<details>
-  <summary>
-    Font Details
-  </summary>
-
-  | Pairing | Headings | Body text | URL |
-  | - | - | - | - |
-  | `saira` (default) | Saira Condensed | Saira | `https://<crg-ip-address>:8000/custom/overlay/penalties?font=saira` |
-  | `league-gothic` | League Gothic | Barlow | `https://<crg-ip-address>:8000/custom/overlay/penalties?font=league-gothic` |
-  | `anton` | Anton | Chivo | `https://<crg-ip-address>:8000/custom/overlay/penalties?font=anton` |
-  | `bricolage` | Bricolage Grotesque | Barlow Condensed | `https://<crg-ip-address>:8000/custom/overlay/penalties?font=bricolage` |
-
-</details>
-
-> [!NOTE]
-> The overlay loads these fonts from its own `fonts` folder rather than from a web font service, so the fonts work correctly on a scoreboard computer with no Internet connection.  All of the fonts use the SIL Open Font License; see [`fonts/OFL.txt`](./fonts/OFL.txt) for details.
-
-### Animation Options
-
-The overlay has animation for its background and timeout banner.  Use the `background` and `timeout` URL parameters to change or disable either one.  Expand `Animation Details` for the available effects.
-
-<details>
-  <summary>
-    Animation Details
-  </summary>
-
-  | Background | Effect | URL |
-  | - | - | - |
-  | `trace` (default) | A gradient travels around the overlay border | `https://<crg-ip-address>:8000/custom/overlay/penalties?background=trace` |
-  | `organic` | Soft pools of light drift across the panel | `https://<crg-ip-address>:8000/custom/overlay/penalties?background=organic` |
-  | `shine` | A single band of light crosses diagonally | `https://<crg-ip-address>:8000/custom/overlay/penalties?background=shine` |
-  | `off` | No background animation | `https://<crg-ip-address>:8000/custom/overlay/penalties?background=off` |
-
-  | Timeout banner | Effect | URL |
-  | - | - | - |
-  | `glow` (default) | The banner color breathes | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=glow` |
-  | `pulse` | A ring expands away from the banner | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=pulse` |
-  | `shine` | A band of light crosses the banner | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=shine` |
-  | `off` | No timeout banner animation | `https://<crg-ip-address>:8000/custom/overlay/penalties?timeout=off` |
-
-</details>
-
-> [!NOTE]
-> Browsers that request reduced motion will see no overlay or timeout banner animation.
-
-### Penalty Code Key
-
-The overlay lists definitions for any penalty codes in use during a game.  Use the `key` URL parameter to hide it.  Expand `Penalty Code Key Details` for examples.
-
-<details>
-  <summary>
-    Penalty Code Key Details
-  </summary>
-
-  | Key | URL |
-  | - | - |
-  | Visible (default) | `https://<crg-ip-address>:8000/custom/overlay/penalties?key=true` |
-  | Hidden | `https://<crg-ip-address>:8000/custom/overlay/penalties?key=false` |
-
-</details>
-
-> [!NOTE]
-> CRG provides penalty code definitions from the active ruleset.  Codes with no definition do not appear in the key, nor does the unknown penalty code (`?`), which says only that a penalty has not been identified.  The key always occupies one line, reducing its text size as needed, so every code fits.
-
-### Debug Logging
-
-The overlay logs its settings and the decisions it makes during a game to the browser console.  Use the `debug` URL parameter to enable logging.  Expand `Debug Details` for examples.
-
-<details>
-  <summary>
-    Debug Details
-  </summary>
-
-  | Debug logging | URL |
-  | - | - |
-  | Off (default) | `https://<crg-ip-address>:8000/custom/overlay/penalties?debug=false` |
-  | On | `https://<crg-ip-address>:8000/custom/overlay/penalties?debug=true` |
-
-</details>
-
-> [!TIP]
-> Open the browser developer tools to read the console.  Warnings about invalid settings always appear, whether debug logging is on or off.  See the `debug.enabled` setting in the [Configuration Section](#configuration-reference "Configuration Section") for details.
+There are several animation options available for the overlay background and timeout banner, browsers that request reduced motion will show no animation for either.
 
 ## Configuration File
 
 A configuration file named [config.js](./config.js) allows you to customize various overlay settings.  Some settings are safe to change, and others are best left at their default values.
 
-The configuration file valuesare a starting point.  A URL parameter takes precedence over the [Admin Page](#admin-page "Settings Page Section"), which in turn takes precedence over this file.
-
-### Common Customizations
-
-- `config.overlayScale` to adjust the overlay scale - between 1 and 100 (default is `100`).
-- `config.overlayWidth` to adjust the overlay width - between 70 and 100 (default is `85`).
-- `config.overlayAnchor` to set the point the overlay scales from - `top`, `center`, or `bottom` (default is `top`).
-- `config.overlayOpacity` to adjust how much of the video shows through the overlay background - between 0 and 100 (default is `98`).
-- `config.overlayFont` to set the font pairing - `saira`, `league-gothic`, `anton`, or `bricolage` (default is `saira`).
-- `config.backgroundAnimation` to set the background animation - `trace`, `organic`, `shine`, or `off` (default is `trace`).
-- `config.timeoutAnimation` to set the timeout banner animation - `glow`, `pulse`, `shine`, or `off` (default is `glow`).
-- `config.penaltyCodeKey` to show or hide the penalty code key - `true` or `false` (default is `true`).
-- `config.titleBannerText` to adjust the title text (default is `PENALTIES`).
+The configuration file values are a starting point.  A setting saved on the [Admin Page](#admin-page "Admin Page Section") takes precedence over this file, as does the `debug` URL parameter described in [Troubleshooting](#troubleshooting "Troubleshooting Section").
 
 > [!WARNING]
-> Changes to `config.js` require a page refresh to take effect, and corresponding URL parameter customizations take priority over values in `config.js`.
+> Changes to `config.js` require a page refresh to take effect.
 
 ## Configuration Reference
 
@@ -382,7 +211,7 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
-  | `enabled` | Enable debug logging to browser console (set to `true` for troubleshooting) - the [`debug` URL parameter](#debug-logging "Debug Logging Section") overrides this value | boolean | `false` | :white_check_mark: |
+  | `enabled` | Enable debug logging to browser console (set to `true` for troubleshooting) | boolean | `false` | :white_check_mark: |
 
   ---
 
@@ -395,14 +224,15 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | `defaultRosterShadowProperties` | Default roster shadow properties | string | `.5px .5px 1px` | :x: |
   | `loadingOverlayText` | Text displayed on the "loading" screen | string | `Loading game data...` | :white_check_mark: |
   | `titleBannerText` | Title text | string | `PENALTIES` | :white_check_mark: |
-  | `overlayScale` | Overlay scale percentage: 100  = full scale, 90 = 90% scale, etc. (1 to 100) - the [`scale` URL parameter](#scale-adjustments "Scale Adjustments Section") overrides this value | int or float | `100` | :white_check_mark: |
-  | `overlayAnchor` | Point the overlay scales from: `top`, `center`, or `bottom` - the [`anchor` URL parameter](#position-adjustments "Position Adjustments Section") overrides this value | string | `top` | :white_check_mark: |
-  | `overlayWidth` | Overlay width percentage of the video frame (70 to 100) - the [`width` URL parameter](#width-adjustments "Width Adjustments Section") overrides this value | int or float | `85` | :white_check_mark: |
-  | `overlayOpacity` | Overlay background opacity percentage: 100 is solid, 0 is invisible (0 to 100) - the [`opacity` URL parameter](#background-opacity "Background Opacity Section") overrides this value | int or float | `98` | :white_check_mark: |
-  | `overlayFont` | Font pairing: `saira`, `league-gothic`, `anton`, or `bricolage` - the [`font` URL parameter](#font-selection "Font Selection Section") overrides this value | string | `saira` | :white_check_mark: |
-  | `backgroundAnimation` | Background animation: `trace`, `organic`, `shine`, or `off` - the [`background` URL parameter](#animation-options "Animation Options Section") overrides this value | string | `trace` | :white_check_mark: |
-  | `timeoutAnimation` | Timeout banner animation: `glow`, `pulse`, `shine`, or `off` - the [`timeout` URL parameter](#animation-options "Animation Options Section") overrides this value | string | `glow` | :white_check_mark: |
-  | `penaltyCodeKey` | Penalty code key visibility below the rosters - the [`key` URL parameter](#penalty-code-key "Penalty Code Key Section") overrides this value | boolean | `true` | :white_check_mark: |
+  | `titleBannerVisible` | Title visibility | boolean | `true` | :white_check_mark: |
+  | `backgroundAnimation` | Background animation: `trace`, `organic`, `shine`, or `off` | string | `trace` | :white_check_mark: |
+  | `overlayAnchor` | Point the overlay scales from: `top`, `center`, or `bottom` | string | `top` | :white_check_mark: |
+  | `overlayFont` | Font pairing: `saira`, `league-gothic`, `anton`, or `bricolage` | string | `saira` | :white_check_mark: |
+  | `overlayOpacity` | Overlay background opacity percentage: 100 is solid, 0 is invisible (0 to 100) | int or float | `98` | :white_check_mark: |
+  | `overlayScale` | Overlay scale percentage: 100  = full scale, 90 = 90% scale, etc. (1 to 100) | int or float | `100` | :white_check_mark: |
+  | `overlayWidth` | Overlay width percentage of the video frame (70 to 100) | int or float | `85` | :white_check_mark: |
+  | `penaltyCodeKey` | Penalty code key visibility below the rosters | boolean | `true` | :white_check_mark: |
+  | `timeoutAnimation` | Timeout banner animation: `glow`, `pulse`, `shine`, or `off` | string | `glow` | :white_check_mark: |
 
   ---
 
@@ -422,6 +252,7 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | `scale` | Allowed range and default for `overlayScale` | object | `1` to `100`, default `100` | :warning: |
   | `timeoutAnimation` | Default for `timeoutAnimation` | object | `glow` | :warning: |
   | `title` | Default for `titleBannerText` | object | `PENALTIES` | :warning: |
+  | `titleVisible` | Default for `titleBannerVisible` | object | `true` | :warning: |
   | `width` | Allowed range and default for `overlayWidth` | object | `70` to `100`, default `85` | :warning: |
 
   ---
@@ -432,14 +263,16 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | - | - | - | - | - |
   | `customLogoSelector` | CSS Selector for the custom logo container | string | `#custom-logo` | :x: |
   | `customLogoSpaceSelector` | CSS Selector for the custom logo space container | string | `#custom-logo-space` | :x: |
-  | `customLogoSpaceVisibleSelectorSuffix` | CSS Selector for the visible custom logo space container container | string | `visible` | :x: |
+  | `customLogoSpaceVisibleSelectorSuffix` | CSS Selector for the visible custom logo space container | string | `visible` | :x: |
   | `loadingOverlayFadeOutSuffixSelector` | CSS Selector for the loading overlay fade out | string | `fade-out` | :x: |
   | `loadingOverlaySelector` | CSS Selector for the loading overlay | string | `#loading-overlay` | :x: |
   | `loadingOverlayTextSelector` | CSS Selector for the loading overlay text | string | `.loading-text` | :x: |
   | `penaltyCodeKeySelector` | CSS Selector for the penalty code key container | string | `#penalty-code-key` | :x: |
   | `penaltyCodeKeyItemsSelector` | CSS Selector for the penalty code key items | string | `.code-key-items` | :x: |
   | `penaltyCodeKeyVisibleSelectorSuffix` | CSS Selector for the visible penalty code key | string | `visible` | :x: |
+  | `penaltiesTitleSelector` | CSS Selector for the penalties title container | string | `#penalties-title` | :x: |
   | `penaltiesTitleH1Selector` | CSS Selector for the penalties title H1 text | string | `#penalties-title h1` | :x: |
+  | `penaltiesTitleVisibleSelectorSuffix` | CSS Selector for the visible penalties title | string | `visible` | :x: |
   | `textShadow` | CSS Variable for text shadows | string | `var(--team-penalties-default-text-shadow)` | :x: |
 
   ---
@@ -518,18 +351,7 @@ Version 4.0.0 reads more of its behavior from CRG, so these settings no longer e
 | `classes.teamsScoresSelector` | Removed with the game information area redesign. |
 | `classes.teamsScoresHasLogoSelectorSuffix` | Removed with the game information area redesign. |
 
-These settings are new, and each one has a matching URL parameter:
-
-| New setting | Description |
-| - | - |
-| `config.overlayWidth` | Overlay width as a percentage of the video frame. |
-| `config.overlayOpacity` | How much of the video shows through the overlay background. |
-| `config.overlayFont` | Font pairing. |
-| `config.backgroundAnimation` | Background animation. |
-| `config.timeoutAnimation` | Timeout banner animation. |
-| `config.penaltyCodeKey` | Penalty code key visibility. |
-
-The new `validation` section holds the allowed values and defaults for those settings.  See the [Configuration Section](#configuration-reference "Configuration Section") for the full reference.
+See the [Configuration Reference](#configuration-reference "Configuration Reference Section") for the settings a 4.x `config.js` holds.
 
 <!-- Footnotes -->
 
