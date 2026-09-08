@@ -2,15 +2,14 @@
 //
 // index.js reads its configuration from 'window.AppConfig', registers its display
 // helpers on 'window', and defers everything else to jQuery's 'ready' callback.
-// Stubbing 'window', 'document', 'console', 'jQuery', and 'WS' is sufficient for testing.
+// Stubbing 'window', 'document', 'console', 'jQuery', and 'WS' is sufficient for testing
 
 const REPO = new URL('../../', import.meta.url);
 
 // Names index.js keeps in module scope, exposed so tests can reach them.
-// Grouped by what each name is, then alphabetical within a group.
+// Grouped by what each name is, then alphabetical within a group
 const INTERNALS = [
   // Constants, including the configuration sections config.js supplies
-  'ALLOWED_URL_PARAMS',
   'CLASSES',
   'CONFIG',
   'DEBUG',
@@ -34,8 +33,9 @@ const INTERNALS = [
   'setPenaltyCodeKey',
   'setTimeoutAnimation',
   'setTitleBannerText',
+  'setTitleBannerVisible',
 
-  // Functions that apply and follow the settings page
+  // Functions that apply and follow the admin page
   'applyOverlaySettings',
   'registerOverlaySettings',
   'settingChannel',
@@ -50,7 +50,10 @@ const INTERNALS = [
   // Functions that read game data
   'getPenaltyCodeCue',
   'getPenaltyCodesInPlay',
-  'getSkaterContext'
+  'getSkaterContext',
+
+  // Functions that report on how the overlay was opened
+  'warnAboutUrlParameters'
 ];
 
 // Read a file from the repository, whatever the working directory
@@ -73,7 +76,7 @@ export function scoreboard(state = {}) {
 
 // A jQuery and DOM stand-in, enough for the penalty code key to build itself and
 // to report the widths it measures.  Nothing here lays anything out, so the test
-// supplies the widths that decide whether the key has to shrink.
+// supplies the widths that decide whether the key has to shrink
 function penaltyCodeKeyDom({ available = 0, codeWidth = 0, fontSize = 15 } = {}) {
   const node = (tag) => {
     const self = {
@@ -135,11 +138,11 @@ function penaltyCodeKeyDom({ available = 0, codeWidth = 0, fontSize = 15 } = {})
 }
 
 // Names admin/index.js keeps in module scope, exposed so tests can reach them
-const SETTINGS_PAGE_INTERNALS = ['CONFIG', 'READY_CHANNEL', 'SETTINGS', 'VALIDATION', 'settingChannel', 'settingValue'];
+const ADMIN_PAGE_INTERNALS = ['CONFIG', 'READY_CHANNEL', 'SETTINGS', 'VALIDATION', 'settingChannel', 'settingValue'];
 
-// Run config.js and the settings page's index.js.  The page reaches the DOM
-// only from its 'ready' callback, which does not run here
-export async function loadSettingsPage({ configSource, state = {} } = {}) {
+// Run config.js and the admin page's index.js.  The page reaches the DOM only
+// from its 'ready' callback, which does not run here
+export async function loadAdminPage({ configSource, state = {} } = {}) {
   const config = configSource ?? (await readSource('penalties/config.js'));
   const index = await readSource('penalties/admin/index.js');
 
@@ -152,13 +155,12 @@ export async function loadSettingsPage({ configSource, state = {} } = {}) {
   // jQuery is called with the 'ready' callback, which must not run here
   const jQueryStub = () => ({ each: () => {}, on: () => ({}), attr: () => ({}) });
 
-  const api = new Function(
-    'window',
-    'console',
-    '$',
-    'WS',
-    `${index}\nreturn { ${SETTINGS_PAGE_INTERNALS.join(', ')} };`
-  )(window, consoleStub, jQueryStub, WS);
+  const api = new Function('window', 'console', '$', 'WS', `${index}\nreturn { ${ADMIN_PAGE_INTERNALS.join(', ')} };`)(
+    window,
+    consoleStub,
+    jQueryStub,
+    WS
+  );
 
   return { ...api, window, WS };
 }
@@ -204,6 +206,9 @@ export async function loadOverlay({ configSource, indexSource, search = '', stat
   // Text the overlay writes into the page, keyed by the selector it wrote to
   const text = {};
 
+  // Classes the overlay toggles, keyed by the selector it toggled them on
+  const classes = {};
+
   // jQuery is called with the 'ready' callback, which must not run here
   const jQueryStub = (selector) => {
     if (typeof selector === 'function') {
@@ -216,7 +221,19 @@ export async function loadOverlay({ configSource, indexSource, search = '', stat
       return element;
     };
 
-    return { ...element, text: (value) => (value === undefined ? text[selector] : record(value)) };
+    // The key builds itself through the element, so its own classes follow too
+    const toggle = (name, on) => {
+      classes[selector] = classes[selector] ?? new Set();
+      classes[selector][on ? 'add' : 'delete'](name);
+
+      return element.toggleClass(name, on);
+    };
+
+    return {
+      ...element,
+      text: (value) => (value === undefined ? text[selector] : record(value)),
+      toggleClass: toggle
+    };
   };
 
   // Timers the overlay sets, run only when a test asks for them
@@ -238,5 +255,20 @@ export async function loadOverlay({ configSource, indexSource, search = '', stat
   // Run every pending timer, and report what was waiting
   const runTimers = () => timers.splice(0).map((timer) => (timer.callback(), timer));
 
-  return { ...api, window, WS, properties, warnings, overlayClasses, text, key: keyDom.rendered, timers, runTimers };
+  // Whether a selector carries a class the overlay toggled on it
+  const hasClass = (selector, name) => Boolean(classes[selector]?.has(name));
+
+  return {
+    ...api,
+    window,
+    WS,
+    properties,
+    warnings,
+    overlayClasses,
+    text,
+    hasClass,
+    key: keyDom.rendered,
+    timers,
+    runTimers
+  };
 }
