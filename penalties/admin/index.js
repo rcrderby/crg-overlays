@@ -283,10 +283,13 @@ function registerActions() {
     .on('click', function () {
       const button = $(this);
 
+      // The button carries its own label, so the markup names it once
+      const label = button.text();
+
       copyText(url).then(function (copied) {
         button.text(copied ? 'Copied' : url);
         setTimeout(function () {
-          button.text('Copy overlay URL');
+          button.text(label);
         }, 2000);
       });
     });

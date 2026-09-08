@@ -61,10 +61,21 @@ export function readSource(path) {
 // Build a WebSocket stub holding the given ScoreBoard state
 export function scoreboard(state = {}) {
   const registrations = [];
+  const sets = [];
+
+  // A write reaches the state and the callbacks registered for that channel,
+  // the way the scoreboard echoes one back
+  const Set = (path, value) => {
+    state[path] = String(value);
+    sets.push({ path, value: String(value) });
+    registrations.filter((entry) => entry.paths.includes(path)).forEach((entry) => entry.callback?.());
+  };
 
   return {
     state,
     registrations,
+    sets,
+    Set,
     Register: (paths, callback) => registrations.push({ paths, callback }),
     Connect: () => {},
     AutoRegister: () => {}
@@ -135,18 +146,250 @@ function penaltyCodeKeyDom({ available = 0, codeWidth = 0, fontSize = 15 } = {})
 
 // Names admin/index.js keeps in module scope, exposed so tests can reach them
 const ADMIN_PAGE_INTERNALS = [
+  // Constants, including the configuration sections config.js supplies
   'CONFIG',
   'READY_CHANNEL',
   'SETTINGS',
   'VALIDATION',
+
+  // Functions that read a setting
   'committedValue',
   'settingChannel',
-  'settingValue'
+  'settingValue',
+
+  // Functions that bind and paint the controls
+  'paintControls',
+  'registerActions',
+  'registerBackdrops',
+  'registerChoices',
+  'registerFields',
+  'registerSliderPreview',
+
+  // Functions that serve the preview and the page's own buttons
+  'copyText',
+  'overlayUrl',
+  'previewDocument',
+  'scalePreview'
 ];
+
+// A jQuery and DOM stand-in for the admin page, built from the page's own
+// markup, so the tests drive the controls the page ships
+function adminPageDom(html) {
+  const nodes = [];
+
+  const node = (attrs = {}, classes = []) => {
+    const element = {
+      attrs,
+      classes: new Set(classes),
+      children: [],
+      handlers: {},
+      parent: null,
+      value: '',
+      checked: false,
+      focused: false,
+      label: ''
+    };
+
+    nodes.push(element);
+
+    return element;
+  };
+
+  // Each setting's controls share a row, which the slider preview reads
+  const rows = {};
+  for (const tag of html.match(/<input[^>]*data-setting="[^"]*"[^>]*>/g) ?? []) {
+    const attr = (name) => (tag.match(new RegExp(`${name}="([^"]*)"`)) ?? [])[1];
+    const setting = attr('data-setting');
+    const row = (rows[setting] = rows[setting] ?? node({}, ['setting-row']));
+    const field = node({
+      type: attr('type'),
+      id: attr('id'),
+      'data-setting': setting,
+      'data-invert': attr('data-invert'),
+      'data-preview': attr('data-preview')
+    });
+
+    field.parent = row;
+    row.children.push(field);
+  }
+
+  // Choice groups, and the buttons that follow each one until the next group
+  let group = null;
+  for (const tag of html.match(
+    /<div[^>]*class="[^"]*setting-choices[^"]*"[^>]*>|<button[^>]*data-value="[^"]*"[^>]*>/g
+  ) ?? []) {
+    if (tag.startsWith('<div')) {
+      group = node({ 'data-setting': (tag.match(/data-setting="([^"]*)"/) ?? [])[1] }, ['setting-choices']);
+      continue;
+    }
+
+    const classes = ((tag.match(/class="([^"]*)"/) ?? [])[1] ?? '').split(' ');
+    const choice = node({ 'data-value': (tag.match(/data-value="([^"]*)"/) ?? [])[1] }, classes);
+
+    choice.parent = group;
+    group.children.push(choice);
+  }
+
+  // The preview backdrops, the stage they paint, and the page's own buttons
+  const stageBackdrop = (html.match(/id="preview-stage"[^>]*data-backdrop="([a-z]+)"/) ?? [])[1];
+  node({ id: 'preview-stage', 'data-backdrop': stageBackdrop });
+  for (const tag of html.match(/<button[^>]*class="preview-backdrop[^>]*>/g) ?? []) {
+    node({ 'data-backdrop': (tag.match(/data-backdrop="([a-z]+)"/) ?? [])[1] }, ['preview-backdrop']);
+  }
+  for (const id of ['copy-url', 'reset-settings']) {
+    node({ id });
+  }
+
+  // Selectors the page uses, in the shapes it writes them
+  const matches = (element, selector) =>
+    selector.split(/(?=[.#[])/).every((part) => {
+      if (part.startsWith('#')) {
+        return element.attrs.id === part.slice(1);
+      }
+
+      if (part.startsWith('.')) {
+        return element.classes.has(part.slice(1));
+      }
+
+      if (part.startsWith('[')) {
+        const [name, value] = part.slice(1, -1).split('=');
+
+        return value === undefined ? element.attrs[name] !== undefined : element.attrs[name] === value;
+      }
+
+      return element.attrs.type !== undefined || part === '*';
+    });
+
+  const wrap = (elements) => {
+    const list = [].concat(elements);
+    const first = list[0];
+    const api = {
+      length: list.length,
+      each(callback) {
+        list.forEach((element, index) => callback.call(element, index, element));
+
+        return api;
+      },
+      on(event, handler) {
+        list.forEach((element) => (element.handlers[event] = element.handlers[event] ?? []).push(handler));
+
+        return api;
+      },
+      attr(name, value) {
+        if (typeof name === 'object') {
+          list.forEach((element) => Object.assign(element.attrs, name));
+
+          return api;
+        }
+
+        if (value === undefined) {
+          return first?.attrs[name];
+        }
+
+        list.forEach((element) => (element.attrs[name] = String(value)));
+
+        return api;
+      },
+      val(value) {
+        if (value === undefined) {
+          return first?.value;
+        }
+
+        list.forEach((element) => (element.value = String(value)));
+
+        return api;
+      },
+      prop(name, value) {
+        if (value === undefined) {
+          return name === 'checked' ? Boolean(first?.checked) : first?.attrs[name];
+        }
+
+        list.forEach((element) => (element.checked = Boolean(value)));
+
+        return api;
+      },
+      // A data attribute of 'true' reads back as a boolean, as jQuery returns it
+      data(key) {
+        const value = first?.attrs[`data-${key}`];
+
+        return value === 'true' ? true : value === 'false' ? false : value;
+      },
+      text(value) {
+        if (value === undefined) {
+          return first?.label;
+        }
+
+        list.forEach((element) => (element.label = String(value)));
+
+        return api;
+      },
+      is: (selector) => (selector === ':focus' ? Boolean(first?.focused) : matches(first, selector)),
+      hasClass: (name) => Boolean(first?.classes.has(name)),
+      toggleClass(name, on) {
+        list.forEach((element) => (on ? element.classes.add(name) : element.classes.delete(name)));
+
+        return api;
+      },
+      find: (selector) => wrap(list.flatMap((element) => element.children.filter((child) => matches(child, selector)))),
+      closest(selector) {
+        let element = first;
+
+        while (element && !matches(element, selector)) {
+          element = element.parent;
+        }
+
+        return wrap(element ? [element] : []);
+      },
+      css: () => api,
+      appendTo: () => api,
+      remove: () => api,
+      trigger: () => api
+    };
+
+    return api;
+  };
+
+  const jQuery = (selector) => {
+    if (typeof selector === 'function' || selector === undefined) {
+      return wrap([]);
+    }
+
+    if (typeof selector === 'object') {
+      return wrap([selector]);
+    }
+
+    if (selector.startsWith('<')) {
+      return wrap([node({})]);
+    }
+
+    return wrap(nodes.filter((element) => matches(element, selector)));
+  };
+
+  const find = (predicate) => nodes.find(predicate);
+
+  return {
+    jQuery,
+    nodes,
+
+    // The controls a test drives, named the way the markup names them
+    field: (setting, type) => find((n) => n.attrs['data-setting'] === setting && n.attrs.type === type),
+    group: (setting) => find((n) => n.classes.has('setting-choices') && n.attrs['data-setting'] === setting),
+    choice: (setting, value) =>
+      find((n) => n.classes.has('setting-choices') && n.attrs['data-setting'] === setting).children.find(
+        (child) => child.attrs['data-value'] === value
+      ),
+    backdrop: (name) => find((n) => n.classes.has('preview-backdrop') && n.attrs['data-backdrop'] === name),
+    stage: () => find((n) => n.attrs.id === 'preview-stage'),
+    button: (id) => find((n) => n.attrs.id === id),
+
+    // Run the handlers a control carries for one event
+    fire: (element, event) => (element.handlers[event] ?? []).forEach((handler) => handler.call(element, {}))
+  };
+}
 
 // Run config.js and the admin page's index.js
 // The page reaches the DOM from its 'ready' callback, which does not run here
-export async function loadAdminPage({ configSource, state = {} } = {}) {
+export async function loadAdminPage({ configSource, state = {}, stageWidth = 960 } = {}) {
   const config = configSource ?? (await readSource('penalties/config.js'));
   const index = await readSource('penalties/admin/index.js');
 
@@ -155,18 +398,39 @@ export async function loadAdminPage({ configSource, state = {} } = {}) {
 
   const WS = scoreboard(state);
   const consoleStub = { log: () => {}, error: () => {} };
+  const dom = adminPageDom(await readSource('penalties/admin/index.html'));
 
-  // jQuery is called with the 'ready' callback, which must not run here
-  const jQueryStub = () => ({ each: () => {}, on: () => ({}), attr: () => ({}) });
+  // The preview panel, which the page measures and scales the overlay into
+  const stage = { clientWidth: stageWidth };
+  const frame = { style: {}, contentDocument: null };
+  const document = {
+    getElementById: (id) => (id === 'preview-stage' ? stage : id === 'preview-overlay' ? frame : null)
+  };
 
-  const api = new Function('window', 'console', '$', 'WS', `${index}\nreturn { ${ADMIN_PAGE_INTERNALS.join(', ')} };`)(
+  // Timers the page sets, run only when a test asks for them
+  const timers = [];
+  const setTimeoutStub = (callback, delay) => timers.push({ callback, delay });
+
+  const api = new Function(
+    'window',
+    'document',
+    'console',
+    '$',
+    'WS',
+    'setTimeout',
+    'navigator',
+    `${index}\nreturn { ${ADMIN_PAGE_INTERNALS.join(', ')} };`
+  )(window, document, consoleStub, dom.jQuery, WS, setTimeoutStub, {});
+
+  return {
+    ...api,
     window,
-    consoleStub,
-    jQueryStub,
-    WS
-  );
-
-  return { ...api, window, WS };
+    WS,
+    dom,
+    frame,
+    timers,
+    runTimers: () => timers.splice(0).map((timer) => (timer.callback(), timer))
+  };
 }
 
 // Run config.js and index.js, and return their functions plus what they wrote
