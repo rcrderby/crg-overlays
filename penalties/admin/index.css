@@ -1,6 +1,6 @@
-/*******************************
-** Penalties Overlay Settings **
-*******************************/
+/*********************************
+** Penalties Overlay Admin Page **
+*********************************/
 
 :root {
   /* Colors, matching the overlay the page configures */
@@ -169,6 +169,21 @@ input[type='text'] {
   align-items: center;
   display: flex;
   gap: 6px;
+}
+
+.setting-check {
+  align-items: center;
+  color: var(--settings-fg-dim);
+  cursor: pointer;
+  display: flex;
+  gap: 7px;
+}
+
+.setting-check input {
+  accent-color: #c02334;
+  cursor: pointer;
+  height: 15px;
+  width: 15px;
 }
 
 .setting-number span {
