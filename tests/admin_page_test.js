@@ -120,3 +120,13 @@ Deno.test('an empty title reads as the configured title', async () => {
 
   assert.equal(page.settingValue('TitleText'), page.CONFIG.titleBannerText);
 });
+
+Deno.test('a setting with nothing behind it reads as blank', async () => {
+  const source = await readSource('penalties/config.js');
+  const configSource = source
+    .replace("titleBannerText: 'PENALTIES'", "titleBannerText: ''")
+    .replace("title: { default: 'PENALTIES' }", "title: { default: '' }");
+  const page = await loadAdminPage({ configSource });
+
+  assert.equal(page.settingValue('TitleText'), '');
+});

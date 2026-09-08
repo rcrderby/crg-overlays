@@ -52,7 +52,8 @@ function settingValue(name) {
     (candidate) => candidate !== undefined && candidate !== null && String(candidate).trim() !== ''
   );
 
-  return String(value).trim();
+  // Every candidate can be blank, which reads as no value rather than "undefined"
+  return value === undefined ? '' : String(value).trim();
 }
 
 // Show every control the value the overlay is showing
