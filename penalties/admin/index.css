@@ -70,12 +70,6 @@ body {
   margin-left: auto;
 }
 
-#settings-intro {
-  color: var(--settings-fg-dim);
-  margin-bottom: 26px;
-  max-width: 76ch;
-}
-
 /* The controls stay narrow, so the settings run down the page rather than across it */
 #settings-layout {
   display: grid;
@@ -652,10 +646,4 @@ input[type='text'] {
   top: 0;
   transform-origin: top left;
   width: 1920px;
-}
-
-#preview-note {
-  color: var(--settings-fg-dim);
-  font-size: 12px;
-  margin-top: 9px;
 }
