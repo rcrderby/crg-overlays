@@ -1,0 +1,206 @@
+<!-- Admin page for the Custom Penalty Display Overlay -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+  <title>Penalties Overlay Admin</title>
+  <meta charset="UTF-8">
+
+  <!-- Required CRG Javascript files -->
+  <script type="text/javascript" src="/external/jquery/jquery.js"></script>
+  <script type="text/javascript" src="/external/jquery-ui/jquery-ui.js"></script>
+
+  <!-- The overlay's bundled font faces, for the font samples -->
+  <link rel="stylesheet" href="../fonts.css">
+
+  <!-- The overlay's configuration file, for its defaults and allowed ranges -->
+  <script type="text/javascript" src="../config.js"></script>
+
+  <!-- This automatically loads index.js and index.css -->
+  <script type="text/javascript" src="/json/core.js"></script>
+</head>
+
+<body>
+
+  <div id="settings">
+    <div id="settings-header">
+      <h1>Penalties Overlay Admin</h1>
+      <div id="settings-actions">
+        <button id="copy-url" type="button">Copy Overlay URL</button>
+        <button id="reset-settings" type="button">Reset to Defaults</button>
+      </div>
+    </div>
+
+    <div id="settings-layout">
+      <div id="settings-controls">
+
+        <!-- Overlay Fit -->
+        <div class="setting-group">
+          <h2>Fit</h2>
+
+          <div class="setting-row">
+            <label for="scale-range">Scale</label>
+            <input id="scale-range" type="range" data-setting="Scale" data-preview="--overlay-scale"
+                   data-preview-ratio="true">
+            <div class="setting-number">
+              <input type="number" data-setting="Scale">
+              <span>%</span>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <label for="width-range">Width</label>
+            <input id="width-range" type="range" data-setting="Width"
+                   data-preview="--overlay-width-ratio" data-preview-ratio="true">
+            <div class="setting-number">
+              <input type="number" data-setting="Width">
+              <span>%</span>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <label>Scale From</label>
+            <div class="setting-choices" data-setting="Anchor">
+              <button class="setting-choice" type="button" data-value="top">Top</button>
+              <button class="setting-choice" type="button" data-value="center">Center</button>
+              <button class="setting-choice" type="button" data-value="bottom">Bottom</button>
+            </div>
+            <div></div>
+          </div>
+        </div>
+
+        <!-- Overlay appearance -->
+        <div class="setting-group">
+          <h2>Appearance</h2>
+
+          <div class="setting-row">
+            <label for="opacity-range">Background Opacity</label>
+            <input id="opacity-range" type="range" data-setting="Opacity"
+                   data-preview="--overlay-opacity" data-preview-unit="%">
+            <div class="setting-number">
+              <input type="number" data-setting="Opacity">
+              <span>%</span>
+            </div>
+          </div>
+
+          <div class="setting-row setting-row-wide">
+            <label>Font</label>
+            <div class="setting-cards setting-choices" data-setting="Font">
+              <button class="setting-card setting-choice" type="button" data-value="saira">
+                <span class="setting-card-name">Saira</span>
+                <span class="setting-card-display font-saira-display">PENALTIES</span>
+                <span class="setting-card-body font-saira-body"><b>04</b> Player Name</span>
+              </button>
+              <button class="setting-card setting-choice" type="button" data-value="league-gothic">
+                <span class="setting-card-name">League Gothic</span>
+                <span class="setting-card-display font-league-gothic-display">PENALTIES</span>
+                <span class="setting-card-body font-league-gothic-body"><b>04</b> Player Name</span>
+              </button>
+              <button class="setting-card setting-choice" type="button" data-value="anton">
+                <span class="setting-card-name">Anton</span>
+                <span class="setting-card-display font-anton-display">PENALTIES</span>
+                <span class="setting-card-body font-anton-body"><b>04</b> Player Name</span>
+              </button>
+              <button class="setting-card setting-choice" type="button" data-value="bricolage">
+                <span class="setting-card-name">Bricolage</span>
+                <span class="setting-card-display font-bricolage-display">PENALTIES</span>
+                <span class="setting-card-body font-bricolage-body"><b>04</b> Player Name</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="setting-row setting-row-wide">
+            <label>Background</label>
+            <div class="setting-tiles setting-choices" data-setting="BackgroundAnimation">
+              <button class="setting-tile setting-choice" type="button" data-value="trace">
+                <span class="setting-tile-name">Trace</span>
+                <span class="setting-stage setting-stage-trace"></span>
+              </button>
+              <button class="setting-tile setting-choice" type="button" data-value="organic">
+                <span class="setting-tile-name">Organic</span>
+                <span class="setting-stage setting-stage-organic">
+                  <i class="setting-pool setting-pool-primary"></i><i class="setting-pool setting-pool-secondary"></i>
+                </span>
+              </button>
+              <button class="setting-tile setting-choice" type="button" data-value="shine">
+                <span class="setting-tile-name">Shine</span>
+                <span class="setting-stage setting-stage-shine"></span>
+              </button>
+              <button class="setting-tile setting-choice" type="button" data-value="off">
+                <span class="setting-tile-name">Off</span>
+                <span class="setting-stage"><i class="setting-stage-none">None</i></span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Game information area -->
+        <div class="setting-group">
+          <h2>Game Information</h2>
+
+          <div class="setting-row setting-row-wide">
+            <label>Timeout Banner</label>
+            <div class="setting-tiles setting-choices" data-setting="TimeoutAnimation">
+              <button class="setting-tile setting-choice" type="button" data-value="glow">
+                <span class="setting-tile-name">Glow</span>
+                <span class="setting-stage"><i class="setting-banner setting-banner-glow">Timeout</i></span>
+              </button>
+              <button class="setting-tile setting-choice" type="button" data-value="pulse">
+                <span class="setting-tile-name">Pulse</span>
+                <span class="setting-stage"><i class="setting-banner setting-banner-pulse">Timeout</i></span>
+              </button>
+              <button class="setting-tile setting-choice" type="button" data-value="shine">
+                <span class="setting-tile-name">Shine</span>
+                <span class="setting-stage"><i class="setting-banner setting-banner-shine">Timeout</i></span>
+              </button>
+              <button class="setting-tile setting-choice" type="button" data-value="off">
+                <span class="setting-tile-name">Off</span>
+                <span class="setting-stage"><i class="setting-banner">Timeout</i></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <label>Penalties Key</label>
+            <div class="setting-choices setting-switch-row" data-setting="PenaltyCodeKey">
+              <button class="setting-switch setting-choice" type="button" data-value="true"
+                      aria-label="Show the penalties key"></button>
+              <span class="setting-switch-note">Visible when players have penalties</span>
+            </div>
+            <div></div>
+          </div>
+
+          <div class="setting-row">
+            <label for="title-text">Title Text</label>
+            <input id="title-text" type="text" maxlength="40" data-setting="TitleText">
+            <label class="setting-check">
+              <input type="checkbox" data-setting="TitleVisible" data-invert="true">
+              Hide
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overlay Preview -->
+      <div id="settings-preview">
+        <div id="preview-frame">
+          <div id="preview-bar">
+            <span id="preview-dot"></span>
+            <span id="preview-label">Live preview</span>
+
+            <!-- Overlay preview background for opacity testing -->
+            <span id="preview-backdrop-label">Background</span>
+            <div id="preview-backdrops">
+              <button class="preview-backdrop selected" type="button" data-backdrop="checker">Checker</button>
+              <button class="preview-backdrop" type="button" data-backdrop="light">Light</button>
+              <button class="preview-backdrop" type="button" data-backdrop="dark">Dark</button>
+            </div>
+          </div>
+          <div id="preview-stage" data-backdrop="checker">
+            <iframe id="preview-overlay" src="../" title="Overlay preview" scrolling="no"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

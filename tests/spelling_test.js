@@ -1,13 +1,12 @@
-// The overlay is written in U.S. English.
-// Super-Linter's natural language check reads Markdown only.
-// This test checks the remainder of the repository
+// The overlay is written in U.S. English
+// Super-Linter's natural language check reads Markdown, and this test reads the rest
 
 import assert from 'node:assert/strict';
 
 const SCANNED_EXTENSIONS = ['.js', '.mjs', '.css', '.html', '.md', '.yml', '.yaml', '.textlintrc'];
 
-// The trees this repository owns.  Everything else in a working copy is either
-// ignored, downloaded from CRG, or a font, image or logo.
+// The trees this repository owns
+// Everything else is ignored, downloaded from CRG, or a font, image or logo
 const SCANNED_PATHS = ['penalties/', '.github/', 'tests/', 'README.md'];
 const SKIPPED_DIRECTORIES = ['fonts', 'images', 'logos'];
 

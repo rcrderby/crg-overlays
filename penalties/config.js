@@ -43,40 +43,44 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Text displayed as the overlay title
     titleBannerText: 'PENALTIES',
 
+    // Show the overlay title
+    titleBannerVisible: true,
+
     // Background animation: `trace`, `organic`, `shine`, or `off`
-    // The `background` URL parameter overrides this value
     backgroundAnimation: 'trace',
 
     // Point the overlay scales from: `top`, `center`, or `bottom`
-    // The `anchor` URL parameter overrides this value
     overlayAnchor: 'top',
 
     // Font pairing: `saira`, `league-gothic`, `anton`, or `bricolage`
-    // The `font` URL parameter overrides this value
     overlayFont: 'saira',
 
     // Overlay background opacity percentage: 100 is solid, 0 is invisible
     // The `validation` section sets the allowed range
-    // The `opacity` URL parameter overrides this value
     overlayOpacity: 98,
 
     // Overlay scale percentage: 100 = full scale, 90 = 90% scale, etc.
     // The `validation` section sets the allowed range
-    // The `scale` URL parameter overrides this value
     overlayScale: 100,
 
     // Overlay width percentage of the video frame
     // The `validation` section sets the allowed range
-    // The `width` URL parameter overrides this value
     overlayWidth: 85,
 
     // Show a key of the active penalty codes below the rosters
-    // The `key` URL parameter overrides this value
     penaltyCodeKey: true,
 
     // Timeout banner animation: `glow`, `pulse`, `shine`, or `off`
-    // The `timeout` URL parameter overrides this value
     timeoutAnimation: 'glow'
+  },
+
+  /*********************
+   ** Setting Storage **
+   ********************/
+
+  storage: {
+    // Channel prefix CRG stores the overlay's settings under
+    settingChannelPrefix: 'ScoreBoard.Settings.Setting(Penalties.Overlay.'
   },
 
   /************************
@@ -111,6 +115,12 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
     // Timeout banner animation
     timeoutAnimation: { default: 'glow' },
+
+    // Title banner text
+    title: { default: 'PENALTIES' },
+
+    // Title banner visibility
+    titleVisible: { default: true },
 
     // Overlay width percentage of the video frame
     width: { min: 70, max: 100, default: 85 }
@@ -148,8 +158,14 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // CSS Selector for the visible penalty code key
     penaltyCodeKeyVisibleSelectorSuffix: 'visible',
 
+    // CSS Selector for the penalties title container
+    penaltiesTitleSelector: '#penalties-title',
+
     // CSS Selector for the penalties title H1 text
     penaltiesTitleH1Selector: '#penalties-title h1',
+
+    // CSS Selector for the visible penalties title
+    penaltiesTitleVisibleSelectorSuffix: 'visible',
 
     // CSS Variable for text shadows
     textShadow: 'var(--team-penalties-default-text-shadow)'

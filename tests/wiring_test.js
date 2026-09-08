@@ -1,5 +1,5 @@
-// index.html names functions and index.js names configuration keys as strings.
-// These checks identify when one or the other is renamed.
+// index.html names functions and index.js names configuration keys as strings
+// These checks identify when one or the other is renamed
 
 import assert from 'node:assert/strict';
 import { loadOverlay, readSource } from './support/overlay.js';
@@ -7,16 +7,14 @@ import { loadOverlay, readSource } from './support/overlay.js';
 const html = await readSource('penalties/index.html');
 const js = await readSource('penalties/index.js');
 
-// CRG supplies its own sb helpers  at runtime (e.g., sbToLongTime, etc.)
+// CRG supplies its own sb helpers at runtime (e.g., sbToLongTime, etc.)
 const isCrgHelper = (name) => name.startsWith('sb');
 
 // Functions index.js publishes for the bindings to call
 const defined = new Set([...js.matchAll(/window\.([A-Za-z0-9_]+)\s*=\s*function/g)].map((match) => match[1]));
 
-// Functions index.html asks CRG to call.
-// A binding clause ends with the function name.
-// This overlay names its functions in camelCase.
-// CRG paths are capitalized.
+// Functions index.html asks CRG to call
+// A binding clause ends with the function name, which is camelCase, while CRG paths are capitalized
 const referenced = new Set();
 for (const attribute of html.matchAll(/sb(?:display|class|attr|css)="([\s\S]*?)"/gi)) {
   for (const clause of attribute[1].split('|')) {
@@ -41,8 +39,8 @@ Deno.test('every configuration key index.js reads exists in config.js', async ()
   const { window } = await loadOverlay();
   const configuration = window.AppConfig.PenaltiesOverlayConfig;
 
-  // The constant index.js assigns each configuration section to.  `debug` has
-  // no constant, and index.js reads it straight from the configuration object
+  // The constant index.js assigns each configuration section to
+  // `debug` has no constant, and index.js reads it from the configuration object
   const { REQUIRED_SECTIONS } = await loadOverlay();
   const sections = Object.fromEntries(
     REQUIRED_SECTIONS.filter((section) => section !== 'debug').map((section) => [section.toUpperCase(), section])
@@ -76,7 +74,7 @@ Deno.test('config.js provides every section index.js requires', async () => {
   const { window } = await loadOverlay();
   const configuration = window.AppConfig.PenaltiesOverlayConfig;
   const required = js
-    .match(/const REQUIRED_SECTIONS = \[(.*?)\]/)[1]
+    .match(/const REQUIRED_SECTIONS = \[([\s\S]*?)\]/)[1]
     .match(/'([^']+)'/g)
     .map((name) => name.slice(1, -1));
 
@@ -103,8 +101,7 @@ Deno.test('the README documents every configuration key', async () => {
   const stale = [];
 
   for (const [name, section] of Object.entries(configuration)) {
-    // Each section has its own table, running until the next section heading
-    // or the end of the reference block, whichever comes first
+    // Each table runs to the next section heading, or the end of the reference block
     const start = readme.indexOf(`***${name}*** **Section**`);
     assert.notEqual(start, -1, `the README has no table for the ${name} section`);
     const ends = [readme.indexOf('*** **Section**', start + 20), readme.indexOf('</details>', start)].filter(
@@ -132,27 +129,22 @@ Deno.test('the README documents every configuration key', async () => {
   assert.deepEqual(stale, [], `README rows for keys config.js no longer has: ${stale.join(', ')}`);
 });
 
-// The settings table names each URL parameter once.  These checks identify any
-// parameter that no setting reads, or that the README no longer documents.
-Deno.test('every URL parameter the overlay accepts reaches a setting', async () => {
-  const { SETTINGS, ALLOWED_URL_PARAMS } = await loadOverlay();
+// Every setting is spread into a resolveSetting call, or passed to setAnimation
+// This check identifies a setting nothing reads
+Deno.test('every setting the overlay names is read', async () => {
+  const { SETTINGS } = await loadOverlay();
 
-  // The allowlist is derived, so it cannot disagree with the table
-  assert.deepEqual(
-    ALLOWED_URL_PARAMS,
-    Object.values(SETTINGS).map((setting) => setting.urlParam)
-  );
-
-  // Each entry is spread into a resolveSetting call, or passed to setAnimation
   const unused = Object.keys(SETTINGS).filter((name) => !js.includes(`SETTINGS.${name}`));
-  assert.deepEqual(unused, [], `the settings table names parameters nothing reads: ${unused.join(', ')}`);
+  assert.deepEqual(unused, [], `the settings table names settings nothing reads: ${unused.join(', ')}`);
 });
 
-Deno.test('the README documents every URL parameter', async () => {
-  const readme = await readSource('penalties/README.md');
-  const { ALLOWED_URL_PARAMS } = await loadOverlay();
+// Settings come from the admin page and config.js, and `debug` from a URL parameter
+// This check identifies another parameter finding its way in
+Deno.test('debug logging is the only setting the URL carries', async () => {
+  const reads = [...js.matchAll(/URLSearchParams\(window\.location\.search\)([\s\S]{0,60})/g)].map((match) => match[1]);
 
-  // Renaming a parameter invalidates the example URLs a streaming team copies
-  const undocumented = ALLOWED_URL_PARAMS.filter((name) => !new RegExp(`[?&]${name}=`).test(readme));
-  assert.deepEqual(undocumented, [], `URL parameters the README does not show: ${undocumented.join(', ')}`);
+  // One reads the debug parameter, and one lists the parameters to warn about
+  assert.equal(reads.length, 2, 'index.js reads the URL somewhere new');
+  assert.match(js, /const DEBUG_URL_PARAM = 'debug';/);
+  assert.equal(/[?&](scale|width|opacity|anchor|font|background|timeout|key)=/.test(html), false);
 });

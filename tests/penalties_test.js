@@ -162,8 +162,7 @@ Deno.test('"Unofficial Score" shows after the final period, until the score is o
   assert.equal(overtime.window.shouldHideUnofficialScore(), true);
 });
 
-// CRG passes an enriched String object rather than a primitive, and the overlay
-// also reads plain keys out of WS.state, so the reader has to accept both
+// CRG passes an enriched String object, and WS.state holds plain keys, so the reader takes both
 Deno.test('the skater reader accepts every key shape CRG produces', async () => {
   const { getSkaterContext } = await withSkater();
 

@@ -48,7 +48,17 @@ if (typeof PenaltiesOverlayConfig === 'undefined') {
 }
 
 // Validate required configuration structure
-const REQUIRED_SECTIONS = ['debug', 'config', 'validation', 'classes', 'labels', 'rules', 'penalties', 'timing'];
+const REQUIRED_SECTIONS = [
+  'debug',
+  'config',
+  'storage',
+  'validation',
+  'classes',
+  'labels',
+  'rules',
+  'penalties',
+  'timing'
+];
 
 const missingSections = REQUIRED_SECTIONS.filter((section) => !PenaltiesOverlayConfig[section]);
 
@@ -67,6 +77,7 @@ console.log('config.js loaded successfully.');
 
 // Configuration sections - available globally for all functions
 const CONFIG = PenaltiesOverlayConfig.config;
+const STORAGE = PenaltiesOverlayConfig.storage;
 const VALIDATION = PenaltiesOverlayConfig.validation;
 const CLASSES = PenaltiesOverlayConfig.classes;
 const LABELS = PenaltiesOverlayConfig.labels;
@@ -74,36 +85,64 @@ const RULES = PenaltiesOverlayConfig.rules;
 const PENALTIES = PenaltiesOverlayConfig.penalties;
 const TIMING = PenaltiesOverlayConfig.timing;
 
-// Every setting a URL parameter overrides, with the term its messages use.
-// Unapproved URL parameter log via DEBUG
+// Every setting, its scoreboard channel, and the term its messages use
+// `debug` has no channel; config.js and a URL parameter set it
 const SETTINGS = {
-  anchor: { urlParam: 'anchor', label: 'Overlay anchor' },
-  background: { urlParam: 'background', label: 'Background animation' },
-  debug: { urlParam: 'debug', label: 'Debug logging' },
-  font: { urlParam: 'font', label: 'Overlay font' },
-  key: { urlParam: 'key', label: 'Penalty code key' },
-  opacity: { urlParam: 'opacity', label: 'Overlay opacity' },
-  scale: { urlParam: 'scale', label: 'Overlay scale' },
-  timeout: { urlParam: 'timeout', label: 'Timeout animation' },
-  width: { urlParam: 'width', label: 'Overlay width' }
+  anchor: { setting: 'Anchor', label: 'Overlay anchor' },
+  background: { setting: 'BackgroundAnimation', label: 'Background animation' },
+  debug: { label: 'Debug logging' },
+  font: { setting: 'Font', label: 'Overlay font' },
+  key: { setting: 'PenaltyCodeKey', label: 'Penalty code key' },
+  opacity: { setting: 'Opacity', label: 'Overlay opacity' },
+  scale: { setting: 'Scale', label: 'Overlay scale' },
+  timeout: { setting: 'TimeoutAnimation', label: 'Timeout animation' },
+  title: { setting: 'TitleText', label: 'Title text' },
+  titleVisible: { setting: 'TitleVisible', label: 'Title visibility' },
+  width: { setting: 'Width', label: 'Overlay width' }
 };
 
-// The allowlist follows the settings, so a renamed parameter cannot drift out of it
-const ALLOWED_URL_PARAMS = Object.values(SETTINGS).map((setting) => setting.urlParam);
+// Channel prefix for the settings the admin page writes
+// Each setting holds a string, and an empty string reads as unset
+const SETTING_CHANNEL_PREFIX = STORAGE.settingChannelPrefix;
+
+// Scoreboard channel for settings storage
+function settingChannel(name) {
+  return `${SETTING_CHANNEL_PREFIX}${name})`;
+}
+
+// A setting's stored value, or 'undefined' when not set by the admin page
+function storedSetting(name) {
+  if (!name || typeof WS === 'undefined') {
+    return undefined;
+  }
+
+  const stored = WS.state[settingChannel(name)];
+
+  return typeof stored === 'string' && stored.trim() !== '' ? stored : undefined;
+}
 
 // Settings sources for validation messages
 const SETTING_SOURCES = {
   config: 'config.js',
   default: 'default',
+  settings: 'the admin page',
   url: 'URL parameter'
 };
+
+// The only setting the URL carries, for troubleshooting one browser source
+const DEBUG_URL_PARAM = 'debug';
+
+// The debug parameter's value, or 'null' when the URL does not carry it
+function getDebugParameter() {
+  return new URLSearchParams(window.location.search).get(DEBUG_URL_PARAM);
+}
 
 // Debugging setting, read before the settings that log through it
 const DEBUG = getDebugSetting();
 console.log('Debug mode:', DEBUG);
 
 // Overlay version to display as a watermark and log to the console
-const OVERLAY_VERSION = '4.0.0';
+const OVERLAY_VERSION = '4.1.0';
 
 // CRG WebSocket channels the overlay reads
 const CHANNELS = {
@@ -121,23 +160,6 @@ const CHANNELS = {
   team2Skaters: 'ScoreBoard.CurrentGame.Team(2).Skater'
 };
 
-/*****************************
- ** URL Parameter Functions **
- ****************************/
-
-// Parse and validate URL parameters
-function getUrlParameter(name) {
-  if (!ALLOWED_URL_PARAMS.includes(name)) {
-    if (DEBUG) {
-      console.warn(`Debug warning: attempted to retrieve unapproved URL parameter "${name}".`);
-    }
-    return null;
-  }
-
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get(name);
-}
-
 /**************************
  ** Setting Resolution   **
  *************************/
@@ -147,7 +169,7 @@ function asPercent(value) {
   return `${value}%`;
 }
 
-// URL parameters arrive as text, and some settings match without regard to case
+// Settings arrive as text, and some of them match without regard to case
 function lowercase(raw) {
   return raw.toLowerCase();
 }
@@ -182,7 +204,15 @@ function oneOf(choices) {
   };
 }
 
-// Accept a boolean, or the text a URL parameter supplies for one
+// Accept a boolean, or the text a stored setting supplies for one
+function isText(value) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    return { reason: 'must be text', display: `"${value}"` };
+  }
+
+  return { value: value.trim() };
+}
+
 function isBoolean(value) {
   if (typeof value === 'boolean') {
     return { value };
@@ -195,13 +225,28 @@ function isBoolean(value) {
   return { reason: 'must be true or false', display: `"${value}"` };
 }
 
-// Read a setting from its URL parameter, then config.js, then the validated default.
-// A validator returns the accepted value, or the reason the value cannot be used.
-function resolveSetting({ label, urlParam, configValue, fallback, validate, parse, describe = String }) {
-  const urlValue = getUrlParameter(urlParam);
-  const fromUrl = urlValue !== null;
-  const source = fromUrl ? SETTING_SOURCES.url : SETTING_SOURCES.config;
-  const value = fromUrl && parse ? parse(urlValue) : fromUrl ? urlValue : configValue;
+// Read a setting from the admin page, then config.js, then the validated default
+// A URL parameter, which only `debug` carries, outranks both
+// A validator returns the accepted value, or the reason it cannot be used
+function resolveSetting({
+  label,
+  setting,
+  urlValue = null,
+  configValue,
+  fallback,
+  validate,
+  parse,
+  describe = String
+}) {
+  const storedValue = urlValue === null ? storedSetting(setting) : undefined;
+  const raw = urlValue !== null ? urlValue : storedValue;
+  const source =
+    urlValue !== null
+      ? SETTING_SOURCES.url
+      : storedValue !== undefined
+        ? SETTING_SOURCES.settings
+        : SETTING_SOURCES.config;
+  const value = raw !== null && raw !== undefined ? (parse ? parse(raw) : raw) : configValue;
 
   if (typeof value === 'undefined' || value === null) {
     console.warn(`${label} not defined in ${source} - using default (${describe(fallback)}).`);
@@ -215,10 +260,10 @@ function resolveSetting({ label, urlParam, configValue, fallback, validate, pars
     return { value: result.value, source };
   }
 
-  // The label opens the sentence above, and names the setting inside this one
-  const setting = label.charAt(0).toLowerCase() + label.slice(1);
+  // The label opens the sentence above, and names the setting in this one
+  const described = label.charAt(0).toLowerCase() + label.slice(1);
   console.warn(
-    `Invalid ${setting} value ${result.display} in ${source} (${result.reason}) - using default (${describe(fallback)}).`
+    `Invalid ${described} value ${result.display} in ${source} (${result.reason}) - using default (${describe(fallback)}).`
   );
 
   return { value: fallback, source: SETTING_SOURCES.default };
@@ -228,6 +273,7 @@ function resolveSetting({ label, urlParam, configValue, fallback, validate, pars
 function getDebugSetting() {
   const { value } = resolveSetting({
     ...SETTINGS.debug,
+    urlValue: getDebugParameter(),
     configValue: PenaltiesOverlayConfig.debug?.enabled,
     fallback: VALIDATION.debug.default,
     parse: lowercase,
@@ -237,26 +283,14 @@ function getDebugSetting() {
   return value;
 }
 
-// Log URL parameters
-function logUrlParameters() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const params = {};
+// Warn that the overlay ignores every URL parameter except `debug`
+function warnAboutUrlParameters() {
+  const ignored = [...new URLSearchParams(window.location.search).keys()].filter((name) => name !== DEBUG_URL_PARAM);
 
-  for (const [k, v] of urlParams.entries()) {
-    params[k] = v;
-  }
-
-  if (Object.keys(params).length > 0) {
-    if (DEBUG) {
-      console.log(`URL parameters detected: ${JSON.stringify(params)}`);
-    }
-
-    // Warn about unrecognized parameters
-    for (const key of Object.keys(params)) {
-      if (!ALLOWED_URL_PARAMS.includes(key)) {
-        console.warn(`Ignoring unrecognized URL parameter "${key}".`);
-      }
-    }
+  if (ignored.length > 0) {
+    console.warn(
+      `Ignoring URL parameters (${ignored.join(', ')}) - the overlay reads its settings from the admin page and config.js.`
+    );
   }
 }
 
@@ -364,6 +398,40 @@ function setTimeoutAnimation() {
 // Penalty code key state
 let penaltyCodeKeyVisible = true;
 let penaltyCodeKeyPending = false;
+
+// Validate and set the overlay title text
+function setTitleBannerText() {
+  const { value, source } = resolveSetting({
+    ...SETTINGS.title,
+    configValue: CONFIG.titleBannerText,
+    fallback: VALIDATION.title.default,
+    validate: isText
+  });
+
+  $(CLASSES.penaltiesTitleH1Selector).text(value);
+
+  if (DEBUG) {
+    console.log(`Overlay title set to "${value}" (from ${source}).`);
+  }
+}
+
+// Validate and set the overlay title visibility
+function setTitleBannerVisible() {
+  const { value, source } = resolveSetting({
+    ...SETTINGS.titleVisible,
+    configValue: CONFIG.titleBannerVisible,
+    fallback: VALIDATION.titleVisible.default,
+    parse: lowercase,
+    describe: (visible) => (visible ? 'visible' : 'hidden'),
+    validate: isBoolean
+  });
+
+  $(CLASSES.penaltiesTitleSelector).toggleClass(CLASSES.penaltiesTitleVisibleSelectorSuffix, value);
+
+  if (DEBUG) {
+    console.log(`Overlay title ${value ? 'shown' : 'hidden'} (from ${source}).`);
+  }
+}
 
 // Validate and set the penalty code key visibility
 function setPenaltyCodeKey() {
@@ -822,8 +890,7 @@ function getPenaltyCodesInPlay() {
     }
   }
 
-  // Foul-outs and removals are status markers, not penalties with a description,
-  // and the unknown code says only that the penalty has not been identified
+  // Status markers and the unknown code have no description to show
   codes.delete(PENALTIES.fouloutCode);
   codes.delete(PENALTIES.removedCode);
   codes.delete(PENALTIES.unknownCode);
@@ -893,16 +960,14 @@ function fitPenaltyCodeKey() {
   items.style.removeProperty('--font-penalty-code-key-size');
   const available = items.clientWidth;
 
-  // Sum the codes rather than read scrollWidth, which misses content that
-  // overflows to the left of a centered row.  Use offsetWidth so the overlay's
-  // scale transform does not shrink the measurement and hide an overflow
+  // Sum the codes, because scrollWidth misses overflow left of a centered row
+  // `offsetWidth` ignores the overlay scale transform, which would hide an overflow
   const natural = [...items.children].reduce((total, code) => total + code.offsetWidth, 0);
   if (available === 0 || natural <= available) {
     return;
   }
 
-  // Every dimension in the key is proportional to this size, so the width
-  // shrinks linearly with it and a single measurement captures the size
+  // The key's dimensions are proportional to this size, so its width shrinks linearly
   const configuredSize = parseFloat(getComputedStyle(items.children[0]).fontSize);
   const fittedSize = Math.floor(configuredSize * (available / natural));
   items.style.setProperty('--font-penalty-code-key-size', `${fittedSize}px`);
@@ -910,6 +975,36 @@ function fitPenaltyCodeKey() {
   if (DEBUG) {
     console.log(`Penalty code key reduced from ${configuredSize}px to ${fittedSize}px to fit one line.`);
   }
+}
+
+// Apply all display settings
+function applyOverlaySettings() {
+  const keyWasVisible = penaltyCodeKeyVisible;
+
+  setOverlayScale();
+  setOverlayWidth();
+  setOverlayAnchor();
+  setOverlayOpacity();
+  setOverlayFont();
+  setBackgroundAnimation();
+  setTimeoutAnimation();
+  setPenaltyCodeKey();
+  setTitleBannerText();
+  setTitleBannerVisible();
+
+  // Rebuild keys from WebSocket data
+  if (penaltyCodeKeyVisible !== keyWasVisible) {
+    schedulePenaltyCodeKeyRebuild();
+  }
+}
+
+// Register admin page changes, so the overlay doesn't require a reload
+function registerOverlaySettings() {
+  const channels = Object.values(SETTINGS)
+    .filter((setting) => setting.setting)
+    .map((setting) => settingChannel(setting.setting));
+
+  WS.Register(channels, applyOverlaySettings);
 }
 
 // Rebuild once after a burst of WebSocket updates rather than on each one
@@ -923,10 +1018,6 @@ function schedulePenaltyCodeKeyRebuild() {
 
 // Register the WebSocket paths the penalty code key depends on
 function registerPenaltyCodeKey() {
-  if (!penaltyCodeKeyVisible) {
-    return;
-  }
-
   WS.Register([CHANNELS.penaltyCode, CHANNELS.team1Skaters, CHANNELS.team2Skaters], schedulePenaltyCodeKeyRebuild);
 }
 
@@ -1106,31 +1197,11 @@ $(function () {
     console.log('Initializing Penalties Overlay...');
   }
 
-  // Log URL parameters
-  logUrlParameters();
+  // Report any URL parameter the overlay ignores
+  warnAboutUrlParameters();
 
-  // Set the overlay scale percentage
-  setOverlayScale();
-
-  // Set the overlay width
-  setOverlayWidth();
-
-  // Set the point the overlay scales from
-  setOverlayAnchor();
-
-  // Set the overlay background opacity
-  setOverlayOpacity();
-
-  // Set the font pairing
-  setOverlayFont();
-
-  // Set the background animation
-  setBackgroundAnimation();
-
-  // Set the timeout banner animation
-  setTimeoutAnimation();
-  // Set the penalty code key visibility
-  setPenaltyCodeKey();
+  // Apply the overlay display settings
+  applyOverlaySettings();
 
   // Show the overlay version
   setOverlayVersion();
@@ -1140,9 +1211,6 @@ $(function () {
 
   // Set the loading overlay text
   $(CLASSES.loadingOverlayTextSelector).text(CONFIG.loadingOverlayText);
-
-  // Set the overlay title text
-  $(CLASSES.penaltiesTitleH1Selector).text(CONFIG.titleBannerText);
 
   // Attempt to load a custom logo
   loadCustomLogo();
@@ -1156,6 +1224,7 @@ $(function () {
       WS.Connect();
       WS.AutoRegister();
       registerPenaltyCodeKey();
+      registerOverlaySettings();
       console.log('WebSocket connected.');
 
       // Attempt to retry the WebSocket connection if it is not yet available
