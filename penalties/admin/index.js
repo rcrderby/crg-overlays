@@ -12,11 +12,23 @@ if (!PenaltiesOverlayConfig) {
   throw new Error('Configuration file (config.js) failed to load');
 }
 
+// Sections the admin page reads
+const REQUIRED_SECTIONS = ['config', 'storage', 'validation'];
+const missingSections = REQUIRED_SECTIONS.filter((section) => !PenaltiesOverlayConfig[section]);
+
+if (missingSections.length > 0) {
+  const errorMsg = `Configuration file (config.js) is missing required sections: ${missingSections.join(', ')}`;
+
+  console.error('ERROR:', errorMsg);
+  throw new Error(errorMsg);
+}
+
 const CONFIG = PenaltiesOverlayConfig.config;
+const STORAGE = PenaltiesOverlayConfig.storage;
 const VALIDATION = PenaltiesOverlayConfig.validation;
 
 // CRG stores every setting as a string under one prefix
-const SETTING_CHANNEL_PREFIX = 'ScoreBoard.Settings.Setting(Penalties.Overlay.';
+const SETTING_CHANNEL_PREFIX = STORAGE.settingChannelPrefix;
 
 // The scoreboard channel a setting is stored in
 function settingChannel(name) {

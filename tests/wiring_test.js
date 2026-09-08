@@ -74,7 +74,7 @@ Deno.test('config.js provides every section index.js requires', async () => {
   const { window } = await loadOverlay();
   const configuration = window.AppConfig.PenaltiesOverlayConfig;
   const required = js
-    .match(/const REQUIRED_SECTIONS = \[(.*?)\]/)[1]
+    .match(/const REQUIRED_SECTIONS = \[([\s\S]*?)\]/)[1]
     .match(/'([^']+)'/g)
     .map((name) => name.slice(1, -1));
 

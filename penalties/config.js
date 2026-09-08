@@ -74,6 +74,15 @@ window.AppConfig.PenaltiesOverlayConfig = {
     timeoutAnimation: 'glow'
   },
 
+  /*********************
+   ** Setting Storage **
+   ********************/
+
+  storage: {
+    // Channel prefix CRG stores the overlay's settings under
+    settingChannelPrefix: 'ScoreBoard.Settings.Setting(Penalties.Overlay.'
+  },
+
   /************************
    ** Setting Validation **
    ***********************/

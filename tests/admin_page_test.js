@@ -326,3 +326,14 @@ Deno.test('the copy button reports back, then restores its label', async () => {
   page.runTimers();
   assert.equal(button.label, 'Copy Overlay URL');
 });
+
+Deno.test('the channel prefix comes from the configuration file', async () => {
+  const page = await loadAdminPage();
+  const overlay = await loadOverlay();
+  const { settingChannelPrefix } = page.window.AppConfig.PenaltiesOverlayConfig.storage;
+
+  // Both pages build their channels from the one prefix config.js holds
+  assert.ok(page.settingChannel('Width').startsWith(settingChannelPrefix));
+  assert.equal(page.settingChannel('Width'), overlay.settingChannel('Width'));
+  assert.equal(js.includes("'ScoreBoard.Settings.Setting("), false, 'the page names the prefix itself');
+});

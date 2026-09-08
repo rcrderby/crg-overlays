@@ -236,6 +236,14 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
 
   ---
 
+  ***storage*** **Section**
+
+  | Setting | Description | Type | Default | Adjustable |
+  | - | - | - | - | - |
+  | `settingChannelPrefix` | Channel prefix CRG stores the overlay's settings under | string | `ScoreBoard.Settings.Setting(Penalties.Overlay.` | :x: |
+
+  ---
+
   ***validation*** **Section**
 
   Allowed values and defaults for the ***config*** settings.

@@ -48,7 +48,17 @@ if (typeof PenaltiesOverlayConfig === 'undefined') {
 }
 
 // Validate required configuration structure
-const REQUIRED_SECTIONS = ['debug', 'config', 'validation', 'classes', 'labels', 'rules', 'penalties', 'timing'];
+const REQUIRED_SECTIONS = [
+  'debug',
+  'config',
+  'storage',
+  'validation',
+  'classes',
+  'labels',
+  'rules',
+  'penalties',
+  'timing'
+];
 
 const missingSections = REQUIRED_SECTIONS.filter((section) => !PenaltiesOverlayConfig[section]);
 
@@ -67,6 +77,7 @@ console.log('config.js loaded successfully.');
 
 // Configuration sections - available globally for all functions
 const CONFIG = PenaltiesOverlayConfig.config;
+const STORAGE = PenaltiesOverlayConfig.storage;
 const VALIDATION = PenaltiesOverlayConfig.validation;
 const CLASSES = PenaltiesOverlayConfig.classes;
 const LABELS = PenaltiesOverlayConfig.labels;
@@ -92,7 +103,7 @@ const SETTINGS = {
 
 // Channel prefix for the settings the admin page writes
 // Each setting holds a string, and an empty string reads as unset
-const SETTING_CHANNEL_PREFIX = 'ScoreBoard.Settings.Setting(Penalties.Overlay.';
+const SETTING_CHANNEL_PREFIX = STORAGE.settingChannelPrefix;
 
 // Scoreboard channel for settings storage
 function settingChannel(name) {
