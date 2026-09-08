@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 const SCANNED_EXTENSIONS = ['.js', '.mjs', '.css', '.html', '.md', '.yml', '.yaml', '.textlintrc'];
 
 // The trees this repository owns.  Everything else in a working copy is either
-// ignored, downloaded from CRG, or a font, image or logo.
+// ignored, downloaded from CRG, or a font, image or logo
 const SCANNED_PATHS = ['penalties/', '.github/', 'tests/', 'README.md'];
 const SKIPPED_DIRECTORIES = ['fonts', 'images', 'logos'];
 
