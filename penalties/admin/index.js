@@ -1,6 +1,6 @@
-/*******************************************
- ** Penalties Overlay Settings Page Logic **
- ******************************************/
+/****************************************
+ ** Penalties Overlay Admin Page Logic **
+ ***************************************/
 
 // The overlay's configuration file, which holds the defaults and the allowed
 // ranges this page presents
@@ -16,8 +16,7 @@ if (!PenaltiesOverlayConfig) {
 const CONFIG = PenaltiesOverlayConfig.config;
 const VALIDATION = PenaltiesOverlayConfig.validation;
 
-// CRG stores every setting as a string under one prefix, and pushes changes to
-// each open overlay.  The overlay reads the same channels
+// CRG stores every setting as a string under one prefix
 const SETTING_CHANNEL_PREFIX = 'ScoreBoard.Settings.Setting(Penalties.Overlay.';
 
 // The scoreboard channel a setting is stored in
@@ -25,15 +24,12 @@ function settingChannel(name) {
   return `${SETTING_CHANNEL_PREFIX}${name})`;
 }
 
-// CRG covers a page with its own loading screen until a channel it registered
-// sends a value, and a setting the scoreboard does not hold sends nothing.  The
-// page registers a channel the scoreboard always has, so that screen clears and
-// CRG's own disconnection warning still works
+// CRG covers a page with its loading screen until a registered channel sends a value
+// Settings not known to the scoreboard sends no value, so the admin page registers a known channel
 const READY_CHANNEL = 'ScoreBoard.Version(release)';
 
-// Every setting the page writes, and where the overlay reads it in the
-// configuration file: `config` holds the value, `validation` the range and the
-// last resort default
+// Every setting the page writes, and where the overlay reads each from config.js
+// 'config' holds the value, and validation holds the allowed range and the last resort default
 const SETTINGS = {
   Anchor: { config: 'overlayAnchor', validation: 'anchor' },
   BackgroundAnimation: { config: 'backgroundAnimation', validation: 'backgroundAnimation' },
@@ -43,11 +39,11 @@ const SETTINGS = {
   Scale: { config: 'overlayScale', validation: 'scale' },
   TimeoutAnimation: { config: 'timeoutAnimation', validation: 'timeoutAnimation' },
   TitleText: { config: 'titleBannerText', validation: 'title' },
+  TitleVisible: { config: 'titleBannerVisible', validation: 'titleVisible' },
   Width: { config: 'overlayWidth', validation: 'width' }
 };
 
 // The functions that show a control its value, so the page can paint them
-// before the scoreboard has sent anything
 const painters = [];
 
 // The value the overlay is showing, which is the scoreboard setting, then the
@@ -132,7 +128,7 @@ function registerFields() {
     // The title text reaches the overlay as it is typed, while a slider waits
     // for the operator to let go
     field.on(field.attr('type') === 'text' ? 'input' : 'change', function () {
-      WS.Set(channel, String(field.val()));
+      WS.Set(channel, isTickBox(field) ? String(tickBoxValue(field)) : String(field.val()));
     });
 
     const paint = paintField(field, name);
@@ -145,13 +141,34 @@ function registerFields() {
   });
 }
 
-// Show the value the overlay is showing, unless the operator is typing in the
-// field at the time
+// Determine if the field is a tick box
+function isTickBox(field) {
+  return field.attr('type') === 'checkbox';
+}
+
+// Get tick box value
+function tickBoxValue(field) {
+  const ticked = field.prop('checked');
+
+  return field.data('invert') ? !ticked : ticked;
+}
+
+// Show the value the overlay is showing, unless the box is ticked
 function paintField(field, name) {
   return function () {
-    if (!field.is(':focus')) {
-      field.val(settingValue(name));
+    if (field.is(':focus')) {
+      return;
     }
+
+    if (isTickBox(field)) {
+      const on = settingValue(name) === 'true';
+
+      field.prop('checked', field.data('invert') ? !on : on);
+
+      return;
+    }
+
+    field.val(settingValue(name));
   };
 }
 
@@ -189,9 +206,7 @@ function previewDocument() {
  ** Preview Backdrop **
  *********************/
 
-// The overlay is see-through, so a change in background opacity is invisible
-// against the panel's own dark background.  This belongs to whoever is looking
-// at the page, not to the overlay, so it never reaches the scoreboard
+// Preview backdrop options
 function registerBackdrops() {
   const stage = $('#preview-stage');
   const buttons = $('.preview-backdrop');
@@ -212,7 +227,7 @@ function registerBackdrops() {
  ** Preview Scaling **
  ********************/
 
-// The overlay renders at 1920x1080, then scales to whatever room the panel has
+// The overlay renders at 1920x1080, then scales to fill available space
 function scalePreview() {
   const stage = document.getElementById('preview-stage');
   const frame = document.getElementById('preview-overlay');
@@ -228,8 +243,7 @@ function scalePreview() {
  ** Page Actions **
  *****************/
 
-// The URL a streaming team points a browser source at, with no parameters, so
-// nothing pins the source against the settings on this page
+// The URL a streaming team points a browser source at
 function overlayUrl() {
   return new URL('../', window.location.href).href.replace(/\/$/, '');
 }
@@ -257,8 +271,7 @@ function registerActions() {
   });
 }
 
-// CRG serves plain HTTP, where the clipboard API is unavailable, so fall back
-// to a selection the operator can copy by hand
+// When the clipboard API is unavailable fall back to a selection available for manual copy
 function copyText(text) {
   if (navigator.clipboard && window.isSecureContext) {
     return navigator.clipboard.writeText(text).then(
@@ -288,8 +301,7 @@ $(function () {
   registerBackdrops();
   registerActions();
 
-  // CRG sends nothing for a setting the scoreboard does not hold, so the
-  // controls start on the values the overlay is showing
+  // Controls start on the values the overlay is showing
   paintControls();
 
   scalePreview();

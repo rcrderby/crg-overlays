@@ -2,24 +2,28 @@
 
 import assert from 'node:assert/strict';
 import { loadOverlay, readSource } from './support/overlay.js';
+import { overlaySetting } from './support/channels.js';
 
 const overlay = await loadOverlay();
 const allowed = overlay.VALIDATION;
 
+// One stored setting, as the scoreboard holds it
+const stored = (name, value) => ({ [overlaySetting(name)]: String(value) });
+
 // Each numeric setting, with the CSS property it writes and how it converts
 const NUMERIC_SETTINGS = [
-  { name: 'scale', method: 'setOverlayScale', parameter: 'scale', property: '--overlay-scale', toCss: (v) => v / 100 },
+  { name: 'scale', method: 'setOverlayScale', setting: 'Scale', property: '--overlay-scale', toCss: (v) => v / 100 },
   {
     name: 'width',
     method: 'setOverlayWidth',
-    parameter: 'width',
+    setting: 'Width',
     property: '--overlay-width-ratio',
     toCss: (v) => v / 100
   },
   {
     name: 'opacity',
     method: 'setOverlayOpacity',
-    parameter: 'opacity',
+    setting: 'Opacity',
     property: '--overlay-opacity',
     toCss: (v) => `${v}%`
   }
@@ -40,9 +44,7 @@ for (const setting of NUMERIC_SETTINGS) {
         [setting.method]: apply,
         properties,
         warnings
-      } = await loadOverlay({
-        search: `?${setting.parameter}=${value}`
-      });
+      } = await loadOverlay({ state: stored(setting.setting, value) });
       apply();
       assert.equal(properties[setting.property], String(setting.toCss(value)));
       assert.deepEqual(warnings, []);
@@ -55,9 +57,7 @@ for (const setting of NUMERIC_SETTINGS) {
         [setting.method]: apply,
         properties,
         warnings
-      } = await loadOverlay({
-        search: `?${setting.parameter}=${value}`
-      });
+      } = await loadOverlay({ state: stored(setting.setting, value) });
       apply();
       assert.equal(properties[setting.property], String(setting.toCss(fallback)));
       assert.match(warnings.join(' '), new RegExp(`range ${min}-${max}`));
@@ -69,21 +69,12 @@ for (const setting of NUMERIC_SETTINGS) {
       [setting.method]: apply,
       properties,
       warnings
-    } = await loadOverlay({
-      search: `?${setting.parameter}=wide`
-    });
+    } = await loadOverlay({ state: stored(setting.setting, 'wide') });
     apply();
     assert.equal(properties[setting.property], String(setting.toCss(fallback)));
     assert.match(warnings.join(' '), /must be numeric/);
   });
 }
-
-Deno.test('a URL parameter overrides config.js', async () => {
-  const { setOverlayWidth, properties, warnings } = await loadOverlay({ search: '?width=90' });
-  setOverlayWidth();
-  assert.equal(properties['--overlay-width-ratio'], '0.9');
-  assert.deepEqual(warnings, []);
-});
 
 Deno.test('an invalid config.js value names config.js as the source', async () => {
   const configSource = (await readSource('penalties/config.js')).replace('overlayWidth: 85', 'overlayWidth: 999');
@@ -92,15 +83,9 @@ Deno.test('an invalid config.js value names config.js as the source', async () =
   assert.match(warnings.join(' '), /in config\.js/);
 });
 
-Deno.test('an invalid URL parameter names the URL as the source', async () => {
-  const { setOverlayWidth, warnings } = await loadOverlay({ search: '?width=999' });
-  setOverlayWidth();
-  assert.match(warnings.join(' '), /in URL parameter/);
-});
-
 Deno.test('the anchor and font settings fall back to their defaults', async () => {
   const { setOverlayAnchor, setOverlayFont, properties, warnings } = await loadOverlay({
-    search: '?anchor=sideways&font=comic'
+    state: { ...stored('Anchor', 'sideways'), ...stored('Font', 'comic') }
   });
   setOverlayAnchor();
   setOverlayFont();
@@ -115,11 +100,11 @@ Deno.test('editing a limit in config.js moves the range and the default together
     'width: { min: 60, max: 100, default: 80 }'
   );
 
-  const accepted = await loadOverlay({ configSource, search: '?width=65' });
+  const accepted = await loadOverlay({ configSource, state: stored('Width', 65) });
   accepted.setOverlayWidth();
   assert.equal(accepted.properties['--overlay-width-ratio'], '0.65');
 
-  const rejected = await loadOverlay({ configSource, search: '?width=59' });
+  const rejected = await loadOverlay({ configSource, state: stored('Width', 59) });
   rejected.setOverlayWidth();
   assert.equal(rejected.properties['--overlay-width-ratio'], '0.8');
   assert.match(rejected.warnings.join(' '), /range 60-100/);
@@ -146,15 +131,30 @@ Deno.test('the debug URL parameter turns logging on and off', async () => {
 
 Deno.test('the debug URL parameter overrides config.js', async () => {
   const configSource = (await readSource('penalties/config.js')).replace('enabled: false', 'enabled: true');
-  const off = await loadOverlay({ configSource, search: '?debug=false' });
-  assert.equal(off.DEBUG, false);
+  const { DEBUG } = await loadOverlay({ configSource, search: '?debug=false' });
 
-  const on = await loadOverlay({ configSource });
-  assert.equal(on.DEBUG, true);
+  assert.equal(DEBUG, false);
+});
+
+Deno.test('an invalid debug parameter names the URL as the source', async () => {
+  const { DEBUG, warnings } = await loadOverlay({ search: '?debug=verbose' });
+
+  assert.equal(DEBUG, false);
+  assert.match(warnings.join(' '), /in URL parameter \(must be true or false\)/);
+});
+
+Deno.test('config.js turns debug logging on', async () => {
+  const configSource = (await readSource('penalties/config.js')).replace('enabled: false', 'enabled: true');
+  const { DEBUG, warnings } = await loadOverlay({ configSource });
+
+  assert.equal(DEBUG, true);
+  assert.deepEqual(warnings, []);
 });
 
 Deno.test('an invalid debug value falls back to the configured default', async () => {
-  const { DEBUG, warnings } = await loadOverlay({ search: '?debug=verbose' });
+  const configSource = (await readSource('penalties/config.js')).replace('enabled: false', "enabled: 'verbose'");
+  const { DEBUG, warnings } = await loadOverlay({ configSource });
+
   assert.equal(DEBUG, false);
   assert.match(warnings.join(' '), /must be true or false/);
 });
@@ -172,14 +172,14 @@ const ANIMATIONS = [
     name: 'background',
     setting: 'backgroundAnimation',
     method: 'setBackgroundAnimation',
-    parameter: 'background',
+    channel: 'BackgroundAnimation',
     classes: { trace: 'background-trace', organic: 'background-organic', shine: 'background-shine', off: '' }
   },
   {
     name: 'timeout',
     setting: 'timeoutAnimation',
     method: 'setTimeoutAnimation',
-    parameter: 'timeout',
+    channel: 'TimeoutAnimation',
     classes: { glow: 'timeout-glow', pulse: 'timeout-pulse', shine: 'timeout-shine', off: '' }
   }
 ];
@@ -187,7 +187,7 @@ const ANIMATIONS = [
 for (const animation of ANIMATIONS) {
   Deno.test(`each ${animation.name} animation applies its own class`, async () => {
     for (const [option, className] of Object.entries(animation.classes)) {
-      const overlay = await loadOverlay({ search: `?${animation.parameter}=${option}` });
+      const overlay = await loadOverlay({ state: stored(animation.channel, option) });
       overlay[animation.method]();
 
       const applied = [...overlay.overlayClasses];
@@ -197,7 +197,7 @@ for (const animation of ANIMATIONS) {
   });
 
   Deno.test(`an invalid ${animation.name} animation falls back to the default`, async () => {
-    const overlay = await loadOverlay({ search: `?${animation.parameter}=sparkle` });
+    const overlay = await loadOverlay({ state: stored(animation.channel, 'sparkle') });
     overlay[animation.method]();
 
     const fallback = animation.classes[allowed[animation.setting].default];
@@ -207,7 +207,9 @@ for (const animation of ANIMATIONS) {
 }
 
 Deno.test('the background and timeout animations do not disturb each other', async () => {
-  const overlay = await loadOverlay({ search: '?background=organic&timeout=pulse' });
+  const overlay = await loadOverlay({
+    state: { ...stored('BackgroundAnimation', 'organic'), ...stored('TimeoutAnimation', 'pulse') }
+  });
   overlay.setBackgroundAnimation();
   overlay.setTimeoutAnimation();
 
@@ -215,13 +217,13 @@ Deno.test('the background and timeout animations do not disturb each other', asy
 });
 
 Deno.test('the penalty code key accepts true and false, and rejects anything else', async () => {
-  for (const search of ['?key=true', '?key=false', '']) {
-    const overlay = await loadOverlay({ search });
+  for (const value of ['true', 'false', '']) {
+    const overlay = await loadOverlay({ state: stored('PenaltyCodeKey', value) });
     overlay.setPenaltyCodeKey();
-    assert.deepEqual(overlay.warnings, [], `${search || '(default)'} should be accepted`);
+    assert.deepEqual(overlay.warnings, [], `"${value}" should be accepted`);
   }
 
-  const invalid = await loadOverlay({ search: '?key=sometimes' });
+  const invalid = await loadOverlay({ state: stored('PenaltyCodeKey', 'sometimes') });
   invalid.setPenaltyCodeKey();
   assert.match(invalid.warnings.join(' '), /must be true or false/);
 });
@@ -231,58 +233,68 @@ Deno.test('the overlay stamps its version on the page', async () => {
   assert.doesNotThrow(() => setOverlayVersion());
 });
 
-// The admin page writes to the scoreboard, which the overlay reads.  A URL
-// parameter pins one browser source, so it has to outrank what the page stores
-const SETTING = (name) => `ScoreBoard.Settings.Setting(Penalties.Overlay.${name})`;
-
-Deno.test('a stored setting is used when no URL parameter pins the source', async () => {
-  const { setOverlayWidth, properties, warnings } = await loadOverlay({
-    state: { [SETTING('Width')]: '92' }
-  });
+// The admin page writes to the scoreboard, which the overlay reads
+Deno.test('a stored setting outranks config.js', async () => {
+  const { setOverlayWidth, properties, warnings } = await loadOverlay({ state: stored('Width', 92) });
   setOverlayWidth();
 
   assert.equal(properties['--overlay-width-ratio'], '0.92');
   assert.deepEqual(warnings, []);
 });
 
-Deno.test('a URL parameter outranks the settings page', async () => {
+Deno.test('the overlay takes no settings from the URL', async () => {
   const { setOverlayWidth, properties } = await loadOverlay({
     search: '?width=75',
-    state: { [SETTING('Width')]: '92' }
+    state: stored('Width', 92)
   });
   setOverlayWidth();
 
-  assert.equal(properties['--overlay-width-ratio'], '0.75');
+  assert.equal(properties['--overlay-width-ratio'], '0.92');
+});
+
+Deno.test('an upgraded browser source is told where its settings live now', async () => {
+  const carried = await loadOverlay({ search: '?scale=90&anchor=bottom' });
+  carried.warnAboutUrlParameters();
+  assert.match(carried.warnings.join(' '), /Ignoring URL parameters \(scale, anchor\)/);
+
+  const clean = await loadOverlay();
+  clean.warnAboutUrlParameters();
+  assert.deepEqual(clean.warnings, []);
+});
+
+Deno.test('the debug parameter is not reported as ignored', async () => {
+  const overlay = await loadOverlay({ search: '?debug=true' });
+  overlay.warnAboutUrlParameters();
+
+  assert.deepEqual(overlay.warnings, []);
 });
 
 Deno.test('an unset setting falls back to config.js', async () => {
-  for (const stored of ['', '   ']) {
-    const { setOverlayWidth, properties } = await loadOverlay({ state: { [SETTING('Width')]: stored } });
+  for (const value of ['', '   ']) {
+    const { setOverlayWidth, properties } = await loadOverlay({ state: stored('Width', value) });
     setOverlayWidth();
-    assert.equal(properties['--overlay-width-ratio'], '0.85', `"${stored}" should read as unset`);
+    assert.equal(properties['--overlay-width-ratio'], '0.85', `"${value}" should read as unset`);
   }
 });
 
-Deno.test('an invalid stored setting names the settings page in the warning', async () => {
-  const { setOverlayWidth, properties, warnings } = await loadOverlay({
-    state: { [SETTING('Width')]: '140' }
-  });
+Deno.test('an invalid stored setting names the admin page in the warning', async () => {
+  const { setOverlayWidth, properties, warnings } = await loadOverlay({ state: stored('Width', 140) });
   setOverlayWidth();
 
   assert.equal(properties['--overlay-width-ratio'], '0.85');
-  assert.match(warnings.join(' '), /in the settings page \(must be in range 70-100\)/);
+  assert.match(warnings.join(' '), /in the admin page \(must be in range 70-100\)/);
 });
 
 Deno.test('every kind of setting reads from the scoreboard', async () => {
   const overlay = await loadOverlay({
     state: {
-      [SETTING('Scale')]: '90',
-      [SETTING('Opacity')]: '60',
-      [SETTING('Anchor')]: 'bottom',
-      [SETTING('Font')]: 'anton',
-      [SETTING('BackgroundAnimation')]: 'organic',
-      [SETTING('TimeoutAnimation')]: 'pulse',
-      [SETTING('TitleText')]: 'PENALTY BOX'
+      ...stored('Scale', 90),
+      ...stored('Opacity', 60),
+      ...stored('Anchor', 'bottom'),
+      ...stored('Font', 'anton'),
+      ...stored('BackgroundAnimation', 'organic'),
+      ...stored('TimeoutAnimation', 'pulse'),
+      ...stored('TitleText', 'PENALTY BOX')
     }
   });
   overlay.applyOverlaySettings();
@@ -295,16 +307,49 @@ Deno.test('every kind of setting reads from the scoreboard', async () => {
   assert.deepEqual(overlay.warnings, []);
 });
 
-Deno.test('the title comes from the settings page, then config.js', async () => {
+Deno.test('the title comes from the admin page, then config.js', async () => {
   const titleSelector = (await loadOverlay()).CLASSES.penaltiesTitleH1Selector;
 
-  const stored = await loadOverlay({ state: { [SETTING('TitleText')]: 'PENALTY BOX' } });
-  stored.setTitleBannerText();
-  assert.equal(stored.text[titleSelector], 'PENALTY BOX');
+  const set = await loadOverlay({ state: stored('TitleText', 'PENALTY BOX') });
+  set.setTitleBannerText();
+  assert.equal(set.text[titleSelector], 'PENALTY BOX');
 
   const unset = await loadOverlay();
   unset.setTitleBannerText();
   assert.equal(unset.text[titleSelector], 'PENALTIES');
+});
+
+Deno.test('the title is visible unless a setting hides it', async () => {
+  const { CLASSES } = overlay;
+  const shown = await loadOverlay();
+  shown.setTitleBannerVisible();
+  assert.equal(shown.hasClass(CLASSES.penaltiesTitleSelector, 'visible'), true);
+
+  const hidden = await loadOverlay({ state: stored('TitleVisible', 'false') });
+  hidden.setTitleBannerVisible();
+  assert.equal(hidden.hasClass(CLASSES.penaltiesTitleSelector, 'visible'), false);
+  assert.deepEqual(hidden.warnings, []);
+});
+
+Deno.test('hiding the title leaves its text alone', async () => {
+  const { CLASSES } = overlay;
+  const hidden = await loadOverlay({
+    state: { ...stored('TitleVisible', 'false'), ...stored('TitleText', 'PENALTY BOX') }
+  });
+  hidden.setTitleBannerText();
+  hidden.setTitleBannerVisible();
+
+  assert.equal(hidden.text[CLASSES.penaltiesTitleH1Selector], 'PENALTY BOX');
+  assert.equal(hidden.hasClass(CLASSES.penaltiesTitleSelector, 'visible'), false);
+});
+
+Deno.test('an invalid title visibility falls back to showing the title', async () => {
+  const { CLASSES } = overlay;
+  const invalid = await loadOverlay({ state: stored('TitleVisible', 'maybe') });
+  invalid.setTitleBannerVisible();
+
+  assert.equal(invalid.hasClass(CLASSES.penaltiesTitleSelector, 'visible'), true);
+  assert.match(invalid.warnings.join(' '), /must be true or false/);
 });
 
 Deno.test('the overlay follows every setting the page can write', async () => {
@@ -317,5 +362,5 @@ Deno.test('the overlay follows every setting the page can write', async () => {
     .map((setting) => overlay.settingChannel(setting.setting));
 
   assert.deepEqual(registered, expected);
-  assert.equal(registered.length, 9, 'nine settings belong to the settings page');
+  assert.equal(registered.length, 10, 'ten settings belong to the admin page');
 });
