@@ -1,6 +1,6 @@
 // CRG WebSocket channels and the skater the tests build state around.
 // index.js names these channels independently, so a typo on either side
-// fails a test rather than agreeing with itself.
+// fails a test rather than agreeing with itself
 
 // Game state
 export const CURRENT_PERIOD = 'ScoreBoard.CurrentGame.CurrentPeriodNumber';
@@ -27,3 +27,6 @@ export const TEAM_2_SKATERS = 'ScoreBoard.CurrentGame.Team(2).Skater';
 
 // Where CRG publishes the description of one penalty code
 export const penaltyCode = (code) => `${PENALTY_CODE}(${code})`;
+
+// Where the admin page stores an overlay setting
+export const overlaySetting = (name) => `ScoreBoard.Settings.Setting(Penalties.Overlay.${name})`;
