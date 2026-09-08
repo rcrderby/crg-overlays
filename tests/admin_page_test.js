@@ -1,8 +1,9 @@
-// The settings page names each setting as a string, in its markup and in its
-// own script.  These checks identify when the overlay and the page disagree.
+// The admin page names each setting as a string, in its markup and in its own
+// script.  These checks identify when the overlay and the page disagree
 
 import assert from 'node:assert/strict';
-import { loadOverlay, loadSettingsPage, readSource } from './support/overlay.js';
+import { loadOverlay, loadAdminPage, readSource } from './support/overlay.js';
+import { overlaySetting } from './support/channels.js';
 
 const html = await readSource('penalties/admin/index.html');
 const js = await readSource('penalties/admin/index.js');
@@ -14,7 +15,7 @@ const known = [...table.matchAll(/([A-Za-z]+): \{ config: '([A-Za-z]+)', validat
 // The settings the page's controls write
 const written = [...new Set([...html.matchAll(/data-setting="([A-Za-z]+)"/g)].map((match) => match[1]))];
 
-Deno.test('the settings page writes every setting the overlay reads', async () => {
+Deno.test('the admin page writes every setting the overlay reads', async () => {
   const { SETTINGS } = await loadOverlay();
   const read = Object.values(SETTINGS)
     .filter((setting) => setting.setting)
@@ -24,7 +25,7 @@ Deno.test('the settings page writes every setting the overlay reads', async () =
   assert.deepEqual(written.sort(), read.sort(), 'every setting has a control');
 });
 
-Deno.test('the settings page reads its defaults and ranges from the configuration file', async () => {
+Deno.test('the admin page reads its defaults and ranges from the configuration file', async () => {
   const { window } = await loadOverlay();
   const { config, validation } = window.AppConfig.PenaltiesOverlayConfig;
 
@@ -37,7 +38,7 @@ Deno.test('the settings page reads its defaults and ranges from the configuratio
   assert.equal(/<input[^>]*type="(?:range|number)"[^>]*\b(?:min|max)=/.test(html), false);
 });
 
-Deno.test('the settings page loads what CRG needs before CRG loads itself', () => {
+Deno.test('the admin page loads what CRG needs before CRG loads itself', () => {
   const scripts = [...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map((match) => match[1]);
 
   // core.js loads the file upload plugin and jQuery UI at the same time, and
@@ -49,13 +50,13 @@ Deno.test('the settings page loads what CRG needs before CRG loads itself', () =
 });
 
 Deno.test('a control shows the setting the scoreboard holds', async () => {
-  const page = await loadSettingsPage({ state: { 'ScoreBoard.Settings.Setting(Penalties.Overlay.Width)': '92' } });
+  const page = await loadAdminPage({ state: { 'ScoreBoard.Settings.Setting(Penalties.Overlay.Width)': '92' } });
 
   assert.equal(page.settingValue('Width'), '92');
 });
 
 Deno.test('a control shows the configured value when the scoreboard holds nothing', async () => {
-  const page = await loadSettingsPage({ state: { 'ScoreBoard.Settings.Setting(Penalties.Overlay.Width)': '  ' } });
+  const page = await loadAdminPage({ state: { 'ScoreBoard.Settings.Setting(Penalties.Overlay.Width)': '  ' } });
 
   assert.equal(page.settingValue('Width'), String(page.CONFIG.overlayWidth));
   assert.equal(page.settingValue('TitleText'), page.CONFIG.titleBannerText);
@@ -65,13 +66,13 @@ Deno.test('a control shows the configured value when the scoreboard holds nothin
 Deno.test('a control falls back to the default when the configured value is blank', async () => {
   const source = await readSource('penalties/config.js');
   const configSource = source.replace("titleBannerText: 'PENALTIES'", "titleBannerText: ''");
-  const page = await loadSettingsPage({ configSource });
+  const page = await loadAdminPage({ configSource });
 
   assert.equal(page.settingValue('TitleText'), page.VALIDATION.title.default);
 });
 
-Deno.test('the settings page and the overlay name the same channels', async () => {
-  const page = await loadSettingsPage();
+Deno.test('the admin page and the overlay name the same channels', async () => {
+  const page = await loadAdminPage();
   const overlay = await loadOverlay();
 
   for (const name of Object.keys(page.SETTINGS)) {
@@ -79,8 +80,8 @@ Deno.test('the settings page and the overlay name the same channels', async () =
   }
 });
 
-Deno.test('the settings page registers a channel the scoreboard always holds', async () => {
-  const page = await loadSettingsPage();
+Deno.test('the admin page registers a channel the scoreboard always holds', async () => {
+  const page = await loadAdminPage();
 
   // CRG hides the page behind its loading screen until a registered channel
   // reports a value, and an unset setting reports nothing
@@ -102,4 +103,22 @@ Deno.test('every preview backdrop the page offers is styled', async () => {
   for (const backdrop of offered) {
     assert.match(css, new RegExp(`#preview-stage\\[data-backdrop='${backdrop}'\\]`));
   }
+});
+
+Deno.test('the title has a tick box that hides it', async () => {
+  const page = await loadAdminPage();
+
+  // The box is ticked to hide the title, so it stores the opposite
+  assert.match(html, /<input type="checkbox" data-setting="TitleVisible" data-invert="true">/);
+  assert.equal(page.SETTINGS.TitleVisible.config, 'titleBannerVisible');
+
+  // The text and the box are independent, so neither one writes the other
+  assert.equal(page.settingValue('TitleVisible'), 'true');
+  assert.equal(page.settingValue('TitleText'), 'PENALTIES');
+});
+
+Deno.test('an empty title reads as the configured title', async () => {
+  const page = await loadAdminPage({ state: { [overlaySetting('TitleText')]: '' } });
+
+  assert.equal(page.settingValue('TitleText'), page.CONFIG.titleBannerText);
 });
