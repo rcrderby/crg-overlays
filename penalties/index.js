@@ -54,6 +54,7 @@ const REQUIRED_SECTIONS = [
   'storage',
   'validation',
   'classes',
+  'toggles',
   'labels',
   'rules',
   'penalties',
@@ -64,6 +65,18 @@ const missingSections = REQUIRED_SECTIONS.filter((section) => !PenaltiesOverlayC
 
 if (missingSections.length > 0) {
   const errorMsg = `Configuration file (config.js) is missing required sections: ${missingSections.join(', ')}`;
+  console.error('ERROR:', errorMsg);
+  showConfigError(`Configuration error: ${errorMsg}. Check the browser console for details.`);
+  throw new Error(errorMsg);
+}
+
+// A toggle names the container it marks and the class it adds
+const incompleteToggles = Object.entries(PenaltiesOverlayConfig.toggles)
+  .filter(([, toggle]) => !toggle || !toggle.selector || !toggle.class)
+  .map(([name]) => name);
+
+if (incompleteToggles.length > 0) {
+  const errorMsg = `Configuration file (config.js) has toggles missing a selector or class: ${incompleteToggles.join(', ')}`;
   console.error('ERROR:', errorMsg);
   showConfigError(`Configuration error: ${errorMsg}. Check the browser console for details.`);
   throw new Error(errorMsg);
@@ -80,6 +93,7 @@ const CONFIG = PenaltiesOverlayConfig.config;
 const STORAGE = PenaltiesOverlayConfig.storage;
 const VALIDATION = PenaltiesOverlayConfig.validation;
 const CLASSES = PenaltiesOverlayConfig.classes;
+const TOGGLES = PenaltiesOverlayConfig.toggles;
 const LABELS = PenaltiesOverlayConfig.labels;
 const RULES = PenaltiesOverlayConfig.rules;
 const PENALTIES = PenaltiesOverlayConfig.penalties;
@@ -400,6 +414,10 @@ function setTimeoutAnimation() {
 let penaltyCodeKeyVisible = true;
 let penaltyCodeKeyPending = false;
 
+// What the teams row currently holds, which decides whether it keeps its space
+let teamLogosVisible = true;
+let titleBannerVisible = true;
+
 // Validate and set the overlay title text
 function setTitleBannerText() {
   const { value, source } = resolveSetting({
@@ -427,7 +445,8 @@ function setTitleBannerVisible() {
     validate: isBoolean
   });
 
-  $(CLASSES.penaltiesTitleSelector).toggleClass(CLASSES.penaltiesTitleVisibleSelectorSuffix, value);
+  titleBannerVisible = value;
+  $(TOGGLES.titleBanner.selector).toggleClass(TOGGLES.titleBanner.class, value);
 
   if (DEBUG) {
     console.log(`Overlay title ${value ? 'shown' : 'hidden'} (from ${source}).`);
@@ -445,11 +464,23 @@ function setTeamLogos() {
     validate: isBoolean
   });
 
-  // The class marks the container the logos are gone from, so CSS can close the row
-  $(CLASSES.teamsContainerSelector).toggleClass(CLASSES.teamLogosHiddenSelectorSuffix, !value);
+  teamLogosVisible = value;
+  $(TOGGLES.teamLogos.selector).toggleClass(TOGGLES.teamLogos.class, !value);
 
   if (DEBUG) {
     console.log(`Team logos ${value ? 'shown' : 'hidden'} (from ${source}).`);
+  }
+}
+
+// Give the teams row its space back once it has nothing left to show
+// Both settings decide this, so the stylesheet reads one class rather than deriving it
+function setTeamsRowHeight() {
+  const empty = !teamLogosVisible && !titleBannerVisible;
+
+  $(TOGGLES.teamsRow.selector).toggleClass(TOGGLES.teamsRow.class, empty);
+
+  if (DEBUG) {
+    console.log(`Teams row ${empty ? 'collapsed' : 'holding its space'}.`);
   }
 }
 
@@ -933,11 +964,11 @@ function getPenaltyCodeCue(code) {
 function buildPenaltyCodeKey() {
   penaltyCodeKeyPending = false;
 
-  const $key = $(CLASSES.penaltyCodeKeySelector);
-  const visibleSuffix = CLASSES.penaltyCodeKeyVisibleSelectorSuffix;
+  const $key = $(TOGGLES.penaltyCodeKey.selector);
+  const visibleClass = TOGGLES.penaltyCodeKey.class;
 
   if (!penaltyCodeKeyVisible) {
-    $key.empty().removeClass(visibleSuffix);
+    $key.empty().removeClass(visibleClass);
     return;
   }
 
@@ -957,7 +988,7 @@ function buildPenaltyCodeKey() {
     );
   }
 
-  $key.empty().toggleClass(visibleSuffix, items.length > 0);
+  $key.empty().toggleClass(visibleClass, items.length > 0);
 
   if (items.length > 0) {
     $key.append($('<span>').addClass('code-key-items').append(items));
@@ -1012,6 +1043,7 @@ function applyOverlaySettings() {
   setTitleBannerText();
   setTitleBannerVisible();
   setTeamLogos();
+  setTeamsRowHeight();
 
   // Rebuild keys from WebSocket data
   if (penaltyCodeKeyVisible !== keyWasVisible) {
@@ -1058,12 +1090,12 @@ function loadCustomLogo() {
 
   const logoImg = new Image();
   const $customLogo = $(CLASSES.customLogoSelector);
-  const $customLogoSpace = $(CLASSES.customLogoSpaceSelector);
+  const $customLogoSpace = $(TOGGLES.customLogo.selector);
 
   // Show the logo once it loads
   logoImg.onload = function () {
     $customLogo.attr('src', CONFIG.bannerLogoPath);
-    $customLogoSpace.addClass(CLASSES.customLogoSpaceVisibleSelectorSuffix);
+    $customLogoSpace.addClass(TOGGLES.customLogo.class);
 
     if (DEBUG) {
       console.log(`Custom logo loaded: ${CONFIG.bannerLogoPath}.`);
@@ -1072,7 +1104,7 @@ function loadCustomLogo() {
 
   // Keep the logo hidden if it fails to load
   logoImg.onerror = function () {
-    $customLogoSpace.removeClass(CLASSES.customLogoSpaceVisibleSelectorSuffix);
+    $customLogoSpace.removeClass(TOGGLES.customLogo.class);
 
     if (DEBUG) {
       console.log(`Custom logo failed to load: ${CONFIG.bannerLogoPath}.`);
@@ -1157,7 +1189,7 @@ function hideLoadingOverlayWhenReady() {
   const startTime = Date.now();
 
   const hideLoadingOverlay = function (reason) {
-    $(CLASSES.loadingOverlaySelector).addClass(CLASSES.loadingOverlayFadeOutSuffixSelector);
+    $(TOGGLES.loadingOverlay.selector).addClass(TOGGLES.loadingOverlay.class);
 
     if (DEBUG) {
       console.log(`Loading overlay hidden (${reason}).`);

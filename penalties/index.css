@@ -322,8 +322,8 @@ body {
   display: none;
 }
 
-/* The logos row holds the title and hides when the title is also hidden */
-#teams-container.logos-hidden:not(:has(#penalties-title.visible)) {
+/* The logos row holds the title - index.js sets this once both are hidden */
+#teams-container.row-empty {
   height: 0;
   margin-bottom: 0;
   min-height: 0;

@@ -272,20 +272,25 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
   | `customLogoSelector` | CSS Selector for the custom logo container | string | `#custom-logo` | :x: |
-  | `customLogoSpaceSelector` | CSS Selector for the custom logo space container | string | `#custom-logo-space` | :x: |
-  | `customLogoSpaceVisibleSelectorSuffix` | CSS Selector for the visible custom logo space container | string | `visible` | :x: |
-  | `loadingOverlayFadeOutSuffixSelector` | CSS Selector for the loading overlay fade out | string | `fade-out` | :x: |
-  | `loadingOverlaySelector` | CSS Selector for the loading overlay | string | `#loading-overlay` | :x: |
   | `loadingOverlayTextSelector` | CSS Selector for the loading overlay text | string | `.loading-text` | :x: |
-  | `penaltyCodeKeySelector` | CSS Selector for the penalty code key container | string | `#penalty-code-key` | :x: |
   | `penaltyCodeKeyItemsSelector` | CSS Selector for the penalty code key items | string | `.code-key-items` | :x: |
-  | `penaltyCodeKeyVisibleSelectorSuffix` | CSS Selector for the visible penalty code key | string | `visible` | :x: |
-  | `penaltiesTitleSelector` | CSS Selector for the penalties title container | string | `#penalties-title` | :x: |
   | `penaltiesTitleH1Selector` | CSS Selector for the penalties title H1 text | string | `#penalties-title h1` | :x: |
-  | `penaltiesTitleVisibleSelectorSuffix` | CSS Selector for the visible penalties title | string | `visible` | :x: |
-  | `teamsContainerSelector` | CSS Selector for the teams and logos container | string | `#teams-container` | :x: |
-  | `teamLogosHiddenSelectorSuffix` | CSS Selector for the teams container with its logos hidden | string | `logos-hidden` | :x: |
   | `textShadow` | CSS Variable for text shadows | string | `var(--team-penalties-default-text-shadow)` | :x: |
+
+  ---
+
+  ***toggles*** **Section**
+
+  Overlay features that mark a container with a state class.  Each pair needs a rule in [index.css](./index.css) that joins its `selector` and its `class`.
+
+  | Setting | Description | Type | Default | Adjustable |
+  | - | - | - | - | - |
+  | `customLogo` | Custom logo space, shown once a custom logo loads | object | `#custom-logo-space` and `visible` | :x: |
+  | `loadingOverlay` | Loading overlay, faded out once the game rules arrive | object | `#loading-overlay` and `fade-out` | :x: |
+  | `penaltyCodeKey` | Penalty code key, shown when players have penalties | object | `#penalty-code-key` and `visible` | :x: |
+  | `teamLogos` | Teams and logos row, marked when the logos are hidden | object | `#teams-container` and `logos-hidden` | :x: |
+  | `teamsRow` | Teams and logos row, marked once the logos and the title are both hidden | object | `#teams-container` and `row-empty` | :x: |
+  | `titleBanner` | Title banner, shown unless a setting hides it | object | `#penalties-title` and `visible` | :x: |
 
   ---
 
