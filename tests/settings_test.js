@@ -352,6 +352,46 @@ Deno.test('an invalid title visibility falls back to showing the title', async (
   assert.match(invalid.warnings.join(' '), /must be true or false/);
 });
 
+Deno.test('the team logos are visible unless a setting hides them', async () => {
+  const { CLASSES } = overlay;
+  const shown = await loadOverlay();
+  shown.setTeamLogos();
+  assert.equal(shown.hasClass(CLASSES.teamsContainerSelector, 'logos-hidden'), false);
+
+  const hidden = await loadOverlay({ state: stored('TeamLogos', 'false') });
+  hidden.setTeamLogos();
+  assert.equal(hidden.hasClass(CLASSES.teamsContainerSelector, 'logos-hidden'), true);
+  assert.deepEqual(hidden.warnings, []);
+});
+
+Deno.test('config.js hides the team logos when the scoreboard holds nothing', async () => {
+  const { CLASSES } = overlay;
+  const configSource = (await readSource('penalties/config.js')).replace('teamLogos: true,', 'teamLogos: false,');
+  const hidden = await loadOverlay({ configSource });
+  hidden.setTeamLogos();
+
+  assert.equal(hidden.hasClass(CLASSES.teamsContainerSelector, 'logos-hidden'), true);
+  assert.deepEqual(hidden.warnings, []);
+});
+
+Deno.test('a stored team logo setting outranks config.js', async () => {
+  const { CLASSES } = overlay;
+  const configSource = (await readSource('penalties/config.js')).replace('teamLogos: true,', 'teamLogos: false,');
+  const shown = await loadOverlay({ configSource, state: stored('TeamLogos', 'true') });
+  shown.setTeamLogos();
+
+  assert.equal(shown.hasClass(CLASSES.teamsContainerSelector, 'logos-hidden'), false);
+});
+
+Deno.test('an invalid team logo setting falls back to showing the logos', async () => {
+  const { CLASSES } = overlay;
+  const invalid = await loadOverlay({ state: stored('TeamLogos', 'sometimes') });
+  invalid.setTeamLogos();
+
+  assert.equal(invalid.hasClass(CLASSES.teamsContainerSelector, 'logos-hidden'), false);
+  assert.match(invalid.warnings.join(' '), /must be true or false/);
+});
+
 Deno.test('the overlay follows every setting the page can write', async () => {
   const overlay = await loadOverlay();
   overlay.registerOverlaySettings();
@@ -362,5 +402,5 @@ Deno.test('the overlay follows every setting the page can write', async () => {
     .map((setting) => overlay.settingChannel(setting.setting));
 
   assert.deepEqual(registered, expected);
-  assert.equal(registered.length, 10, 'ten settings belong to the admin page');
+  assert.equal(registered.length, 11, 'eleven settings belong to the admin page');
 });

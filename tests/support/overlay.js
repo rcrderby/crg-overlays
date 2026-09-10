@@ -28,6 +28,7 @@ const INTERNALS = [
   'setOverlayVersion',
   'setOverlayWidth',
   'setPenaltyCodeKey',
+  'setTeamLogos',
   'setTimeoutAnimation',
   'setTitleBannerText',
   'setTitleBannerVisible',

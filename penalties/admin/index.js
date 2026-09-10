@@ -48,6 +48,7 @@ const SETTINGS = {
   Opacity: { config: 'overlayOpacity', validation: 'opacity' },
   PenaltyCodeKey: { config: 'penaltyCodeKey', validation: 'penaltyCodeKey' },
   Scale: { config: 'overlayScale', validation: 'scale' },
+  TeamLogos: { config: 'teamLogos', validation: 'teamLogos' },
   TimeoutAnimation: { config: 'timeoutAnimation', validation: 'timeoutAnimation' },
   TitleText: { config: 'titleBannerText', validation: 'title' },
   TitleVisible: { config: 'titleBannerVisible', validation: 'titleVisible' },
