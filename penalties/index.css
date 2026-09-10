@@ -105,6 +105,7 @@
   /* Padding */
   --padding-captain-indicator: 3px 4px;
   --padding-roster-columns: 14px;
+  --padding-penalties-title-horizontal: 24px;
   --padding-team-heading-horizontal: 16px;
   --padding-game-info-columns: 16px;
   --padding-game-info-event: 20px;
@@ -338,6 +339,7 @@ body {
   left: 50%;
   max-width: var(--width-penalties-title-max);
   min-width: 0;
+  padding: 0 var(--padding-penalties-title-horizontal);
   position: absolute;
   text-align: center;
   top: 50%;

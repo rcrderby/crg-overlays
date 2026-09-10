@@ -180,12 +180,19 @@
           </div>
 
           <div class="setting-row">
+            <label>Title</label>
+            <div class="setting-choices setting-switch-row" data-setting="TitleVisible">
+              <button class="setting-switch setting-choice" type="button" data-value="true"
+                      aria-label="Show the overlay title"></button>
+              <span class="setting-switch-note">Show or hide the overlay title</span>
+            </div>
+            <div></div>
+          </div>
+
+          <div class="setting-row setting-row-child">
             <label for="title-text">Title Text</label>
             <input id="title-text" type="text" maxlength="40" data-setting="TitleText">
-            <label class="setting-check">
-              <input type="checkbox" data-setting="TitleVisible" data-invert="true">
-              Hide
-            </label>
+            <div></div>
           </div>
         </div>
       </div>

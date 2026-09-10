@@ -161,10 +161,6 @@ function registerFields() {
 // The value a field stores, held to the range in the configuration file
 // An empty number box clears the setting, which falls back to config.js
 function committedValue(field, name) {
-  if (isTickBox(field)) {
-    return String(tickBoxValue(field));
-  }
-
   const raw = String(field.val()).trim();
   const limits = VALIDATION[SETTINGS[name].validation];
 
@@ -181,30 +177,10 @@ function committedValue(field, name) {
   return String(Math.min(Math.max(number, limits.min), limits.max));
 }
 
-// Determine if the field is a tick box
-function isTickBox(field) {
-  return field.attr('type') === 'checkbox';
-}
-
-// The value a tick box stores, inverted for the title's Hide box
-function tickBoxValue(field) {
-  const ticked = field.prop('checked');
-
-  return field.data('invert') ? !ticked : ticked;
-}
-
 // Show the value the overlay is showing, unless the operator is in the field
 function paintField(field, name) {
   return function () {
     if (field.is(':focus')) {
-      return;
-    }
-
-    if (isTickBox(field)) {
-      const on = settingValue(name) === 'true';
-
-      field.prop('checked', field.data('invert') ? !on : on);
-
       return;
     }
 

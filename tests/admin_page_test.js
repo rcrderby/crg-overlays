@@ -103,14 +103,14 @@ Deno.test('every preview backdrop the page offers is styled', async () => {
   }
 });
 
-Deno.test('the title has a tick box that hides it', async () => {
+Deno.test('the title has a switch that shows and hides it', async () => {
   const page = await loadAdminPage();
 
-  // The box is ticked to hide the title, so it stores the opposite
-  assert.match(html, /<input type="checkbox" data-setting="TitleVisible" data-invert="true">/);
+  // The switch reads the way the penalties key and team logos switches read
+  assert.match(html, /data-setting="TitleVisible"[\s\S]*?class="setting-switch setting-choice"/);
   assert.equal(page.SETTINGS.TitleVisible.config, 'titleBannerVisible');
 
-  // The text and the box are independent, so neither one writes the other
+  // The text and the switch are independent, so neither one writes the other
   assert.equal(page.settingValue('TitleVisible'), 'true');
   assert.equal(page.settingValue('TitleText'), 'PENALTIES');
 });
@@ -132,11 +132,9 @@ Deno.test('a setting with nothing behind it reads as blank', async () => {
 });
 
 // A field stands in for the jQuery object the page binds
-const field = ({ type = 'number', value = '', ticked = false, invert = false }) => ({
+const field = ({ type = 'number', value = '' }) => ({
   attr: () => type,
-  val: () => value,
-  prop: () => ticked,
-  data: () => invert
+  val: () => value
 });
 
 Deno.test('a number box holds its value to the configured range', async () => {
@@ -161,14 +159,6 @@ Deno.test('a setting with no range keeps what the field holds', async () => {
   assert.equal(page.committedValue(field({ type: 'text', value: 'PENALTY BOX' }), 'TitleText'), 'PENALTY BOX');
 });
 
-Deno.test('a tick box stores the opposite of what it shows', async () => {
-  const page = await loadAdminPage();
-  const box = (ticked) => field({ type: 'checkbox', ticked, invert: true });
-
-  assert.equal(page.committedValue(box(true), 'TitleVisible'), 'false');
-  assert.equal(page.committedValue(box(false), 'TitleVisible'), 'true');
-});
-
 // The page bound to a stand-in for its own markup, so a control can be driven
 // the way an operator drives it
 async function boundPage(options = {}) {
@@ -189,7 +179,7 @@ Deno.test('every control starts on the value the overlay is showing', async () =
   assert.equal(page.dom.field('Width', 'number').value, String(page.CONFIG.overlayWidth));
   assert.equal(page.dom.field('TitleText', 'text').value, page.CONFIG.titleBannerText);
   assert.equal(page.dom.choice('Anchor', page.CONFIG.overlayAnchor).classes.has('selected'), true);
-  assert.equal(page.dom.field('TitleVisible', 'checkbox').checked, false);
+  assert.equal(page.dom.choice('TitleVisible', 'true').classes.has('selected'), true);
 });
 
 Deno.test('a slider and its number box carry the range from the configuration file', async () => {
@@ -248,17 +238,17 @@ Deno.test('clearing a number box falls back to the configured value', async () =
   assert.equal(width.value, String(page.CONFIG.overlayWidth));
 });
 
-Deno.test('the title commits as it is typed, and the tick box leaves it alone', async () => {
+Deno.test('the title commits as it is typed, and the switch leaves it alone', async () => {
   const page = await boundPage();
   const title = page.dom.field('TitleText', 'text');
-  const hide = page.dom.field('TitleVisible', 'checkbox');
+  const shown = page.dom.choice('TitleVisible', 'true');
 
   title.value = 'PENALTY BOX';
   page.dom.fire(title, 'input');
   assert.deepEqual(page.WS.sets.at(-1), { path: page.settingChannel('TitleText'), value: 'PENALTY BOX' });
 
-  hide.checked = true;
-  page.dom.fire(hide, 'change');
+  // The switch reports the value it would set, so clicking it while it's on turns it off
+  page.dom.fire(shown, 'click');
   assert.deepEqual(page.WS.sets.at(-1), { path: page.settingChannel('TitleVisible'), value: 'false' });
   assert.equal(title.value, 'PENALTY BOX');
 });
