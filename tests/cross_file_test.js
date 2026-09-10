@@ -75,7 +75,7 @@ Deno.test('every container the overlay toggles a class on exists in the markup',
 
 // The key builds its own markup, so its items live in index.js rather than index.html
 Deno.test('every selector in the classes section resolves to markup or a rule', () => {
-  const built = ['penaltyCodeKeyItemsSelector'];
+  const built = ['penaltyCodeKeyItemsSelector', 'rosterLineOverLimitSelector'];
 
   for (const [name, selector] of Object.entries(CLASSES)) {
     if (!selector.startsWith('#') && !selector.startsWith('.')) {
@@ -83,7 +83,7 @@ Deno.test('every selector in the classes section resolves to markup or a rule', 
     }
 
     if (built.includes(name)) {
-      assert.ok(js.includes(`'${selector.slice(1)}'`), `index.js never builds ${selector} for ${name}`);
+      assert.ok(js.includes(`CLASSES.${name}`), `index.js never uses ${name}`);
       assert.ok(hasRule(selector), `index.css has no ${selector} rule for ${name}`);
       continue;
     }
@@ -133,6 +133,16 @@ Deno.test('every property the admin page previews is one the overlay writes', ()
     assert.ok(js.includes(`setProperty('${property}'`), `index.js never writes ${property}`);
     assert.ok(css.includes(`var(${property}`), `index.css never reads ${property}`);
   }
+});
+
+// `justify-content` places the overlay down the frame only while the column is vertical,
+// and would otherwise move it sideways with nothing to say so
+Deno.test('the rule that anchors the overlay lays its children out in a column', () => {
+  const [, rule] = css.match(/\nbody \{([\s\S]*?)\n\}/);
+
+  assert.match(rule, /justify-content: var\(--overlay-justify/, 'body places the overlay');
+  assert.match(rule, /display: flex/, 'body is a flex container');
+  assert.match(rule, /flex-direction: column/, 'and stacks down the frame');
 });
 
 Deno.test('the text shadow the configuration file names is defined', () => {

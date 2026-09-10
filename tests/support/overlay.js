@@ -8,6 +8,7 @@ const REPO = new URL('../../', import.meta.url);
 const INTERNALS = [
   // Constants, including the configuration sections config.js supplies
   'CLASSES',
+  'HEIGHT_HOLD_PASSES',
   'CONFIG',
   'DEBUG',
   'LABELS',
@@ -25,10 +26,12 @@ const INTERNALS = [
   'setOverlayAnchor',
   'setOverlayFont',
   'setOverlayOpacity',
+  'setOverlayHeight',
   'setOverlayScale',
   'setOverlayVersion',
   'setOverlayWidth',
   'setPenaltyCodeKey',
+  'setRosterTextScaling',
   'setTeamLogos',
   'setTeamsRowHeight',
   'setTimeoutAnimation',
@@ -44,8 +47,13 @@ const INTERNALS = [
   // Functions that build and size the penalty code key
   'buildPenaltyCodeKey',
   'fitPenaltyCodeKey',
+  'fitRosterText',
+  'holdOverlayHeight',
+  'limitRosterRows',
   'registerPenaltyCodeKey',
+  'registerRosterTextFit',
   'schedulePenaltyCodeKeyRebuild',
+  'scheduleRosterTextFit',
 
   // Functions that read game data
   'getPenaltyCodeCue',
@@ -147,6 +155,49 @@ function penaltyCodeKeyDom({ available = 0, codeWidth = 0, fontSize = 15 } = {})
   };
 }
 
+// A DOM stand-in for the rosters, which report only the sizes the fit measures
+// Nothing lays anything out, so the test supplies them
+function rosterDom(rosters = []) {
+  const panel = (spec) => {
+    const { rows = 0, hiddenRows = 0, height = 0 } = spec;
+    const { rowHeight = 29, headings = 24, gap = 4, teamHeading = 46 } = spec;
+    const line = (visible) => {
+      const classes = new Set();
+
+      return {
+        classList: {
+          contains: (name) => classes.has(name),
+          toggle: (name, on) => (on ? classes.add(name) : classes.delete(name))
+        },
+        get offsetHeight() {
+          return visible && !classes.has('over-limit') ? rowHeight : 0;
+        }
+      };
+    };
+    // The skaters CRG hides sit among the rest, so they come first here
+    const lines = [
+      ...Array.from({ length: hiddenRows }, () => line(false)),
+      ...Array.from({ length: rows }, () => line(true))
+    ];
+
+    return {
+      clientHeight: height,
+      headings: { offsetHeight: headings, marginBottom: `${gap}px` },
+      teamHeading: { offsetHeight: teamHeading },
+      lines
+    };
+  };
+
+  const panels = rosters.map(panel);
+
+  return {
+    panels,
+    querySelectorAll: (selector) => (selector === '.roster' ? panels : []),
+    forPanel: (panel, selector) => (selector === '.roster-line' ? panel.lines : []),
+    getComputedStyle: (element) => ({ marginBottom: element.marginBottom ?? '0px' })
+  };
+}
+
 // Names admin/index.js keeps in module scope, exposed so tests can reach them
 const ADMIN_PAGE_INTERNALS = [
   // Constants, including the configuration sections config.js supplies
@@ -172,6 +223,8 @@ const ADMIN_PAGE_INTERNALS = [
   'copyText',
   'overlayUrl',
   'previewDocument',
+  'previewWindow',
+  'refitPreview',
   'scalePreview'
 ];
 
@@ -208,8 +261,9 @@ function adminPageDom(html) {
       type: attr('type'),
       id: attr('id'),
       'data-setting': setting,
-      'data-invert': attr('data-invert'),
-      'data-preview': attr('data-preview')
+      'data-preview': attr('data-preview'),
+      'data-preview-ratio': attr('data-preview-ratio'),
+      'data-preview-unit': attr('data-preview-unit')
     });
 
     field.parent = row;
@@ -404,8 +458,19 @@ export async function loadAdminPage({ configSource, state = {}, stageWidth = 960
   const dom = adminPageDom(await readSource('penalties/admin/index.html'));
 
   // The preview panel, which the page measures and scales the overlay into
+  // Its window carries the overlay's own functions, which the page calls into
   const stage = { clientWidth: stageWidth };
-  const frame = { style: {}, contentDocument: null };
+  const previewOverlay = { refits: 0, properties: {} };
+
+  previewOverlay.fitRosterText = () => (previewOverlay.refits += 1);
+
+  const frame = {
+    style: {},
+    contentWindow: previewOverlay,
+    contentDocument: {
+      documentElement: { style: { setProperty: (name, value) => (previewOverlay.properties[name] = String(value)) } }
+    }
+  };
   const document = {
     getElementById: (id) => (id === 'preview-stage' ? stage : id === 'preview-overlay' ? frame : null)
   };
@@ -431,13 +496,34 @@ export async function loadAdminPage({ configSource, state = {}, stageWidth = 960
     WS,
     dom,
     frame,
+    previewOverlay,
     timers,
     runTimers: () => timers.splice(0).map((timer) => (timer.callback(), timer))
   };
 }
 
 // Run config.js and index.js, and return their functions plus what they wrote
-export async function loadOverlay({ configSource, indexSource, search = '', state = {}, dom = {} } = {}) {
+export async function loadOverlay({
+  configSource,
+  indexSource,
+  search = '',
+  state = {},
+  dom = {},
+  rosters,
+  overlayFrame = {}
+} = {}) {
+  // A test names only the sizes it cares about
+  const frame = {
+    height: 1080,
+    inset: 32,
+    offsetHeight: 1016,
+    clientHeight: 990,
+    scrollHeight: 990,
+    logoRow: 100,
+    logoRowNatural: 100,
+    timeoutRow: 0,
+    ...overlayFrame
+  };
   const config = configSource ?? (await readSource('penalties/config.js'));
   const index = indexSource ?? (await readSource('penalties/index.js'));
 
@@ -452,6 +538,20 @@ export async function loadOverlay({ configSource, indexSource, search = '', stat
   const overlayClasses = new Set();
   const overlayElement = {
     dataset: {},
+
+    // Setting the floor grows the box, the way it does in a real layout,
+    // and the room inside it grows with it
+    get offsetHeight() {
+      const held = parseFloat(properties['--overlay-min-height']);
+
+      return Number.isFinite(held) ? Math.max(frame.offsetHeight, held) : frame.offsetHeight;
+    },
+    get clientHeight() {
+      const chrome = frame.offsetHeight - frame.clientHeight;
+
+      return this.offsetHeight - chrome;
+    },
+    scrollHeight: frame.scrollHeight,
     classList: {
       add: (name) => overlayClasses.add(name),
       remove: (name) => overlayClasses.delete(name),
@@ -460,12 +560,33 @@ export async function loadOverlay({ configSource, indexSource, search = '', stat
   };
 
   const keyDom = penaltyCodeKeyDom(dom);
+  const rosterElements = rosterDom(rosters);
+
+  // A roster panel answers for the lines and headings inside it
+  for (const panel of rosterElements.panels) {
+    panel.querySelectorAll = (selector) => rosterElements.forPanel(panel, selector);
+    panel.querySelector = (selector) => (selector === '.roster-headings' ? panel.headings : null);
+    panel.parentElement = {
+      querySelector: (selector) => (selector === '.team-heading' ? panel.teamHeading : null)
+    };
+  }
 
   const document = {
     documentElement: { style: { setProperty: (name, value) => (properties[name] = String(value)) } },
     addEventListener: () => {},
     getElementById: (id) => (id === 'overlay' ? overlayElement : null),
-    querySelector: keyDom.querySelector,
+    querySelector: (selector) => {
+      if (selector === '#teams-container') {
+        return logoRow;
+      }
+
+      if (selector === '#timeout-banner-row') {
+        return bannerRow;
+      }
+
+      return keyDom.querySelector(selector);
+    },
+    querySelectorAll: rosterElements.querySelectorAll,
     createTextNode: keyDom.createTextNode
   };
   const consoleStub = {
@@ -511,6 +632,36 @@ export async function loadOverlay({ configSource, indexSource, search = '', stat
   const timers = [];
   const setTimeoutStub = (callback, delay) => timers.push({ callback, delay });
 
+  // The key's fit asks for a font size, and the roster fit for a heading margin
+  const frameTokens = {
+    '--overlay-height': `${frame.height}px`,
+    '--overlay-inset-vertical': `${frame.inset}px`,
+    '--height-logo-container': `${frame.logoRowNatural}px`
+  };
+
+  // The logo row the height floor measures
+  // A test may give a height per pass, the way the row recovers as space is handed back
+  const logoRowSteps = frame.logoRowSteps ?? [frame.logoRow];
+  let logoRowReads = 0;
+  const logoRow = {
+    get offsetHeight() {
+      const step = logoRowSteps[Math.min(logoRowReads, logoRowSteps.length - 1)];
+
+      logoRowReads += 1;
+
+      return step;
+    }
+  };
+  const bannerRow = { offsetHeight: frame.timeoutRow };
+
+  const computedStyle = (element) => {
+    if (element === document.documentElement) {
+      return { getPropertyValue: (name) => frameTokens[name] ?? '' };
+    }
+
+    return element && 'marginBottom' in element ? rosterElements.getComputedStyle(element) : keyDom.getComputedStyle();
+  };
+
   const WS = scoreboard(state);
   const api = new Function(
     'window',
@@ -521,7 +672,7 @@ export async function loadOverlay({ configSource, indexSource, search = '', stat
     'getComputedStyle',
     'WS',
     `${index}\nreturn { ${INTERNALS.join(', ')} };`
-  )(window, document, consoleStub, jQueryStub, setTimeoutStub, keyDom.getComputedStyle, WS);
+  )(window, document, consoleStub, jQueryStub, setTimeoutStub, computedStyle, WS);
 
   // Run every pending timer, and report what was waiting
   const runTimers = () => timers.splice(0).map((timer) => (timer.callback(), timer));
@@ -539,6 +690,7 @@ export async function loadOverlay({ configSource, indexSource, search = '', stat
     text,
     hasClass,
     key: keyDom.rendered,
+    dom: { rosters: rosterElements.panels },
     timers,
     runTimers
   };

@@ -58,6 +58,11 @@ Deno.test('every configuration key index.js reads exists in config.js', async ()
     for (const path of reads) {
       let node = configuration[section];
       for (const key of path.split('.')) {
+        // A method called on a configuration value is not a key beneath it
+        if (typeof node === 'string' || Array.isArray(node)) {
+          break;
+        }
+
         if (node === undefined || !(key in node)) {
           missing.push(`${section}.${path}`);
           break;

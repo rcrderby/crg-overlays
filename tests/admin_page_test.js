@@ -38,6 +38,24 @@ Deno.test('the admin page reads its defaults and ranges from the configuration f
   assert.equal(/<input[^>]*type="(?:range|number)"[^>]*\b(?:min|max)=/.test(html), false);
 });
 
+// Identify classes that style nothing
+Deno.test('every class the admin page carries has a rule', async () => {
+  const css = (await readSource('penalties/admin/index.css')).replace(/\/\*[\s\S]*?\*\//g, '');
+  const carried = new Set();
+
+  for (const attribute of html.matchAll(/class="([^"]*)"/g)) {
+    for (const name of attribute[1].split(/\s+/)) {
+      if (name) {
+        carried.add(name);
+      }
+    }
+  }
+
+  const unstyled = [...carried].filter((name) => !new RegExp(`\\.${name}\\b`).test(css));
+
+  assert.deepEqual(unstyled, [], `the markup carries classes nothing styles: ${unstyled.join(', ')}`);
+});
+
 Deno.test('the admin page loads what CRG needs before CRG loads itself', () => {
   const scripts = [...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map((match) => match[1]);
 
@@ -166,6 +184,7 @@ async function boundPage(options = {}) {
 
   page.registerChoices();
   page.registerFields();
+  page.registerSliderPreview();
   page.registerBackdrops();
   page.registerActions();
   page.paintControls();
@@ -276,6 +295,42 @@ Deno.test('resetting clears every setting the page writes', async () => {
       .map((name) => page.settingChannel(name))
       .sort()
   );
+});
+
+// The overlay decides its own height, so a drag has to run its fit rather than
+// show a size the overlay would never settle on
+Deno.test('dragging a slider asks the preview overlay to refit itself', async () => {
+  const page = await boundPage();
+  const height = page.dom.field('Height', 'range');
+
+  height.value = '70';
+  page.dom.fire(height, 'input');
+
+  assert.equal(page.previewOverlay.properties['--overlay-height-ratio'], '0.7', 'the preview follows the drag');
+  assert.equal(page.previewOverlay.refits, 1, 'and the overlay fits itself to it');
+});
+
+Deno.test('a preview that has not loaded is left alone', async () => {
+  const page = await boundPage();
+  const width = page.dom.field('Width', 'range');
+
+  page.frame.contentWindow = null;
+  width.value = '90';
+  page.dom.fire(width, 'input');
+
+  assert.equal(page.previewOverlay.refits, 0, 'nothing is called on a frame with no window');
+});
+
+// The overlay's script has to have run for its functions to be there, and the page
+// loads before the frame does
+Deno.test('a preview still loading its overlay is left alone', async () => {
+  const page = await boundPage();
+  const width = page.dom.field('Width', 'range');
+
+  page.frame.contentWindow = {};
+  width.value = '90';
+
+  assert.doesNotThrow(() => page.dom.fire(width, 'input'), 'a window without the overlay is no error');
 });
 
 Deno.test('the backdrop buttons paint the preview stage', async () => {

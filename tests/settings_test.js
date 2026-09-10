@@ -90,6 +90,7 @@ Deno.test('the anchor and font settings fall back to their defaults', async () =
   setOverlayAnchor();
   setOverlayFont();
   assert.equal(properties['--overlay-origin'], 'top center');
+  assert.equal(properties['--overlay-justify'], 'flex-start');
   assert.match(properties['--font-family'], /Saira/);
   assert.equal(warnings.length, 2);
 });
@@ -302,9 +303,30 @@ Deno.test('every kind of setting reads from the scoreboard', async () => {
   assert.equal(overlay.properties['--overlay-scale'], '0.9');
   assert.equal(overlay.properties['--overlay-opacity'], '60%');
   assert.equal(overlay.properties['--overlay-origin'], 'bottom center');
+  assert.equal(overlay.properties['--overlay-justify'], 'flex-end');
   assert.match(overlay.properties['--font-family'], /Chivo/);
   assert.deepEqual([...overlay.overlayClasses].sort(), ['background-organic', 'timeout-pulse']);
   assert.deepEqual(overlay.warnings, []);
+});
+
+// The anchored edge holds as the height and scale change, so the anchor places the
+// overlay in the frame as well as naming the point it scales from
+Deno.test('each anchor places the overlay and names what it scales from', async () => {
+  const anchors = [
+    ['top', 'flex-start', 'top center'],
+    ['center', 'center', 'center center'],
+    ['bottom', 'flex-end', 'bottom center']
+  ];
+
+  for (const [name, justify, origin] of anchors) {
+    const applied = await loadOverlay({ state: stored('Anchor', name) });
+
+    applied.setOverlayAnchor();
+
+    assert.equal(applied.properties['--overlay-justify'], justify, `${name} sits at ${justify}`);
+    assert.equal(applied.properties['--overlay-origin'], origin, `${name} scales from ${origin}`);
+    assert.deepEqual(applied.warnings, []);
+  }
 });
 
 Deno.test('the title comes from the admin page, then config.js', async () => {
@@ -425,5 +447,5 @@ Deno.test('the overlay follows every setting the page can write', async () => {
     .map((setting) => overlay.settingChannel(setting.setting));
 
   assert.deepEqual(registered, expected);
-  assert.equal(registered.length, 11, 'eleven settings belong to the admin page');
+  assert.equal(registered.length, 13, 'thirteen settings belong to the admin page');
 });
