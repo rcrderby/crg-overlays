@@ -318,6 +318,17 @@ body {
   opacity: 1;
 }
 
+#teams-container.logos-hidden .team-logo-container {
+  display: none;
+}
+
+/* The logos row holds the title and hides when the title is also hidden */
+#teams-container.logos-hidden:not(:has(#penalties-title.visible)) {
+  height: 0;
+  margin-bottom: 0;
+  min-height: 0;
+}
+
 /****************************
 ** Penalties title section **
 ****************************/

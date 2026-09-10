@@ -70,6 +70,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Show a key of the active penalty codes below the rosters
     penaltyCodeKey: true,
 
+    // Show the team logos CRG supplies
+    teamLogos: true,
+
     // Timeout banner animation: `glow`, `pulse`, `shine`, or `off`
     timeoutAnimation: 'glow'
   },
@@ -112,6 +115,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
     // Overlay scale percentage
     scale: { min: 1, max: 100, default: 100 },
+
+    // Team logo visibility
+    teamLogos: { default: true },
 
     // Timeout banner animation
     timeoutAnimation: { default: 'glow' },
@@ -166,6 +172,12 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
     // CSS Selector for the visible penalties title
     penaltiesTitleVisibleSelectorSuffix: 'visible',
+
+    // CSS Selector for the teams and logos container
+    teamsContainerSelector: '#teams-container',
+
+    // CSS Selector for the teams container with its logos hidden
+    teamLogosHiddenSelectorSuffix: 'logos-hidden',
 
     // CSS Variable for text shadows
     textShadow: 'var(--team-penalties-default-text-shadow)'

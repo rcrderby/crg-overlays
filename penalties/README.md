@@ -232,6 +232,7 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | `overlayScale` | Overlay scale percentage: 100  = full scale, 90 = 90% scale, etc. (1 to 100) | int or float | `100` | :white_check_mark: |
   | `overlayWidth` | Overlay width percentage of the video frame (70 to 100) | int or float | `85` | :white_check_mark: |
   | `penaltyCodeKey` | Penalty code key visibility below the rosters | boolean | `true` | :white_check_mark: |
+  | `teamLogos` | Show the team logos CRG supplies | boolean | `true` | :white_check_mark: |
   | `timeoutAnimation` | Timeout banner animation: `glow`, `pulse`, `shine`, or `off` | string | `glow` | :white_check_mark: |
 
   ---
@@ -258,6 +259,7 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | `penaltyCodeKey` | Default for `penaltyCodeKey` | object | `true` | :warning: |
   | `penaltyCodes.max` | Most penalty codes a roster row displays | integer | `9` | :warning: |
   | `scale` | Allowed range and default for `overlayScale` | object | `1` to `100`, default `100` | :warning: |
+  | `teamLogos` | Default for `teamLogos` | object | `true` | :warning: |
   | `timeoutAnimation` | Default for `timeoutAnimation` | object | `glow` | :warning: |
   | `title` | Default for `titleBannerText` | object | `PENALTIES` | :warning: |
   | `titleVisible` | Default for `titleBannerVisible` | object | `true` | :warning: |
@@ -281,6 +283,8 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | `penaltiesTitleSelector` | CSS Selector for the penalties title container | string | `#penalties-title` | :x: |
   | `penaltiesTitleH1Selector` | CSS Selector for the penalties title H1 text | string | `#penalties-title h1` | :x: |
   | `penaltiesTitleVisibleSelectorSuffix` | CSS Selector for the visible penalties title | string | `visible` | :x: |
+  | `teamsContainerSelector` | CSS Selector for the teams and logos container | string | `#teams-container` | :x: |
+  | `teamLogosHiddenSelectorSuffix` | CSS Selector for the teams container with its logos hidden | string | `logos-hidden` | :x: |
   | `textShadow` | CSS Variable for text shadows | string | `var(--team-penalties-default-text-shadow)` | :x: |
 
   ---

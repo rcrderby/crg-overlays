@@ -95,6 +95,7 @@ const SETTINGS = {
   key: { setting: 'PenaltyCodeKey', label: 'Penalty code key' },
   opacity: { setting: 'Opacity', label: 'Overlay opacity' },
   scale: { setting: 'Scale', label: 'Overlay scale' },
+  teamLogos: { setting: 'TeamLogos', label: 'Team logos' },
   timeout: { setting: 'TimeoutAnimation', label: 'Timeout animation' },
   title: { setting: 'TitleText', label: 'Title text' },
   titleVisible: { setting: 'TitleVisible', label: 'Title visibility' },
@@ -430,6 +431,25 @@ function setTitleBannerVisible() {
 
   if (DEBUG) {
     console.log(`Overlay title ${value ? 'shown' : 'hidden'} (from ${source}).`);
+  }
+}
+
+// Validate and set the team logo visibility
+function setTeamLogos() {
+  const { value, source } = resolveSetting({
+    ...SETTINGS.teamLogos,
+    configValue: CONFIG.teamLogos,
+    fallback: VALIDATION.teamLogos.default,
+    parse: lowercase,
+    describe: (visible) => (visible ? 'visible' : 'hidden'),
+    validate: isBoolean
+  });
+
+  // The class marks the container the logos are gone from, so CSS can close the row
+  $(CLASSES.teamsContainerSelector).toggleClass(CLASSES.teamLogosHiddenSelectorSuffix, !value);
+
+  if (DEBUG) {
+    console.log(`Team logos ${value ? 'shown' : 'hidden'} (from ${source}).`);
   }
 }
 
@@ -991,6 +1011,7 @@ function applyOverlaySettings() {
   setPenaltyCodeKey();
   setTitleBannerText();
   setTitleBannerVisible();
+  setTeamLogos();
 
   // Rebuild keys from WebSocket data
   if (penaltyCodeKeyVisible !== keyWasVisible) {
