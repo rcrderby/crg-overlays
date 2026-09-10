@@ -49,11 +49,15 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Background animation: `trace`, `organic`, `shine`, or `off`
     backgroundAnimation: 'trace',
 
-    // Point the overlay scales from: `top`, `center`, or `bottom`
+    // Edge the overlay sits against and scales from: `top`, `center`, or `bottom`
     overlayAnchor: 'top',
 
     // Font pairing: `saira`, `league-gothic`, `anton`, or `bricolage`
     overlayFont: 'saira',
+
+    // Overlay height percentage of the video frame
+    // The `validation` section sets the allowed range
+    overlayHeight: 100,
 
     // Overlay background opacity percentage: 100 is solid, 0 is invisible
     // The `validation` section sets the allowed range
@@ -69,6 +73,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
     // Show a key of the active penalty codes below the rosters
     penaltyCodeKey: true,
+
+    // Grow the roster text to fill the panel when a roster is short
+    rosterTextScaling: true,
 
     // Show the team logos CRG supplies
     teamLogos: true,
@@ -104,6 +111,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Font pairing
     font: { default: 'saira' },
 
+    // Overlay height percentage of the video frame
+    height: { min: 50, max: 100, default: 100 },
+
     // Overlay background opacity percentage
     opacity: { min: 0, max: 100, default: 98 },
 
@@ -112,6 +122,16 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
     // Max penalty codes a roster row displays
     penaltyCodes: { max: 9 },
+
+    // Max skaters a roster displays, which the panel is built to hold
+    rosterRows: { max: 20 },
+
+    // Largest roster text scale, held so nine penalty codes still fit their column
+    // Measured against the narrowest column and the widest bundled body face
+    rosterScale: { max: 1.18 },
+
+    // Roster text scaling
+    rosterTextScaling: { default: true },
 
     // Overlay scale percentage
     scale: { min: 1, max: 100, default: 100 },
@@ -145,6 +165,21 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
     // CSS Selector for the penalty code key items
     penaltyCodeKeyItemsSelector: '.code-key-items',
+
+    // CSS Selector for a roster
+    rosterSelector: '.roster',
+
+    // CSS Selector for the roster column headings
+    rosterHeadingsSelector: '.roster-headings',
+
+    // CSS Selector for a roster line
+    rosterLineSelector: '.roster-line',
+
+    // CSS Selector for a roster line past the display limit
+    rosterLineOverLimitSelector: '.over-limit',
+
+    // CSS Selector for the team name heading above a roster
+    teamHeadingSelector: '.team-heading',
 
     // CSS Selector for the penalties title H1 text
     penaltiesTitleH1Selector: '#penalties-title h1',
@@ -258,6 +293,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
     minLoadDisplayMs: 500,
 
     // Delay before rebuilding the penalty code key after an update (ms)
-    penaltyCodeKeyRebuild: 50
+    penaltyCodeKeyRebuild: 50,
+
+    // Delay before refitting the roster text after an update (ms)
+    rosterTextFit: 60
   }
 };

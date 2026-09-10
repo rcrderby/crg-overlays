@@ -45,8 +45,10 @@ const SETTINGS = {
   Anchor: { config: 'overlayAnchor', validation: 'anchor' },
   BackgroundAnimation: { config: 'backgroundAnimation', validation: 'backgroundAnimation' },
   Font: { config: 'overlayFont', validation: 'font' },
+  Height: { config: 'overlayHeight', validation: 'height' },
   Opacity: { config: 'overlayOpacity', validation: 'opacity' },
   PenaltyCodeKey: { config: 'penaltyCodeKey', validation: 'penaltyCodeKey' },
+  RosterTextScaling: { config: 'rosterTextScaling', validation: 'rosterTextScaling' },
   Scale: { config: 'overlayScale', validation: 'scale' },
   TeamLogos: { config: 'teamLogos', validation: 'teamLogos' },
   TimeoutAnimation: { config: 'timeoutAnimation', validation: 'timeoutAnimation' },
@@ -208,6 +210,9 @@ function registerSliderPreview() {
     if (overlay) {
       overlay.documentElement.style.setProperty(property, value);
     }
+
+    // The overlay decides its own height and text size
+    refitPreview();
   });
 }
 
@@ -216,6 +221,22 @@ function previewDocument() {
   const frame = document.getElementById('preview-overlay');
 
   return frame && frame.contentDocument ? frame.contentDocument : null;
+}
+
+// The preview's own window, which carries the overlay's functions
+function previewWindow() {
+  const frame = document.getElementById('preview-overlay');
+
+  return frame && frame.contentWindow ? frame.contentWindow : null;
+}
+
+// Run the overlay's fit inside the preview, so a slider drag previews in real time
+function refitPreview() {
+  const overlay = previewWindow();
+
+  if (overlay && typeof overlay.fitRosterText === 'function') {
+    overlay.fitRosterText();
+  }
 }
 
 /**********************

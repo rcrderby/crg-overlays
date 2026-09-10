@@ -226,12 +226,14 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | `titleBannerText` | Title text | string | `PENALTIES` | :white_check_mark: |
   | `titleBannerVisible` | Title visibility | boolean | `true` | :white_check_mark: |
   | `backgroundAnimation` | Background animation: `trace`, `organic`, `shine`, or `off` | string | `trace` | :white_check_mark: |
-  | `overlayAnchor` | Point the overlay scales from: `top`, `center`, or `bottom` | string | `top` | :white_check_mark: |
+  | `overlayAnchor` | Edge the overlay sits against and scales from: `top`, `center`, or `bottom` | string | `top` | :white_check_mark: |
   | `overlayFont` | Font pairing: `saira`, `league-gothic`, `anton`, or `bricolage` | string | `saira` | :white_check_mark: |
+  | `overlayHeight` | Overlay height percentage of the video frame (50 to 100) | int or float | `100` | :white_check_mark: |
   | `overlayOpacity` | Overlay background opacity percentage: 100 is solid, 0 is invisible (0 to 100) | int or float | `98` | :white_check_mark: |
   | `overlayScale` | Overlay scale percentage: 100  = full scale, 90 = 90% scale, etc. (1 to 100) | int or float | `100` | :white_check_mark: |
   | `overlayWidth` | Overlay width percentage of the video frame (70 to 100) | int or float | `85` | :white_check_mark: |
   | `penaltyCodeKey` | Penalty code key visibility below the rosters | boolean | `true` | :white_check_mark: |
+  | `rosterTextScaling` | Grow the roster text to fill the panel when a roster is short | boolean | `true` | :white_check_mark: |
   | `teamLogos` | Show the team logos CRG supplies | boolean | `true` | :white_check_mark: |
   | `timeoutAnimation` | Timeout banner animation: `glow`, `pulse`, `shine`, or `off` | string | `glow` | :white_check_mark: |
 
@@ -255,9 +257,13 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | `backgroundAnimation` | Default for `backgroundAnimation` | object | `trace` | :warning: |
   | `debug` | Default for `debug.enabled` | object | `false` | :warning: |
   | `font` | Default for `overlayFont` | object | `saira` | :warning: |
+  | `height` | Allowed range and default for `overlayHeight` | object | `50` to `100`, default `100` | :warning: |
   | `opacity` | Allowed range and default for `overlayOpacity` | object | `0` to `100`, default `98` | :warning: |
   | `penaltyCodeKey` | Default for `penaltyCodeKey` | object | `true` | :warning: |
   | `penaltyCodes.max` | Most penalty codes a roster row displays | integer | `9` | :warning: |
+  | `rosterRows.max` | Most skaters a roster displays | integer | `20` | :warning: |
+  | `rosterScale` | Largest roster text scale, held so nine penalty codes still fit | object | max `1.18` | :warning: |
+  | `rosterTextScaling` | Default for `rosterTextScaling` | object | `true` | :warning: |
   | `scale` | Allowed range and default for `overlayScale` | object | `1` to `100`, default `100` | :warning: |
   | `teamLogos` | Default for `teamLogos` | object | `true` | :warning: |
   | `timeoutAnimation` | Default for `timeoutAnimation` | object | `glow` | :warning: |
@@ -274,6 +280,11 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | `customLogoSelector` | CSS Selector for the custom logo container | string | `#custom-logo` | :x: |
   | `loadingOverlayTextSelector` | CSS Selector for the loading overlay text | string | `.loading-text` | :x: |
   | `penaltyCodeKeyItemsSelector` | CSS Selector for the penalty code key items | string | `.code-key-items` | :x: |
+  | `rosterSelector` | CSS Selector for a roster | string | `.roster` | :x: |
+  | `rosterHeadingsSelector` | CSS Selector for the roster column headings | string | `.roster-headings` | :x: |
+  | `rosterLineSelector` | CSS Selector for a roster line | string | `.roster-line` | :x: |
+  | `rosterLineOverLimitSelector` | CSS Selector for a roster line past the display limit | string | `.over-limit` | :x: |
+  | `teamHeadingSelector` | CSS Selector for the team name heading above a roster | string | `.team-heading` | :x: |
   | `penaltiesTitleH1Selector` | CSS Selector for the penalties title H1 text | string | `#penalties-title h1` | :x: |
   | `textShadow` | CSS Variable for text shadows | string | `var(--team-penalties-default-text-shadow)` | :x: |
 
@@ -343,6 +354,7 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | `maxLoadWaitMs` | Longest time to wait for the game rules to arrive (ms) | integer | `5000` | :warning: |
   | `minLoadDisplayMs` | Minimum time to show loading screen (ms) | integer | `500` | :x: |
   | `penaltyCodeKeyRebuild` | Delay before rebuilding the penalty code key after an update (ms) | integer | `50` | :x: |
+  | `rosterTextFit` | Delay before refitting the roster text after an update (ms) | integer | `60` | :x: |
 
 </details>
 
