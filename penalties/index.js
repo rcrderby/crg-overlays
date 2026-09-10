@@ -158,8 +158,8 @@ function getDebugParameter() {
 const DEBUG = getDebugSetting();
 console.log('Debug mode:', DEBUG);
 
-// Looks the height floor takes before it settles
-// Two are enough in practice, and the third is there so a change never leaves it short
+// Most looks the height floor takes, so an unsettled layout cannot hold it up
+// It settles by gaining nothing on a pass, and two are enough in practice
 const HEIGHT_HOLD_PASSES = 3;
 
 // Overlay version to display as a watermark and log to the console
@@ -1220,6 +1220,7 @@ function holdOverlayHeight() {
   const limit = Number.isFinite(frame) && Number.isFinite(inset) ? frame - 2 * inset : Infinity;
 
   let held = 0;
+  let lastDeficit = Infinity;
 
   // Handing the height back moves the layout, and most of it goes to the rosters
   for (let pass = 0; pass < HEIGHT_HOLD_PASSES; pass += 1) {
@@ -1235,6 +1236,12 @@ function holdOverlayHeight() {
       break;
     }
 
+    // A pass that gained nothing means another will gain nothing, too
+    if (deficit >= lastDeficit) {
+      break;
+    }
+
+    lastDeficit = deficit;
     held = Math.min(Math.ceil(overlay.offsetHeight + deficit), limit);
     root.style.setProperty('--overlay-min-height', `${held}px`);
 

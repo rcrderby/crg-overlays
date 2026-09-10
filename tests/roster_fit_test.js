@@ -268,7 +268,8 @@ Deno.test('the logo row is looked at again until it has its height back', async 
   assert.equal(recovering.properties['--overlay-min-height'], '683px');
 });
 
-Deno.test('the height floor settles rather than looking forever', async () => {
+Deno.test('a logo row that cannot recover is offered the room once', async () => {
+  // The row stays at its minimum however much height it is handed
   const stuck = await loadOverlay({
     rosters: [panel(10, FULL_ROSTER), panel(10, FULL_ROSTER)],
     overlayFrame: { offsetHeight: 400, clientHeight: 400, scrollHeight: 400, logoRow: 44 }
@@ -277,8 +278,28 @@ Deno.test('the height floor settles rather than looking forever', async () => {
   stuck.setRosterTextScaling();
   stuck.holdOverlayHeight();
 
-  // A row that never recovers is looked at the fixed number of times and no more
-  assert.equal(stuck.properties['--overlay-min-height'], `${400 + 56 * stuck.HEIGHT_HOLD_PASSES}px`);
+  // 56px once, rather than the same 56px on every look
+  assert.equal(stuck.properties['--overlay-min-height'], '456px');
+});
+
+Deno.test('the height floor gives up rather than looking forever', async () => {
+  // A row that recovers by less each time would otherwise be chased indefinitely
+  const crawling = await loadOverlay({
+    rosters: [panel(10, FULL_ROSTER), panel(10, FULL_ROSTER)],
+    overlayFrame: {
+      offsetHeight: 616,
+      clientHeight: 616,
+      scrollHeight: 616,
+      logoRowSteps: [44, 89, 95, 98, 99, 100]
+    }
+  });
+
+  crawling.setRosterTextScaling();
+  crawling.holdOverlayHeight();
+
+  // Three looks: 616 + 56, then + 11, then + 5, and no more
+  assert.equal(crawling.HEIGHT_HOLD_PASSES, 3);
+  assert.equal(crawling.properties['--overlay-min-height'], '688px');
 });
 
 Deno.test('a full roster with a timeout banner leaves the logos squeezed', async () => {
