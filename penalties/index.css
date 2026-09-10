@@ -12,6 +12,10 @@
   --overlay-padding-vertical: 12px;
   --overlay-inset-vertical: 32px;
   --overlay-width-ratio: 0.85;
+  --overlay-height-ratio: 1;
+  --overlay-justify: flex-start;
+  --overlay-min-height: 0;
+  --roster-scale: 1;
   --overlay-bg-color: 13 12 17;
   --overlay-opacity: 98%;
   --overlay-bg: rgb(var(--overlay-bg-color) / var(--overlay-opacity));
@@ -68,21 +72,21 @@
   --font-family: 'Saira', arial, sans-serif;
   --font-family-display: 'Saira Condensed', 'Arial Narrow', arial, sans-serif;
   --font-penalties-title-size: 44px;
-  --font-team-heading-size: 26px;
+  --font-team-heading-size: calc(26px * var(--roster-scale));
   --font-version-size: 11px;
   --font-score-size: 48px;
   --font-clock-size: 44px;
   --font-tournament-size: 22px;
   --font-team-name-size: 25px;
   --font-clock-label-size: 16px;
-  --font-heading-size: 12px;
+  --font-heading-size: calc(12px * var(--roster-scale));
   --font-penalty-code-key-code-size: 1.25em;
   --font-penalty-code-key-size: 15px;
-  --font-total-size: 21px;
-  --font-penalty-code-size: 19px;
-  --font-penalty-count-size: 18px;
-  --font-roster-penalties-size: 21px;
-  --font-captain-size: 13px;
+  --font-total-size: calc(21px * var(--roster-scale));
+  --font-penalty-code-size: calc(19px * var(--roster-scale));
+  --font-penalty-count-size: calc(18px * var(--roster-scale));
+  --font-roster-penalties-size: calc(21px * var(--roster-scale));
+  --font-captain-size: calc(13px * var(--roster-scale));
   --font-loading-size: 32px;
   --font-timeout-banner-size: 18px;
 
@@ -123,12 +127,12 @@
   --height-timeout-banner-row: 40px;
   --height-logo-container: 100px;
   --height-teams-container-min: 44px;
-  --height-penalty-count-line: 20px;
-  --height-column-headings: 24px;
-  --height-roster-row: 29px;
-  --height-team-heading: 46px;
+  --height-penalty-count-line: calc(20px * var(--roster-scale));
+  --height-column-headings: calc(24px * var(--roster-scale));
+  --height-roster-row: calc(29px * var(--roster-scale));
+  --height-team-heading: calc(46px * var(--roster-scale));
   --height-total-row: 38px;
-  --height-roster-penalties-line: 28px;
+  --height-roster-penalties-line: calc(28px * var(--roster-scale));
   --radius-border-captain-indicator: 3px;
   --radius-border-penalty-count: 3px;
   --width-border-overlay: 1px;
@@ -136,13 +140,13 @@
   --width-border-rosters-penalties: 1px;
   --width-border-team-panel: 2px;
   --width-border-total-row: 3px;
-  --width-captain-indicator-min: 19px;
+  --width-captain-indicator-min: calc(19px * var(--roster-scale));
   --width-game-info-center: 330px;
   --width-game-info-side: 190px;
   --width-loading-error-max: 1100px;
   --width-penalty-codes: 236px; /* Fits nine penalty codes */
-  --width-penalty-count: 52px;
-  --width-roster-number: 78px;
+  --width-penalty-count: calc(52px * var(--roster-scale));
+  --width-roster-number: calc(78px * var(--roster-scale));
   --width-penalties-title-max: 40%;
   --width-score: 122px;
 
@@ -178,7 +182,11 @@
 
 body {
   background-color: rgb(0 0 0 / 0%);
+  display: flex;
+  flex-direction: column;
   font-family: var(--font-family);
+  height: var(--overlay-height);
+  justify-content: var(--overlay-justify, flex-start);
   overflow: hidden;
 }
 
@@ -260,8 +268,9 @@ body {
   box-shadow: var(--shadow-overlay);
   display: flex;
   flex-direction: column;
-  height: calc(var(--overlay-height) - (2 * var(--overlay-inset-vertical)));
+  height: calc((var(--overlay-height) * var(--overlay-height-ratio)) - (2 * var(--overlay-inset-vertical)));
   margin: var(--overlay-inset-vertical) auto;
+  min-height: var(--overlay-min-height, 0);
   padding: var(--overlay-padding-vertical) var(--overlay-padding-horizontal);
   position: relative;
   transform: scale(var(--overlay-scale, 1));
@@ -481,6 +490,10 @@ body {
   border-bottom: var(--width-border-rosters-penalties) solid var(--roster-row-separator);
   height: var(--height-roster-row);
   padding: 0 var(--padding-roster-columns);
+}
+
+.roster-line.over-limit {
+  display: none;
 }
 
 .roster-number {

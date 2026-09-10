@@ -106,8 +106,10 @@ const SETTINGS = {
   background: { setting: 'BackgroundAnimation', label: 'Background animation' },
   debug: { label: 'Debug logging' },
   font: { setting: 'Font', label: 'Overlay font' },
+  height: { setting: 'Height', label: 'Overlay height' },
   key: { setting: 'PenaltyCodeKey', label: 'Penalty code key' },
   opacity: { setting: 'Opacity', label: 'Overlay opacity' },
+  rosterTextScaling: { setting: 'RosterTextScaling', label: 'Roster text scaling' },
   scale: { setting: 'Scale', label: 'Overlay scale' },
   teamLogos: { setting: 'TeamLogos', label: 'Team logos' },
   timeout: { setting: 'TimeoutAnimation', label: 'Timeout animation' },
@@ -155,6 +157,10 @@ function getDebugParameter() {
 // Debugging setting, read before the settings that log through it
 const DEBUG = getDebugSetting();
 console.log('Debug mode:', DEBUG);
+
+// Looks the height floor takes before it settles
+// Two are enough in practice, and the third is there so a change never leaves it short
+const HEIGHT_HOLD_PASSES = 3;
 
 // Overlay version to display as a watermark and log to the console
 const OVERLAY_VERSION = '4.1.0';
@@ -353,6 +359,26 @@ function setOverlayWidth() {
   }
 }
 
+// Validate and set the overlay height
+function setOverlayHeight() {
+  const allowed = VALIDATION.height;
+  const { value, source } = resolveSetting({
+    ...SETTINGS.height,
+    configValue: CONFIG.overlayHeight,
+    fallback: allowed.default,
+    parse: parseFloat,
+    describe: asPercent,
+    validate: inRange(allowed)
+  });
+
+  // Convert percentage to a decimal ratio of the video frame height
+  document.documentElement.style.setProperty('--overlay-height-ratio', value / 100);
+
+  if (DEBUG) {
+    console.log(`Overlay height set to ${value}% of the video frame (from ${source}).`);
+  }
+}
+
 // Animation option names mapped to the classes that drive them
 const BACKGROUND_ANIMATIONS = {
   trace: 'background-trace',
@@ -413,6 +439,10 @@ function setTimeoutAnimation() {
 // Penalty code key state
 let penaltyCodeKeyVisible = true;
 let penaltyCodeKeyPending = false;
+
+// Whether short rosters grow their text, and the rebuild that follows a change
+let rosterTextScaling = true;
+let rosterTextFitPending = false;
 
 // What the teams row currently holds, which decides whether it keeps its space
 let teamLogosVisible = true;
@@ -484,6 +514,24 @@ function setTeamsRowHeight() {
   }
 }
 
+// Validate and set the roster text scaling
+function setRosterTextScaling() {
+  const { value, source } = resolveSetting({
+    ...SETTINGS.rosterTextScaling,
+    configValue: CONFIG.rosterTextScaling,
+    fallback: VALIDATION.rosterTextScaling.default,
+    parse: lowercase,
+    describe: (scaling) => (scaling ? 'on' : 'off'),
+    validate: isBoolean
+  });
+
+  rosterTextScaling = value;
+
+  if (DEBUG) {
+    console.log(`Roster text scaling ${value ? 'on' : 'off'} (from ${source}).`);
+  }
+}
+
 // Validate and set the penalty code key visibility
 function setPenaltyCodeKey() {
   const { value, source } = resolveSetting({
@@ -522,11 +570,11 @@ function setOverlayOpacity() {
   }
 }
 
-// Overlay anchor values mapped to CSS transform origins
+// Overlay anchor values mapped to where the overlay sits in the video frame
 const OVERLAY_ANCHORS = {
-  top: 'top center',
-  center: 'center center',
-  bottom: 'bottom center'
+  top: { justify: 'flex-start', origin: 'top center' },
+  center: { justify: 'center', origin: 'center center' },
+  bottom: { justify: 'flex-end', origin: 'bottom center' }
 };
 
 // Validate and set the overlay anchor value
@@ -538,8 +586,11 @@ function setOverlayAnchor() {
     validate: oneOf(Object.keys(OVERLAY_ANCHORS))
   });
 
-  // Convert the anchor name to a CSS transform origin
-  document.documentElement.style.setProperty('--overlay-origin', OVERLAY_ANCHORS[value]);
+  // The anchored edge is stationary as the overlay's height and scale change
+  const anchor = OVERLAY_ANCHORS[value];
+
+  document.documentElement.style.setProperty('--overlay-justify', anchor.justify);
+  document.documentElement.style.setProperty('--overlay-origin', anchor.origin);
 
   if (DEBUG) {
     console.log(`Overlay anchored to ${value} (from ${source}).`);
@@ -1028,12 +1079,187 @@ function fitPenaltyCodeKey() {
   }
 }
 
+/***********************************
+ ** Roster Text Scaling Functions **
+ **********************************/
+
+// Grow the roster text so a short roster fills the panel it sits in
+// Both rosters take one scale - the longer of the two decides the scale
+function fitRosterText() {
+  const root = document.documentElement;
+
+  // Measure at the configured sizes, so a fit never inherits an earlier one
+  root.style.setProperty('--roster-scale', 1);
+  root.style.setProperty('--overlay-min-height', '0');
+  rosterTextFitPending = false;
+
+  // Trim the roster and give the overlay its height back before measuring the rows
+  limitRosterRows();
+  holdOverlayHeight();
+
+  const rosters = [...document.querySelectorAll(CLASSES.rosterSelector)];
+
+  if (rosters.length === 0) {
+    return;
+  }
+
+  let rows = 0;
+  let rowHeight = 0;
+  let headingSpace = 0;
+  let teamHeading = 0;
+
+  // The shortest roster panel decides the space, so neither overflows
+  let available = Infinity;
+
+  for (const roster of rosters) {
+    // A hidden line reports no height, so this counts the skaters on display
+    const lines = [...roster.querySelectorAll(CLASSES.rosterLineSelector)].filter((line) => line.offsetHeight > 0);
+    const headings = roster.querySelector(CLASSES.rosterHeadingsSelector);
+    const team = roster.parentElement && roster.parentElement.querySelector(CLASSES.teamHeadingSelector);
+
+    rows = Math.max(rows, lines.length);
+    rowHeight = rowHeight || (lines.length > 0 ? lines[0].offsetHeight : 0);
+    available = Math.min(available, roster.clientHeight);
+    teamHeading = Math.max(teamHeading, team ? team.offsetHeight : 0);
+
+    if (headings) {
+      const gap = parseFloat(getComputedStyle(headings).marginBottom) || 0;
+
+      headingSpace = Math.max(headingSpace, headings.offsetHeight + gap);
+    }
+  }
+
+  if (rows === 0 || rowHeight === 0 || !Number.isFinite(available) || available <= 0) {
+    return;
+  }
+
+  // The team name sits above the roster and scales with it
+  const space = available + teamHeading;
+  const needed = teamHeading + rows * rowHeight + headingSpace;
+
+  if (!rosterTextScaling) {
+    if (DEBUG) {
+      console.log('Roster text scaling is off - the configured sizes apply.');
+    }
+
+    return;
+  }
+
+  const fit = space / needed;
+  const scale = Math.min(fit, VALIDATION.rosterScale.max);
+
+  // Rosters long enough to fill the panel already keep the configured sizes
+  if (scale <= 1) {
+    return;
+  }
+
+  const rounded = Math.round(scale * 1000) / 1000;
+
+  root.style.setProperty('--roster-scale', rounded);
+
+  if (DEBUG) {
+    const capped = fit > VALIDATION.rosterScale.max ? ` (held at the ${VALIDATION.rosterScale.max} maximum)` : '';
+
+    console.log(`Roster text scaled to ${rounded} for ${rows} row(s)${capped}.`);
+  }
+}
+
+// Show only the skaters the panel can hold
+function limitRosterRows() {
+  const allowed = VALIDATION.rosterRows.max;
+  const overLimit = CLASSES.rosterLineOverLimitSelector.slice(1);
+  let hidden = 0;
+
+  for (const roster of document.querySelectorAll(CLASSES.rosterSelector)) {
+    let shown = 0;
+
+    for (const line of roster.querySelectorAll(CLASSES.rosterLineSelector)) {
+      const past = line.classList.contains(overLimit);
+
+      // A line already past the limit reports no height
+      if (!past && line.offsetHeight === 0) {
+        continue;
+      }
+
+      shown += 1;
+      line.classList.toggle(overLimit, shown > allowed);
+      hidden += shown > allowed ? 1 : 0;
+    }
+  }
+
+  if (DEBUG && hidden > 0) {
+    console.log(`${hidden} skater(s) past the ${allowed} a roster displays are hidden.`);
+  }
+}
+
+// Keep the overlay tall enough for everything in it
+function holdOverlayHeight() {
+  const root = document.documentElement;
+  const overlay = document.getElementById('overlay');
+
+  if (!overlay) {
+    return;
+  }
+
+  const style = getComputedStyle(root);
+  const teams = document.querySelector(TOGGLES.teamLogos.selector);
+  const natural = parseFloat(style.getPropertyValue('--height-logo-container'));
+  const frame = parseFloat(style.getPropertyValue('--overlay-height'));
+  const inset = parseFloat(style.getPropertyValue('--overlay-inset-vertical'));
+  const limit = Number.isFinite(frame) && Number.isFinite(inset) ? frame - 2 * inset : Infinity;
+
+  let held = 0;
+
+  // Handing the height back moves the layout, and most of it goes to the rosters
+  for (let pass = 0; pass < HEIGHT_HOLD_PASSES; pass += 1) {
+    // The room the logo row has given up, which it only gives up under pressure
+    const squeezed = teams && Number.isFinite(natural) ? Math.max(0, natural - teams.offsetHeight) : 0;
+
+    // Content that runs past the box it is drawn in, plus the room the logos lost
+    // Room to spare is not a reason to leave the logos short, so it counts as none
+    const overflow = Math.max(0, overlay.scrollHeight - overlay.clientHeight);
+    const deficit = overflow + squeezed;
+
+    if (!Number.isFinite(deficit) || deficit <= 0) {
+      break;
+    }
+
+    held = Math.min(Math.ceil(overlay.offsetHeight + deficit), limit);
+    root.style.setProperty('--overlay-min-height', `${held}px`);
+
+    // A timeout banner keeps the logo row's space only where the frame has none to give
+    if (held >= limit) {
+      break;
+    }
+  }
+
+  if (DEBUG && held > 0) {
+    console.log(`Overlay held at ${held}px, so the background covers its content.`);
+  }
+}
+
+// Fit once after a burst of WebSocket updates rather than on each one
+function scheduleRosterTextFit() {
+  if (rosterTextFitPending) {
+    return;
+  }
+
+  rosterTextFitPending = true;
+  setTimeout(fitRosterText, TIMING.rosterTextFit);
+}
+
+// Register the WebSocket paths the roster text scaling depends on
+function registerRosterTextFit() {
+  WS.Register([CHANNELS.team1Skaters, CHANNELS.team2Skaters], scheduleRosterTextFit);
+}
+
 // Apply all display settings
 function applyOverlaySettings() {
   const keyWasVisible = penaltyCodeKeyVisible;
 
   setOverlayScale();
   setOverlayWidth();
+  setOverlayHeight();
   setOverlayAnchor();
   setOverlayOpacity();
   setOverlayFont();
@@ -1044,6 +1270,8 @@ function applyOverlaySettings() {
   setTitleBannerVisible();
   setTeamLogos();
   setTeamsRowHeight();
+  setRosterTextScaling();
+  scheduleRosterTextFit();
 
   // Rebuild keys from WebSocket data
   if (penaltyCodeKeyVisible !== keyWasVisible) {
@@ -1277,6 +1505,7 @@ $(function () {
       WS.Connect();
       WS.AutoRegister();
       registerPenaltyCodeKey();
+      registerRosterTextFit();
       registerOverlaySettings();
       console.log('WebSocket connected.');
 
