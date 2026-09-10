@@ -48,6 +48,16 @@
           </div>
 
           <div class="setting-row">
+            <label>Scale From</label>
+            <div class="setting-choices" data-setting="Anchor">
+              <button class="setting-choice" type="button" data-value="top">Top</button>
+              <button class="setting-choice" type="button" data-value="center">Center</button>
+              <button class="setting-choice" type="button" data-value="bottom">Bottom</button>
+            </div>
+            <div></div>
+          </div>
+
+          <div class="setting-row">
             <label for="width-range">Width</label>
             <input id="width-range" type="range" data-setting="Width"
                    data-preview="--overlay-width-ratio" data-preview-ratio="true">
@@ -58,11 +68,20 @@
           </div>
 
           <div class="setting-row">
-            <label>Scale From</label>
-            <div class="setting-choices" data-setting="Anchor">
-              <button class="setting-choice" type="button" data-value="top">Top</button>
-              <button class="setting-choice" type="button" data-value="center">Center</button>
-              <button class="setting-choice" type="button" data-value="bottom">Bottom</button>
+            <label for="height-range">Height</label>
+            <input id="height-range" type="range" data-setting="Height"
+                   data-preview="--overlay-height-ratio" data-preview-ratio="true">
+            <div class="setting-number">
+              <input type="number" data-setting="Height">
+              <span>%</span>
+            </div>
+          </div>
+
+          <div class="setting-row setting-row-child">
+            <label>Scale Text</label>
+            <div class="setting-choices setting-switch-row" data-setting="RosterTextScaling">
+              <button class="setting-switch setting-choice" type="button" data-value="true"
+                      aria-label="Scale the roster text"></button>
             </div>
             <div></div>
           </div>
@@ -117,7 +136,7 @@
               </button>
               <button class="setting-tile setting-choice" type="button" data-value="organic">
                 <span class="setting-tile-name">Organic</span>
-                <span class="setting-stage setting-stage-organic">
+                <span class="setting-stage">
                   <i class="setting-pool setting-pool-primary"></i><i class="setting-pool setting-pool-secondary"></i>
                 </span>
               </button>
