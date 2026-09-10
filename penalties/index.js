@@ -444,6 +444,9 @@ let penaltyCodeKeyPending = false;
 let rosterTextScaling = true;
 let rosterTextFitPending = false;
 
+// The last count reported, so a full roster does not warn on every update
+let rosterRowsHidden = 0;
+
 // What the teams row currently holds, which decides whether it keeps its space
 let teamLogosVisible = true;
 let titleBannerVisible = true;
@@ -1169,6 +1172,7 @@ function limitRosterRows() {
   const allowed = VALIDATION.rosterRows.max;
   const overLimit = CLASSES.rosterLineOverLimitSelector.slice(1);
   let hidden = 0;
+  let most = 0;
 
   for (const roster of document.querySelectorAll(CLASSES.rosterSelector)) {
     let shown = 0;
@@ -1185,10 +1189,17 @@ function limitRosterRows() {
       line.classList.toggle(overLimit, shown > allowed);
       hidden += shown > allowed ? 1 : 0;
     }
+
+    most = Math.max(most, shown);
   }
 
-  if (DEBUG && hidden > 0) {
-    console.log(`${hidden} skater(s) past the ${allowed} a roster displays are hidden.`);
+  // More than 20 players logs to the browser console, whether or not debug is enabled
+  if (hidden !== rosterRowsHidden) {
+    rosterRowsHidden = hidden;
+
+    if (hidden > 0) {
+      console.warn(`A roster holds ${most} skaters and the overlay displays ${allowed} - ${hidden} are hidden.`);
+    }
   }
 }
 
