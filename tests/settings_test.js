@@ -320,19 +320,19 @@ Deno.test('the title comes from the admin page, then config.js', async () => {
 });
 
 Deno.test('the title is visible unless a setting hides it', async () => {
-  const { CLASSES } = overlay;
+  const { TOGGLES } = overlay;
   const shown = await loadOverlay();
   shown.setTitleBannerVisible();
-  assert.equal(shown.hasClass(CLASSES.penaltiesTitleSelector, 'visible'), true);
+  assert.equal(shown.hasClass(TOGGLES.titleBanner.selector, 'visible'), true);
 
   const hidden = await loadOverlay({ state: stored('TitleVisible', 'false') });
   hidden.setTitleBannerVisible();
-  assert.equal(hidden.hasClass(CLASSES.penaltiesTitleSelector, 'visible'), false);
+  assert.equal(hidden.hasClass(TOGGLES.titleBanner.selector, 'visible'), false);
   assert.deepEqual(hidden.warnings, []);
 });
 
 Deno.test('hiding the title leaves its text alone', async () => {
-  const { CLASSES } = overlay;
+  const { CLASSES, TOGGLES } = overlay;
   const hidden = await loadOverlay({
     state: { ...stored('TitleVisible', 'false'), ...stored('TitleText', 'PENALTY BOX') }
   });
@@ -340,56 +340,79 @@ Deno.test('hiding the title leaves its text alone', async () => {
   hidden.setTitleBannerVisible();
 
   assert.equal(hidden.text[CLASSES.penaltiesTitleH1Selector], 'PENALTY BOX');
-  assert.equal(hidden.hasClass(CLASSES.penaltiesTitleSelector, 'visible'), false);
+  assert.equal(hidden.hasClass(TOGGLES.titleBanner.selector, 'visible'), false);
 });
 
 Deno.test('an invalid title visibility falls back to showing the title', async () => {
-  const { CLASSES } = overlay;
+  const { TOGGLES } = overlay;
   const invalid = await loadOverlay({ state: stored('TitleVisible', 'maybe') });
   invalid.setTitleBannerVisible();
 
-  assert.equal(invalid.hasClass(CLASSES.penaltiesTitleSelector, 'visible'), true);
+  assert.equal(invalid.hasClass(TOGGLES.titleBanner.selector, 'visible'), true);
   assert.match(invalid.warnings.join(' '), /must be true or false/);
 });
 
 Deno.test('the team logos are visible unless a setting hides them', async () => {
-  const { CLASSES } = overlay;
+  const { TOGGLES } = overlay;
   const shown = await loadOverlay();
   shown.setTeamLogos();
-  assert.equal(shown.hasClass(CLASSES.teamsContainerSelector, 'logos-hidden'), false);
+  assert.equal(shown.hasClass(TOGGLES.teamLogos.selector, 'logos-hidden'), false);
 
   const hidden = await loadOverlay({ state: stored('TeamLogos', 'false') });
   hidden.setTeamLogos();
-  assert.equal(hidden.hasClass(CLASSES.teamsContainerSelector, 'logos-hidden'), true);
+  assert.equal(hidden.hasClass(TOGGLES.teamLogos.selector, 'logos-hidden'), true);
   assert.deepEqual(hidden.warnings, []);
 });
 
 Deno.test('config.js hides the team logos when the scoreboard holds nothing', async () => {
-  const { CLASSES } = overlay;
+  const { TOGGLES } = overlay;
   const configSource = (await readSource('penalties/config.js')).replace('teamLogos: true,', 'teamLogos: false,');
   const hidden = await loadOverlay({ configSource });
   hidden.setTeamLogos();
 
-  assert.equal(hidden.hasClass(CLASSES.teamsContainerSelector, 'logos-hidden'), true);
+  assert.equal(hidden.hasClass(TOGGLES.teamLogos.selector, 'logos-hidden'), true);
   assert.deepEqual(hidden.warnings, []);
 });
 
 Deno.test('a stored team logo setting outranks config.js', async () => {
-  const { CLASSES } = overlay;
+  const { TOGGLES } = overlay;
   const configSource = (await readSource('penalties/config.js')).replace('teamLogos: true,', 'teamLogos: false,');
   const shown = await loadOverlay({ configSource, state: stored('TeamLogos', 'true') });
   shown.setTeamLogos();
 
-  assert.equal(shown.hasClass(CLASSES.teamsContainerSelector, 'logos-hidden'), false);
+  assert.equal(shown.hasClass(TOGGLES.teamLogos.selector, 'logos-hidden'), false);
 });
 
 Deno.test('an invalid team logo setting falls back to showing the logos', async () => {
-  const { CLASSES } = overlay;
+  const { TOGGLES } = overlay;
   const invalid = await loadOverlay({ state: stored('TeamLogos', 'sometimes') });
   invalid.setTeamLogos();
 
-  assert.equal(invalid.hasClass(CLASSES.teamsContainerSelector, 'logos-hidden'), false);
+  assert.equal(invalid.hasClass(TOGGLES.teamLogos.selector, 'logos-hidden'), false);
   assert.match(invalid.warnings.join(' '), /must be true or false/);
+});
+
+Deno.test('the teams row keeps its space until the logos and the title are both hidden', async () => {
+  const { TOGGLES } = overlay;
+
+  // The row height follows both settings, so each one is applied before it is read
+  const isEmpty = async (state) => {
+    const applied = await loadOverlay({ state });
+
+    applied.setTitleBannerVisible();
+    applied.setTeamLogos();
+    applied.setTeamsRowHeight();
+
+    return applied.hasClass(TOGGLES.teamsRow.selector, TOGGLES.teamsRow.class);
+  };
+
+  const hideLogos = stored('TeamLogos', 'false');
+  const hideTitle = stored('TitleVisible', 'false');
+
+  assert.equal(await isEmpty({}), false, 'the logos and the title are both showing');
+  assert.equal(await isEmpty(hideLogos), false, 'the title still holds the row');
+  assert.equal(await isEmpty(hideTitle), false, 'the logos still hold the row');
+  assert.equal(await isEmpty({ ...hideLogos, ...hideTitle }), true, 'nothing is left to show');
 });
 
 Deno.test('the overlay follows every setting the page can write', async () => {

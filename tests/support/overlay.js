@@ -17,6 +17,7 @@ const INTERNALS = [
   'SETTINGS',
   'SETTING_SOURCES',
   'TIMING',
+  'TOGGLES',
   'VALIDATION',
 
   // Functions that apply a setting
@@ -29,6 +30,7 @@ const INTERNALS = [
   'setOverlayWidth',
   'setPenaltyCodeKey',
   'setTeamLogos',
+  'setTeamsRowHeight',
   'setTimeoutAnimation',
   'setTitleBannerText',
   'setTitleBannerVisible',

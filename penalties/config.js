@@ -140,47 +140,32 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // CSS Selector for the custom logo container
     customLogoSelector: '#custom-logo',
 
-    // CSS Selector for the custom logo space container
-    customLogoSpaceSelector: '#custom-logo-space',
-
-    // CSS Selector for the visible custom logo space container
-    customLogoSpaceVisibleSelectorSuffix: 'visible',
-
-    // CSS Selector for the loading overlay fade out
-    loadingOverlayFadeOutSuffixSelector: 'fade-out',
-
-    // CSS Selector for the loading overlay
-    loadingOverlaySelector: '#loading-overlay',
-
     // CSS Selector for the loading overlay text
     loadingOverlayTextSelector: '.loading-text',
-
-    // CSS Selector for the penalty code key container
-    penaltyCodeKeySelector: '#penalty-code-key',
 
     // CSS Selector for the penalty code key items
     penaltyCodeKeyItemsSelector: '.code-key-items',
 
-    // CSS Selector for the visible penalty code key
-    penaltyCodeKeyVisibleSelectorSuffix: 'visible',
-
-    // CSS Selector for the penalties title container
-    penaltiesTitleSelector: '#penalties-title',
-
     // CSS Selector for the penalties title H1 text
     penaltiesTitleH1Selector: '#penalties-title h1',
 
-    // CSS Selector for the visible penalties title
-    penaltiesTitleVisibleSelectorSuffix: 'visible',
-
-    // CSS Selector for the teams and logos container
-    teamsContainerSelector: '#teams-container',
-
-    // CSS Selector for the teams container with its logos hidden
-    teamLogosHiddenSelectorSuffix: 'logos-hidden',
-
     // CSS Variable for text shadows
     textShadow: 'var(--team-penalties-default-text-shadow)'
+  },
+
+  /*******************
+   ** State Classes **
+   ******************/
+
+  // Overlay features that mark a container with a state class, and the class each adds
+  // Every pair needs a rule in index.css that joins the selector and the class
+  toggles: {
+    customLogo: { selector: '#custom-logo-space', class: 'visible' },
+    loadingOverlay: { selector: '#loading-overlay', class: 'fade-out' },
+    penaltyCodeKey: { selector: '#penalty-code-key', class: 'visible' },
+    teamLogos: { selector: '#teams-container', class: 'logos-hidden' },
+    teamsRow: { selector: '#teams-container', class: 'row-empty' },
+    titleBanner: { selector: '#penalties-title', class: 'visible' }
   },
 
   /*********************
