@@ -649,3 +649,17 @@ Deno.test('every address on offer is written the same way', async () => {
 
   assert.deepEqual(page.overlayUrlChoices(CRG_URLS), ['http://127.0.0.1:8000', 'http://192.168.1.50:8000']);
 });
+
+// The README walks through the page group by group, and a group that moves on one
+// side without the other leaves a reader looking for something that is not there
+Deno.test('the README walks through the groups the admin page shows, in order', async () => {
+  const readme = await readSource('penalties/README.md');
+  const start = readme.indexOf('## Admin Page');
+  const section = readme.slice(start, readme.indexOf('\n## ', start + 1));
+
+  const shown = [...html.matchAll(/<h2>([^<]+)<\/h2>/g)].map((match) => match[1].trim());
+  const documented = [...section.matchAll(/^### (.+)$/gm)].map((match) => match[1].trim());
+
+  assert.notEqual(shown.length, 0, 'the admin page shows no groups');
+  assert.deepEqual(documented, shown);
+});
