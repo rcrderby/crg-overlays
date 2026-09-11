@@ -19,18 +19,6 @@ Click a link in the table below to access specific overlay details and usage ins
 | ------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
 | [Penalties](./penalties/README.md "Penalties Overlay") | A viewer-friendly and customizable display of team rosters, penalties, and game information. |
 
-## Tests
-
-The test suite runs with [Deno](https://deno.com "Deno Website") and needs no other tools:
-
-```bash
-deno test --allow-read tests/
-```
-
-The tests cover the display setting limits in `config.js`, the roster and penalty functions CRG calls through the `sb` bindings, the penalty code key, the game information labels and clocks, the wiring between `index.html`, `index.js` and `config.js`, and U.S. English spelling.  [GitHub Actions](./.github/workflows "Workflows") runs them, plus [Super Linter](https://github.com/super-linter/super-linter "Super Linter"), on every push and pull request.
-
-The [dev container](./.devcontainer "Dev Container Configuration") includes Deno, so the suite runs there with no further setup.
-
 ## Disclaimer
 
 CRG overlays should render predictably, although different CRG versions, odd or corrupted game states, browsers, video streaming software, etc. may cause overlays to work differently than expected.  Please open an [Issue](https://github.com/rcrderby/crg-overlays/issues "Repository Issues") to report a problem or request features.
