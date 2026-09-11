@@ -25,7 +25,12 @@
     <div id="settings-header">
       <h1>Penalties Overlay Admin</h1>
       <div id="settings-actions">
-        <button id="copy-url" type="button">Copy Overlay URL</button>
+
+        <!-- index.js lists the IPv4 addresses CRG listens on -->
+        <div id="copy-url-group">
+          <button id="copy-url" type="button" aria-expanded="false">Copy Overlay URL</button>
+          <ul id="copy-url-list"></ul>
+        </div>
         <button id="reset-settings" type="button">Reset to Defaults</button>
       </div>
     </div>
@@ -152,7 +157,38 @@
           </div>
         </div>
 
-        <!-- Game information area -->
+        <!-- Overlay heading area, above the rosters -->
+        <div class="setting-group">
+          <h2>Heading</h2>
+
+          <div class="setting-row">
+            <label>Title</label>
+            <div class="setting-choices setting-switch-row" data-setting="TitleVisible">
+              <button class="setting-switch setting-choice" type="button" data-value="true"
+                      aria-label="Show the overlay title"></button>
+              <span class="setting-switch-note">Show or hide the overlay title</span>
+            </div>
+            <div></div>
+          </div>
+
+          <div class="setting-row setting-row-child">
+            <label for="title-text">Title Text</label>
+            <input id="title-text" type="text" maxlength="40" data-setting="TitleText">
+            <div></div>
+          </div>
+
+          <div class="setting-row">
+            <label>Team Logos</label>
+            <div class="setting-choices setting-switch-row" data-setting="TeamLogos">
+              <button class="setting-switch setting-choice" type="button" data-value="true"
+                      aria-label="Show the team logos"></button>
+              <span class="setting-switch-note">Show or hide team logos from CRG</span>
+            </div>
+            <div></div>
+          </div>
+        </div>
+
+        <!-- Game information area, below the rosters -->
         <div class="setting-group">
           <h2>Game Information</h2>
 
@@ -187,31 +223,106 @@
             </div>
             <div></div>
           </div>
+        </div>
 
-          <div class="setting-row">
-            <label>Team Logos</label>
-            <div class="setting-choices setting-switch-row" data-setting="TeamLogos">
-              <button class="setting-switch setting-choice" type="button" data-value="true"
-                      aria-label="Show the team logos"></button>
-              <span class="setting-switch-note">Show or hide team logos from CRG</span>
+        <!-- Team names and colors, which replace those supplied by CRG -->
+        <div class="setting-group">
+          <h2>Teams</h2>
+
+          <div class="team-block">
+            <div class="team-block-name">Team 1</div>
+
+            <div class="setting-row">
+              <label>Name</label>
+              <div class="setting-choices setting-switch-row" data-setting="Team1NameOverride">
+                <button class="setting-switch setting-choice" type="button" data-value="true"
+                        aria-label="Override the team 1 name"></button>
+                <span class="setting-switch-note">Override CRG name</span>
+              </div>
+              <div></div>
             </div>
-            <div></div>
+
+            <div class="setting-row setting-row-child">
+              <label for="team1-name">Custom Name</label>
+              <input id="team1-name" type="text" maxlength="40" data-setting="Team1Name">
+              <button class="setting-default" type="button" data-setting="Team1Name">Default</button>
+            </div>
+
+            <div class="setting-row">
+              <label>Colors</label>
+              <div class="setting-choices setting-switch-row" data-setting="Team1ColorOverride">
+                <button class="setting-switch setting-choice" type="button" data-value="true"
+                        aria-label="Override the team 1 colors"></button>
+                <span class="setting-switch-note">Override CRG colors</span>
+              </div>
+              <div></div>
+            </div>
+
+            <div class="setting-row setting-row-child">
+              <label for="team1-background">Background</label>
+              <input id="team1-background" type="color" data-setting="Team1BackgroundColor">
+              <button class="setting-default" type="button" data-setting="Team1BackgroundColor">Default</button>
+            </div>
+
+            <div class="setting-row setting-row-child">
+              <label for="team1-text">Text</label>
+              <input id="team1-text" type="color" data-setting="Team1TextColor">
+              <button class="setting-default" type="button" data-setting="Team1TextColor">Default</button>
+            </div>
+
+            <div class="setting-row setting-row-child">
+              <label for="team1-glow">Glow/Shadow</label>
+              <input id="team1-glow" type="color" data-setting="Team1GlowColor">
+              <button class="setting-default" type="button" data-setting="Team1GlowColor">Default</button>
+            </div>
           </div>
 
-          <div class="setting-row">
-            <label>Title</label>
-            <div class="setting-choices setting-switch-row" data-setting="TitleVisible">
-              <button class="setting-switch setting-choice" type="button" data-value="true"
-                      aria-label="Show the overlay title"></button>
-              <span class="setting-switch-note">Show or hide the overlay title</span>
-            </div>
-            <div></div>
-          </div>
+          <div class="team-block">
+            <div class="team-block-name">Team 2</div>
 
-          <div class="setting-row setting-row-child">
-            <label for="title-text">Title Text</label>
-            <input id="title-text" type="text" maxlength="40" data-setting="TitleText">
-            <div></div>
+            <div class="setting-row">
+              <label>Name</label>
+              <div class="setting-choices setting-switch-row" data-setting="Team2NameOverride">
+                <button class="setting-switch setting-choice" type="button" data-value="true"
+                        aria-label="Override the team 2 name"></button>
+                <span class="setting-switch-note">Override CRG name</span>
+              </div>
+              <div></div>
+            </div>
+
+            <div class="setting-row setting-row-child">
+              <label for="team2-name">Custom Name</label>
+              <input id="team2-name" type="text" maxlength="40" data-setting="Team2Name">
+              <button class="setting-default" type="button" data-setting="Team2Name">Default</button>
+            </div>
+
+            <div class="setting-row">
+              <label>Colors</label>
+              <div class="setting-choices setting-switch-row" data-setting="Team2ColorOverride">
+                <button class="setting-switch setting-choice" type="button" data-value="true"
+                        aria-label="Override the team 2 colors"></button>
+                <span class="setting-switch-note">Override CRG colors</span>
+              </div>
+              <div></div>
+            </div>
+
+            <div class="setting-row setting-row-child">
+              <label for="team2-background">Background</label>
+              <input id="team2-background" type="color" data-setting="Team2BackgroundColor">
+              <button class="setting-default" type="button" data-setting="Team2BackgroundColor">Default</button>
+            </div>
+
+            <div class="setting-row setting-row-child">
+              <label for="team2-text">Text</label>
+              <input id="team2-text" type="color" data-setting="Team2TextColor">
+              <button class="setting-default" type="button" data-setting="Team2TextColor">Default</button>
+            </div>
+
+            <div class="setting-row setting-row-child">
+              <label for="team2-glow">Glow/Shadow</label>
+              <input id="team2-glow" type="color" data-setting="Team2GlowColor">
+              <button class="setting-default" type="button" data-setting="Team2GlowColor">Default</button>
+            </div>
           </div>
         </div>
       </div>

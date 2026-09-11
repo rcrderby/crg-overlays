@@ -38,7 +38,9 @@
   /* Title */
   --title-color: white;
 
-  /* Team and penalty default colors */
+  /* Team and penalty default colors, used when CRG supplies none and nothing overrides them
+     index.js writes --team-background-color, --team-text-color and --team-text-shadow
+     on each team's panel in the admin page */
   --team-penalties-default-fg-color: white;
   --team-penalties-default-bg-color: black;
   --team-penalties-default-border-color: white;
@@ -395,7 +397,7 @@ body {
 }
 
 .roster-penalties-container {
-  border: var(--width-border-team-panel) solid var(--team-penalties-default-border-color);
+  border: var(--width-border-team-panel) solid var(--team-background-color, var(--team-penalties-default-border-color));
   box-shadow: inset 0 0 0 var(--width-border-rosters-penalties) var(--panel-inner-highlight);
   display: flex;
   flex: 1;
@@ -404,8 +406,9 @@ body {
 }
 
 .team-heading {
-  background-color: var(--team-penalties-default-bg-color);
-  color: var(--team-penalties-default-fg-color);
+  background-color: var(--team-background-color, var(--team-penalties-default-bg-color));
+  color: var(--team-text-color, var(--team-penalties-default-fg-color));
+  text-shadow: var(--team-text-shadow, var(--team-penalties-default-text-shadow));
   align-items: center;
   border-bottom: var(--width-border-rosters-penalties) solid var(--roster-rule);
   display: flex;

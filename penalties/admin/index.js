@@ -13,7 +13,7 @@ if (!PenaltiesOverlayConfig) {
 }
 
 // Sections the admin page reads
-const REQUIRED_SECTIONS = ['config', 'storage', 'validation'];
+const REQUIRED_SECTIONS = ['config', 'storage', 'timing', 'validation'];
 const missingSections = REQUIRED_SECTIONS.filter((section) => !PenaltiesOverlayConfig[section]);
 
 if (missingSections.length > 0) {
@@ -25,6 +25,7 @@ if (missingSections.length > 0) {
 
 const CONFIG = PenaltiesOverlayConfig.config;
 const STORAGE = PenaltiesOverlayConfig.storage;
+const TIMING = PenaltiesOverlayConfig.timing;
 const VALIDATION = PenaltiesOverlayConfig.validation;
 
 // CRG stores every setting as a string under one prefix
@@ -33,6 +34,14 @@ const SETTING_CHANNEL_PREFIX = STORAGE.settingChannelPrefix;
 // The scoreboard channel a setting is stored in
 function settingChannel(name) {
   return `${SETTING_CHANNEL_PREFIX}${name})`;
+}
+
+// Fields CRG holds beneath a team, which an unset override falls back to
+const TEAM_CHANNELS = STORAGE.teamChannels;
+
+// The scoreboard channel holding one of a team's fields
+function teamChannel(teamNumber, field) {
+  return `${STORAGE.teamChannelPrefix}${teamNumber}).${field}`;
 }
 
 // CRG covers a page with its loading screen until a registered channel sends a value
@@ -50,12 +59,58 @@ const SETTINGS = {
   PenaltyCodeKey: { config: 'penaltyCodeKey', validation: 'penaltyCodeKey' },
   RosterTextScaling: { config: 'rosterTextScaling', validation: 'rosterTextScaling' },
   Scale: { config: 'overlayScale', validation: 'scale' },
+  Team1BackgroundColor: { config: 'team1BackgroundColor', validation: 'teamColor' },
+  Team1ColorOverride: { config: 'team1ColorOverride', validation: 'teamColorOverride' },
+  Team1GlowColor: { config: 'team1GlowColor', validation: 'teamColor' },
+  Team1Name: { config: 'team1Name', validation: 'teamName' },
+  Team1NameOverride: { config: 'team1NameOverride', validation: 'teamNameOverride' },
+  Team1TextColor: { config: 'team1TextColor', validation: 'teamColor' },
+  Team2BackgroundColor: { config: 'team2BackgroundColor', validation: 'teamColor' },
+  Team2ColorOverride: { config: 'team2ColorOverride', validation: 'teamColorOverride' },
+  Team2GlowColor: { config: 'team2GlowColor', validation: 'teamColor' },
+  Team2Name: { config: 'team2Name', validation: 'teamName' },
+  Team2NameOverride: { config: 'team2NameOverride', validation: 'teamNameOverride' },
+  Team2TextColor: { config: 'team2TextColor', validation: 'teamColor' },
   TeamLogos: { config: 'teamLogos', validation: 'teamLogos' },
   TimeoutAnimation: { config: 'timeoutAnimation', validation: 'timeoutAnimation' },
   TitleText: { config: 'titleBannerText', validation: 'title' },
   TitleVisible: { config: 'titleBannerVisible', validation: 'titleVisible' },
   Width: { config: 'overlayWidth', validation: 'width' }
 };
+
+// Each color picker's switch and the CRG color behind it
+const TEAM_COLOR_FIELDS = {
+  Team1BackgroundColor: { override: 'Team1ColorOverride', crg: teamChannel(1, TEAM_CHANNELS.background) },
+  Team1GlowColor: { override: 'Team1ColorOverride', crg: teamChannel(1, TEAM_CHANNELS.glow) },
+  Team1TextColor: { override: 'Team1ColorOverride', crg: teamChannel(1, TEAM_CHANNELS.text) },
+  Team2BackgroundColor: { override: 'Team2ColorOverride', crg: teamChannel(2, TEAM_CHANNELS.background) },
+  Team2GlowColor: { override: 'Team2ColorOverride', crg: teamChannel(2, TEAM_CHANNELS.glow) },
+  Team2TextColor: { override: 'Team2ColorOverride', crg: teamChannel(2, TEAM_CHANNELS.text) }
+};
+
+// Each name field's switch and the names CRG sends behind it, in the order the overlay reads them
+const TEAM_NAME_FIELDS = {
+  Team1Name: {
+    override: 'Team1NameOverride',
+    crg: [teamChannel(1, TEAM_CHANNELS.alternateName), teamChannel(1, TEAM_CHANNELS.name)]
+  },
+  Team2Name: {
+    override: 'Team2NameOverride',
+    crg: [teamChannel(2, TEAM_CHANNELS.alternateName), teamChannel(2, TEAM_CHANNELS.name)]
+  }
+};
+
+// The switch a team control waits on, or nothing for a control that has none
+function overrideSwitch(name) {
+  return (TEAM_COLOR_FIELDS[name] ?? TEAM_NAME_FIELDS[name])?.override;
+}
+
+// Whether a team control's switch is on, and a control with no switch always is
+function overrideOn(name) {
+  const override = overrideSwitch(name);
+
+  return override === undefined || settingValue(override) === 'true';
+}
 
 // The functions that show each control its value, for the first paint
 const painters = [];
@@ -132,14 +187,14 @@ function registerFields() {
     const name = field.data('setting');
     const channel = settingChannel(name);
     const limits = VALIDATION[SETTINGS[name].validation];
+    const picker = TEAM_COLOR_FIELDS[name] !== undefined;
 
     // A range lives in the configuration file, so it is set in one place
     if (limits.min !== undefined) {
       field.attr({ min: limits.min, max: limits.max });
     }
 
-    // Commit text as it is typed, and a slider value when the operator lets go
-    field.on(field.attr('type') === 'text' ? 'input' : 'change', function () {
+    const commit = function () {
       const value = committedValue(field, name);
 
       WS.Set(channel, value);
@@ -148,16 +203,58 @@ function registerFields() {
       if (field.attr('type') === 'number') {
         field.val(value === '' ? settingValue(name) : value);
       }
-    });
+    };
+
+    // Commit text as it is typed, a color as it is chosen, and a slider value when the operator lets go
+    // A picker reports a color to 'input' and closes without a 'change', so a color
+    // waiting on 'change' is lost the moment the operator clicks away
+    const live = picker || field.attr('type') === 'text';
+
+    field.on(live ? 'input' : 'change', picker ? onceChosen(commit) : commit);
 
     const paint = paintField(field, name);
 
     // Repaint on blur, so an empty field shows the value the overlay falls back to
-    field.on('blur', paint);
+    // A picker holds a color at all times, and repainting one undoes a pick that has not been stored yet
+    if (!picker) {
+      field.on('blur', paint);
+    }
 
     painters.push(paint);
-    WS.Register([channel], paint);
+    WS.Register(watchedChannels(name), paint);
   });
+}
+
+// A team control follows the switch that gates it and the CRG value behind it
+function watchedChannels(name) {
+  const color = TEAM_COLOR_FIELDS[name];
+
+  if (color) {
+    return [settingChannel(name), settingChannel(color.override), color.crg];
+  }
+
+  const team = TEAM_NAME_FIELDS[name];
+
+  if (team) {
+    return [settingChannel(name), settingChannel(team.override), ...team.crg];
+  }
+
+  return [settingChannel(name)];
+}
+
+// The name CRG is sending for a team, which stands behind an empty name field
+function crgTeamName(name) {
+  return TEAM_NAME_FIELDS[name].crg.map((channel) => WS.state[channel]).find((value) => value) ?? '';
+}
+
+// A drag through a picker reports every color it crosses, so the write waits for the operator to settle on one
+function onceChosen(commit) {
+  let pending = null;
+
+  return function () {
+    clearTimeout(pending);
+    pending = setTimeout(commit, TIMING.colorCommit);
+  };
 }
 
 // The value a field stores, held to the range in the configuration file
@@ -186,8 +283,56 @@ function paintField(field, name) {
       return;
     }
 
+    // A team control shows what the overlay is showing, which is CRG's value while its switch is off
+    const color = TEAM_COLOR_FIELDS[name];
+
+    if (color) {
+      field.val((overrideOn(name) && settingValue(name)) || WS.state[color.crg] || '');
+      field.prop('disabled', !overrideOn(name));
+
+      return;
+    }
+
+    // A name field stays empty until it overrides, and shows CRG's name behind it
+    if (TEAM_NAME_FIELDS[name]) {
+      field.attr('placeholder', crgTeamName(name));
+      field.val(overrideOn(name) ? settingValue(name) : '');
+      field.prop('disabled', !overrideOn(name));
+
+      return;
+    }
+
     field.val(settingValue(name));
   };
+}
+
+/**********************
+ ** Default Buttons **
+ *********************/
+
+// A default button clears its setting, so the overlay falls back to CRG-supplied values
+function registerDefaults() {
+  $('.setting-default').each(function () {
+    const button = $(this);
+    const name = button.data('setting');
+    const override = overrideSwitch(name);
+
+    button.on('click', function () {
+      WS.Set(settingChannel(name), '');
+    });
+
+    if (override === undefined) {
+      return;
+    }
+
+    // A button follows the switch that gates the control beside it
+    const paint = function () {
+      button.prop('disabled', !overrideOn(name));
+    };
+
+    painters.push(paint);
+    WS.Register([settingChannel(override)], paint);
+  });
 }
 
 /*************************
@@ -282,26 +427,113 @@ function scalePreview() {
 
 // The URL a streaming team points a browser source at
 function overlayUrl() {
-  return new URL('../', window.location.href).href.replace(/\/$/, '');
+  const address = new URL('../', window.location.href);
+
+  return `http://${address.host}${address.pathname.replace(/\/$/, '')}`;
+}
+
+// Only report IPv4 CRG addresses
+// Host names may resolve differently from one computer to the next
+// IPv6 are surrounded with brackets
+const IPV4_ADDRESS = /^\d{1,3}(\.\d{1,3}){3}$/;
+
+function ipv4Host(line) {
+  try {
+    const address = new URL(line.trim());
+
+    return IPV4_ADDRESS.test(address.hostname) ? address.host : '';
+  } catch {
+    return '';
+  }
+}
+
+// URLs for every address the overlay listens on, plus the current URL
+function overlayUrlChoices(reported) {
+  const here = overlayUrl();
+
+  // Take the path from the address above, so every choice is written the same way
+  const path = here.slice(new URL(here).origin.length);
+  const choices = [here];
+
+  String(reported)
+    .split('\n')
+    .forEach(function (line) {
+      const host = ipv4Host(line);
+
+      if (host && !choices.some((choice) => new URL(choice).host === host)) {
+        choices.push(`http://${host}${path}`);
+      }
+    });
+
+  return choices;
+}
+
+// Addresses the overlay listens on, filled in once CRG reports them
+let urlChoices = [];
+
+// Ask CRG for the addresses it listens on, and offer them beside the current URL
+function loadNetworkUrls() {
+  return fetch(STORAGE.networkUrlsPath)
+    .then((response) => (response.ok ? response.text() : ''))
+    .catch(() => '')
+    .then(showUrlChoices);
+}
+
+function setUrlListOpen(open) {
+  $('#copy-url-list').toggleClass('open', open);
+  $('#copy-url').attr('aria-expanded', String(open));
+}
+
+// List the addresses to choose between, and leave the list empty when there is no choice
+function showUrlChoices(reported) {
+  urlChoices = overlayUrlChoices(reported);
+
+  const list = $('#copy-url-list');
+
+  list.empty();
+  setUrlListOpen(false);
+
+  if (urlChoices.length < 2) {
+    return;
+  }
+
+  urlChoices.forEach(function (url) {
+    const option = $('<button>').addClass('copy-url-option').attr('type', 'button').text(url);
+
+    option.on('click', function () {
+      copyUrl(url);
+      setUrlListOpen(false);
+    });
+
+    $('<li>').append(option).appendTo(list);
+  });
+}
+
+// Copy an address and report back on the button, which carries its own label
+function copyUrl(url) {
+  const button = $('#copy-url');
+  const label = button.text();
+
+  return copyText(url).then(function (copied) {
+    button.text(copied ? 'Copied' : url);
+    setTimeout(function () {
+      button.text(label);
+    }, 2000);
+  });
 }
 
 function registerActions() {
-  const url = overlayUrl();
-
   $('#copy-url')
-    .attr('title', url)
+    .attr('title', overlayUrl())
     .on('click', function () {
-      const button = $(this);
+      // One address is this page's own, and there is nothing to choose between
+      if (urlChoices.length < 2) {
+        copyUrl(overlayUrl());
 
-      // The button carries its own label, so the markup names it once
-      const label = button.text();
+        return;
+      }
 
-      copyText(url).then(function (copied) {
-        button.text(copied ? 'Copied' : url);
-        setTimeout(function () {
-          button.text(label);
-        }, 2000);
-      });
+      setUrlListOpen(!$('#copy-url-list').hasClass('open'));
     });
 
   $('#reset-settings').on('click', function () {
@@ -337,12 +569,12 @@ $(function () {
   WS.Register([READY_CHANNEL]);
   registerChoices();
   registerFields();
+  registerDefaults();
   registerSliderPreview();
   registerBackdrops();
   registerActions();
-
-  // Controls start on the values the overlay is showing
   paintControls();
+  loadNetworkUrls();
 
   scalePreview();
   $(window).on('resize', scalePreview);

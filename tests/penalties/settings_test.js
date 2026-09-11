@@ -447,5 +447,5 @@ Deno.test('the overlay follows every setting the page can write', async () => {
     .map((setting) => overlay.settingChannel(setting.setting));
 
   assert.deepEqual(registered, expected);
-  assert.equal(registered.length, 13, 'thirteen settings belong to the admin page');
+  assert.equal(registered.length, 25, 'twenty five settings belong to the admin page');
 });

@@ -3,17 +3,17 @@
 
 import assert from 'node:assert/strict';
 import { loadOverlay, loadAdminPage, readSource } from './support/overlay.js';
-import { overlaySetting } from './support/channels.js';
+import { overlaySetting, teamAlternateName, teamColorChannel } from './support/channels.js';
 
 const html = await readSource('penalties/admin/index.html');
 const js = await readSource('penalties/admin/index.js');
 
 // The settings the page knows, and where each one reads its default
 const [, table] = js.match(/const SETTINGS = \{([\s\S]*?)\n\};/);
-const known = [...table.matchAll(/([A-Za-z]+): \{ config: '([A-Za-z]+)', validation: '([A-Za-z]+)' \}/g)];
+const known = [...table.matchAll(/([A-Za-z0-9]+): \{ config: '([A-Za-z0-9]+)', validation: '([A-Za-z0-9]+)' \}/g)];
 
 // The settings the page's controls write
-const written = [...new Set([...html.matchAll(/data-setting="([A-Za-z]+)"/g)].map((match) => match[1]))];
+const written = [...new Set([...html.matchAll(/data-setting="([A-Za-z0-9]+)"/g)].map((match) => match[1]))];
 
 Deno.test('the admin page writes every setting the overlay reads', async () => {
   const { SETTINGS } = await loadOverlay();
@@ -184,6 +184,7 @@ async function boundPage(options = {}) {
 
   page.registerChoices();
   page.registerFields();
+  page.registerDefaults();
   page.registerSliderPreview();
   page.registerBackdrops();
   page.registerActions();
@@ -381,4 +382,284 @@ Deno.test('the channel prefix comes from the configuration file', async () => {
   assert.ok(page.settingChannel('Width').startsWith(settingChannelPrefix));
   assert.equal(page.settingChannel('Width'), overlay.settingChannel('Width'));
   assert.equal(js.includes("'ScoreBoard.Settings.Setting("), false, 'the page names the prefix itself');
+});
+
+// The colors and the name CRG is sending, which the team controls fall back to
+const CRG_TEAM_STATE = {
+  [teamColorChannel(1, 'bg')]: '#78cbca',
+  [teamColorChannel(1, 'fg')]: '#000000',
+  [teamColorChannel(1, 'glow')]: '#ffffff',
+  [teamAlternateName(1)]: 'Wheels of Justice'
+};
+
+const TEAM_1_COLORS = ['Team1BackgroundColor', 'Team1TextColor', 'Team1GlowColor'];
+
+Deno.test('a color picker opens on the color CRG is sending, until an override replaces it', async () => {
+  const page = await boundPage({ state: { ...CRG_TEAM_STATE, [overlaySetting('Team1ColorOverride')]: 'true' } });
+
+  assert.equal(page.dom.field('Team1BackgroundColor', 'color').value, '#78cbca');
+
+  page.WS.Set(page.settingChannel('Team1BackgroundColor'), '#123456');
+
+  assert.equal(page.dom.field('Team1BackgroundColor', 'color').value, '#123456');
+
+  // Turning the switch off puts the control back on what CRG is sending
+  page.WS.Set(page.settingChannel('Team1ColorOverride'), 'false');
+
+  assert.equal(page.dom.field('Team1BackgroundColor', 'color').value, '#78cbca');
+  assert.equal(page.WS.state[page.settingChannel('Team1BackgroundColor')], '#123456', 'the override is kept');
+});
+
+Deno.test('a name switch enables the name field and the button beside it', async () => {
+  const page = await boundPage({
+    state: { ...CRG_TEAM_STATE, [overlaySetting('Team1Name')]: 'Bad Apples' }
+  });
+  const name = page.dom.field('Team1Name', 'text');
+
+  assert.equal(name.props.disabled, true, 'the field waits for the switch');
+  assert.equal(page.dom.reset('Team1Name').props.disabled, true);
+  assert.equal(name.value, '', 'and shows nothing of its own while CRG supplies the name');
+
+  page.dom.fire(page.dom.choice('Team1NameOverride', 'true'), 'click');
+
+  assert.equal(name.props.disabled, false);
+  assert.equal(page.dom.reset('Team1Name').props.disabled, false);
+  assert.equal(name.value, 'Bad Apples', 'the override comes back');
+});
+
+Deno.test('a team switch enables the pickers and default buttons beneath it', async () => {
+  const page = await boundPage({ state: CRG_TEAM_STATE });
+
+  for (const setting of TEAM_1_COLORS) {
+    assert.equal(page.dom.field(setting, 'color').props.disabled, true, `${setting} waits for the switch`);
+    assert.equal(page.dom.reset(setting).props.disabled, true, `${setting} cannot be cleared yet`);
+  }
+
+  page.dom.fire(page.dom.choice('Team1ColorOverride', 'true'), 'click');
+
+  for (const setting of TEAM_1_COLORS) {
+    assert.equal(page.dom.field(setting, 'color').props.disabled, false, `${setting} is writable`);
+    assert.equal(page.dom.reset(setting).props.disabled, false, `${setting} can be cleared`);
+  }
+
+  assert.equal(page.dom.field('Team2BackgroundColor', 'color').props.disabled, true, 'team 2 has its own switch');
+});
+
+Deno.test('a default button clears one setting and leaves the rest', async () => {
+  const page = await boundPage({
+    state: {
+      ...CRG_TEAM_STATE,
+      [overlaySetting('Team1ColorOverride')]: 'true',
+      [overlaySetting('Team1BackgroundColor')]: '#123456',
+      [overlaySetting('Team1TextColor')]: '#abcdef'
+    }
+  });
+
+  page.dom.fire(page.dom.reset('Team1BackgroundColor'), 'click');
+
+  assert.deepEqual(page.WS.sets.at(-1), { path: page.settingChannel('Team1BackgroundColor'), value: '' });
+  assert.equal(page.dom.field('Team1BackgroundColor', 'color').value, '#78cbca', 'back to the CRG color');
+  assert.equal(page.dom.field('Team1TextColor', 'color').value, '#abcdef', 'the other override stands');
+});
+
+Deno.test('a team name field stays empty, and shows the name CRG sends behind it', async () => {
+  const page = await boundPage({ state: CRG_TEAM_STATE });
+  const name = page.dom.field('Team1Name', 'text');
+
+  assert.equal(name.value, '');
+  assert.equal(name.attrs.placeholder, 'Wheels of Justice');
+
+  name.value = 'Bad Apples';
+  page.dom.fire(name, 'input');
+
+  assert.deepEqual(page.WS.sets.at(-1), { path: page.settingChannel('Team1Name'), value: 'Bad Apples' });
+});
+
+Deno.test('a name placeholder follows the name CRG sends', async () => {
+  const page = await boundPage({ state: CRG_TEAM_STATE });
+
+  page.WS.Set(teamAlternateName(1), 'Bruise Crew');
+
+  assert.equal(page.dom.field('Team1Name', 'text').attrs.placeholder, 'Bruise Crew');
+});
+
+// A control the page never binds, or a fetch it never makes, looks right and does nothing
+Deno.test('the page binds every control group when it loads', () => {
+  const [, ready] = js.match(/\$\(function \(\) \{([\s\S]*?)\n\}\);/);
+  const defined = [...js.matchAll(/^function ((?:register|load)[A-Za-z]+)\(/gm)].map((match) => match[1]);
+
+  assert.notEqual(defined.length, 0, 'the page defines no startup functions');
+
+  for (const name of defined) {
+    assert.ok(ready.includes(`${name}();`), `the page never calls ${name}`);
+  }
+});
+
+// CRG reports the addresses it answers on at a path of its own, and a streaming
+// computer reaches it over the network rather than at this page's own address
+const CRG_URLS = 'http://192.168.1.50:8000/\n';
+
+Deno.test('only an IPv4 address CRG reports is worth offering', async () => {
+  const page = await loadAdminPage();
+
+  assert.equal(page.ipv4Host('http://192.168.1.50:8000/'), '192.168.1.50:8000');
+  assert.equal(page.ipv4Host('  http://10.0.0.8:8000/  '), '10.0.0.8:8000', 'a line arrives with its newline');
+  assert.equal(page.ipv4Host('http://[fe80::1]:8000/'), '', 'IPv6 arrives bracketed');
+  assert.equal(page.ipv4Host('http://scoreboard.local:8000/'), '', 'a name resolves differently elsewhere');
+  assert.equal(page.ipv4Host(''), '');
+  assert.equal(page.ipv4Host('not a url'), '');
+});
+
+Deno.test('the addresses on offer start with the one this page was opened from', async () => {
+  const page = await loadAdminPage();
+
+  assert.deepEqual(page.overlayUrlChoices(CRG_URLS), [
+    'http://scoreboard:8000/custom/overlay/penalties',
+    'http://192.168.1.50:8000/custom/overlay/penalties'
+  ]);
+
+  assert.deepEqual(page.overlayUrlChoices(''), ['http://scoreboard:8000/custom/overlay/penalties']);
+});
+
+Deno.test('an address CRG reports twice, or one already on offer, is listed once', async () => {
+  const page = await loadAdminPage();
+  const repeated = 'http://192.168.1.50:8000/\nhttp://192.168.1.50:8000/\nhttp://[fe80::1]:8000/\n';
+
+  assert.equal(page.overlayUrlChoices(repeated).length, 2);
+
+  // The page itself opened on an address CRG also reports
+  const sameHost = await loadAdminPage();
+  sameHost.window.location.href = 'http://192.168.1.50:8000/custom/overlay/penalties/admin/';
+
+  assert.deepEqual(sameHost.overlayUrlChoices(CRG_URLS), ['http://192.168.1.50:8000/custom/overlay/penalties']);
+});
+
+Deno.test('the button copies straight away when there is nothing to choose between', async () => {
+  const page = await boundPage();
+  const button = page.dom.button('copy-url');
+
+  await page.loadNetworkUrls();
+
+  assert.equal(page.dom.options('copy-url-option').length, 0, 'no list is built');
+
+  button.label = 'Copy Overlay URL';
+  page.dom.fire(button, 'click');
+  await Promise.resolve();
+
+  assert.equal(button.label, page.overlayUrl(), 'no clipboard here, so the address is shown to copy by hand');
+});
+
+Deno.test('the button opens a list once CRG reports an address of its own', async () => {
+  const page = await boundPage({ urls: CRG_URLS });
+  const button = page.dom.button('copy-url');
+
+  await page.loadNetworkUrls();
+
+  const options = page.dom.options('copy-url-option');
+
+  assert.deepEqual(
+    options.map((option) => option.label),
+    ['http://scoreboard:8000/custom/overlay/penalties', 'http://192.168.1.50:8000/custom/overlay/penalties']
+  );
+
+  assert.equal(page.dom.element('copy-url-list').classes.has('open'), false, 'the list starts closed');
+
+  page.dom.fire(button, 'click');
+  assert.equal(page.dom.element('copy-url-list').classes.has('open'), true);
+  assert.equal(button.attrs['aria-expanded'], 'true');
+
+  page.dom.fire(button, 'click');
+  assert.equal(page.dom.element('copy-url-list').classes.has('open'), false, 'a second click closes it');
+});
+
+Deno.test('choosing an address copies it and closes the list', async () => {
+  const page = await boundPage({ urls: CRG_URLS });
+
+  await page.loadNetworkUrls();
+  page.dom.fire(page.dom.button('copy-url'), 'click');
+
+  const crgAddress = page.dom.options('copy-url-option')[1];
+
+  page.dom.button('copy-url').label = 'Copy Overlay URL';
+  page.dom.fire(crgAddress, 'click');
+  await Promise.resolve();
+
+  assert.equal(page.dom.button('copy-url').label, 'http://192.168.1.50:8000/custom/overlay/penalties');
+  assert.equal(page.dom.element('copy-url-list').classes.has('open'), false);
+
+  page.runTimers();
+  assert.equal(page.dom.button('copy-url').label, 'Copy Overlay URL', 'the label comes back');
+});
+
+Deno.test('a page CRG cannot answer keeps the button it already had', async () => {
+  const page = await boundPage({ urls: null });
+
+  await page.loadNetworkUrls();
+
+  assert.deepEqual(page.fetched, [page.window.AppConfig.PenaltiesOverlayConfig.storage.networkUrlsPath]);
+  assert.equal(page.dom.options('copy-url-option').length, 0);
+
+  const button = page.dom.button('copy-url');
+
+  button.label = 'Copy Overlay URL';
+  page.dom.fire(button, 'click');
+  await Promise.resolve();
+
+  assert.equal(button.label, page.overlayUrl(), 'the page address still copies');
+});
+
+// CRG serves over HTTP, so a page opened any other way still hands out a usable address
+Deno.test('every address on offer carries the HTTP scheme', async () => {
+  const page = await loadAdminPage();
+
+  page.window.location.href = 'https://scoreboard:8000/custom/overlay/penalties/admin/';
+
+  for (const url of page.overlayUrlChoices(CRG_URLS)) {
+    assert.match(url, /^http:\/\//);
+  }
+});
+
+// The list is built as the page runs, so its classes are not in the markup to check
+Deno.test('every class the admin page builds has a rule', async () => {
+  const css = await readSource('penalties/admin/index.css');
+  const built = [...js.matchAll(/addClass\('([a-z-]+)'\)/g)].map((match) => match[1]);
+
+  assert.notEqual(built.length, 0, 'the page builds no classes');
+
+  for (const name of built) {
+    assert.match(css, new RegExp(`\\.${name}\\b`), `index.css has no .${name} rule`);
+  }
+});
+
+Deno.test('the page asks CRG at the path the configuration file names', async () => {
+  const source = await readSource('penalties/config.js');
+  const configSource = source.replace("networkUrlsPath: '/urls'", "networkUrlsPath: '/addresses'");
+  const page = await loadAdminPage({ configSource, urls: CRG_URLS });
+
+  await page.loadNetworkUrls();
+
+  assert.deepEqual(page.fetched, ['/addresses']);
+});
+
+// An overlay served from the root has no path to carry, and the addresses still match
+Deno.test('every address on offer is written the same way', async () => {
+  const page = await loadAdminPage();
+
+  page.window.location.href = 'http://127.0.0.1:8000/admin/';
+
+  assert.deepEqual(page.overlayUrlChoices(CRG_URLS), ['http://127.0.0.1:8000', 'http://192.168.1.50:8000']);
+});
+
+// The README walks through the page group by group, and a group that moves on one
+// side without the other leaves a reader looking for something that is not there
+Deno.test('the README walks through the groups the admin page shows, in order', async () => {
+  const readme = await readSource('penalties/README.md');
+  const start = readme.indexOf('## Admin Page');
+  const section = readme.slice(start, readme.indexOf('\n## ', start + 1));
+
+  const shown = [...html.matchAll(/<h2>([^<]+)<\/h2>/g)].map((match) => match[1].trim());
+  const documented = [...section.matchAll(/^### (.+)$/gm)].map((match) => match[1].trim());
+
+  assert.notEqual(shown.length, 0, 'the admin page shows no groups');
+  assert.deepEqual(documented, shown);
 });

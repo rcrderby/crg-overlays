@@ -27,7 +27,7 @@ const BRITISH_SPELLINGS = [
   [/\b(jewellery|aluminium|storey|mould|smoulder|sceptic)(s|al)?\b/gi, 'the U.S. form']
 ];
 
-const REPO = new URL('../', import.meta.url);
+const REPO = new URL('../../', import.meta.url);
 
 // Every file this repository owns that should be read as English
 async function* sourceFiles(directory) {

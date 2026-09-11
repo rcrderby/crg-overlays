@@ -77,6 +77,22 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Grow the roster text to fill the panel when a roster is short
     rosterTextScaling: true,
 
+    // Names and colors that replace those supplied by CRG
+    // Any blank value uses CRG values
+    // Colors only apply when a team's override is set to `true`
+    team1BackgroundColor: '',
+    team1ColorOverride: false,
+    team1GlowColor: '',
+    team1Name: '',
+    team1NameOverride: false,
+    team1TextColor: '',
+    team2BackgroundColor: '',
+    team2ColorOverride: false,
+    team2GlowColor: '',
+    team2Name: '',
+    team2NameOverride: false,
+    team2TextColor: '',
+
     // Show the team logos CRG supplies
     teamLogos: true,
 
@@ -90,7 +106,23 @@ window.AppConfig.PenaltiesOverlayConfig = {
 
   storage: {
     // Channel prefix CRG stores the overlay's settings under
-    settingChannelPrefix: 'ScoreBoard.Settings.Setting(Penalties.Overlay.'
+    settingChannelPrefix: 'ScoreBoard.Settings.Setting(Penalties.Overlay.',
+
+    // Path CRG serves the addresses it answers on, one URL per line
+    networkUrlsPath: '/urls',
+
+    // Channel prefix CRG stores a team's game data under, completed with the team number
+    teamChannelPrefix: 'ScoreBoard.CurrentGame.Team(',
+
+    // Fields CRG holds beneath a team, named the way the overlay and the admin page use each
+    // Every color here is also named in an index.html binding
+    teamChannels: {
+      alternateName: 'AlternateName(whiteboard)',
+      background: 'Color(whiteboard.bg)',
+      glow: 'Color(whiteboard.glow)',
+      name: 'Name',
+      text: 'Color(whiteboard.fg)'
+    }
   },
 
   /************************
@@ -136,8 +168,20 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Overlay scale percentage
     scale: { min: 1, max: 100, default: 100 },
 
+    // Team color override, blank to use the CRG-supplied color
+    teamColor: { default: '' },
+
+    // Whether a team's colors below replace the CRG-supplied color
+    teamColorOverride: { default: false },
+
     // Team logo visibility
     teamLogos: { default: true },
+
+    // Team name override, blank to use the CRG-supplied name
+    teamName: { default: '' },
+
+    // Whether a team's name below replaces the CRG-supplied name
+    teamNameOverride: { default: false },
 
     // Timeout banner animation
     timeoutAnimation: { default: 'glow' },
@@ -181,8 +225,17 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // CSS Selector for the team name heading above a roster
     teamHeadingSelector: '.team-heading',
 
+    // CSS Selector for team 1's roster and penalties panel
+    team1PanelSelector: '#team1-rosters-penalties',
+
+    // CSS Selector for team 2's roster and penalties panel
+    team2PanelSelector: '#team2-rosters-penalties',
+
     // CSS Selector for the penalties title H1 text
     penaltiesTitleH1Selector: '#penalties-title h1',
+
+    // CSS Selector for the row the timeout banner grows into
+    timeoutBannerRowSelector: '#timeout-banner-row',
 
     // CSS Variable for text shadows
     textShadow: 'var(--team-penalties-default-text-shadow)'
@@ -280,6 +333,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
    ********************/
 
   timing: {
+    // Delay before storing a color once the picker stops moving (ms)
+    colorCommit: 150,
+
     // Delay before initializing display after WebSocket connects (ms)
     initWebSocket: 100,
 

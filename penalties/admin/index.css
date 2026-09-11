@@ -14,6 +14,7 @@
   --settings-surface: rgb(255 255 255 / 5%);
   --settings-surface-raised: rgb(255 255 255 / 8%);
   --settings-well: rgb(0 0 0 / 30%);
+  --settings-shadow-menu: 0 8px 20px rgb(0 0 0 / 45%);
 
   /* Fonts, from the overlay's bundled faces */
   --settings-font: 'Saira', arial, sans-serif;
@@ -68,6 +69,45 @@ body {
   display: flex;
   gap: 10px;
   margin-left: auto;
+}
+
+/* The list of URLs displays below the button that opens it */
+#copy-url-group {
+  position: relative;
+}
+
+#copy-url-list {
+  background: #15141b;
+  border: 1px solid var(--settings-line);
+  border-radius: 4px;
+  box-shadow: var(--settings-shadow-menu);
+  display: none;
+  list-style: none;
+  min-width: 100%;
+  padding: 4px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  white-space: nowrap;
+  z-index: 2;
+}
+
+#copy-url-list.open {
+  display: block;
+}
+
+.copy-url-option {
+  background: none;
+  border: none;
+  border-radius: 3px;
+  font-size: 12px;
+  padding: 7px 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.copy-url-option:hover {
+  background: rgb(255 255 255 / 13%);
 }
 
 /* The controls stay narrow, so the settings run down the page rather than across it */
@@ -191,6 +231,56 @@ input[type='text'] {
 
 .setting-number span {
   color: var(--settings-fg-dim);
+}
+
+/* Each team's settings, separated so the two teams read apart */
+.team-block {
+  border-top: 1px solid var(--settings-line-soft);
+  margin-top: 18px;
+  padding-top: 18px;
+}
+
+.team-block:first-of-type {
+  border-top: 0;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.team-block-name {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+/* The swatch a color picker shows, sized to the row rather than the browser default */
+input[type='color'] {
+  background: rgb(0 0 0 / 35%);
+  border: 1px solid var(--settings-line);
+  border-radius: 4px;
+  cursor: pointer;
+  height: 34px;
+  padding: 4px;
+  width: 72px;
+}
+
+/* Clears one setting, so the overlay falls back to the value CRG supplies */
+.setting-default {
+  font-size: 12px;
+  padding: 7px 10px;
+  width: 100%;
+}
+
+/* A picker and its button only apply while the team's switch is on */
+input:disabled,
+button:disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+button:disabled:hover {
+  background: var(--settings-surface-raised);
 }
 
 .setting-choices {

@@ -111,12 +111,50 @@ const SETTINGS = {
   opacity: { setting: 'Opacity', label: 'Overlay opacity' },
   rosterTextScaling: { setting: 'RosterTextScaling', label: 'Roster text scaling' },
   scale: { setting: 'Scale', label: 'Overlay scale' },
+  team1BackgroundColor: { setting: 'Team1BackgroundColor', label: 'Team 1 background color' },
+  team1ColorOverride: { setting: 'Team1ColorOverride', label: 'Team 1 color override' },
+  team1GlowColor: { setting: 'Team1GlowColor', label: 'Team 1 glow color' },
+  team1Name: { setting: 'Team1Name', label: 'Team 1 name' },
+  team1NameOverride: { setting: 'Team1NameOverride', label: 'Team 1 name override' },
+  team1TextColor: { setting: 'Team1TextColor', label: 'Team 1 text color' },
+  team2BackgroundColor: { setting: 'Team2BackgroundColor', label: 'Team 2 background color' },
+  team2ColorOverride: { setting: 'Team2ColorOverride', label: 'Team 2 color override' },
+  team2GlowColor: { setting: 'Team2GlowColor', label: 'Team 2 glow color' },
+  team2Name: { setting: 'Team2Name', label: 'Team 2 name' },
+  team2NameOverride: { setting: 'Team2NameOverride', label: 'Team 2 name override' },
+  team2TextColor: { setting: 'Team2TextColor', label: 'Team 2 text color' },
   teamLogos: { setting: 'TeamLogos', label: 'Team logos' },
   timeout: { setting: 'TimeoutAnimation', label: 'Timeout animation' },
   title: { setting: 'TitleText', label: 'Title text' },
   titleVisible: { setting: 'TitleVisible', label: 'Title visibility' },
   width: { setting: 'Width', label: 'Overlay width' }
 };
+
+// Each team's overrides: the setting the admin page writes and the value config.js holds
+// `panel` is the element the colors are written to, which the team's rules read them from
+const TEAM_SETTINGS = {
+  1: {
+    panel: CLASSES.team1PanelSelector,
+    background: { ...SETTINGS.team1BackgroundColor, configValue: CONFIG.team1BackgroundColor },
+    colorOverride: { ...SETTINGS.team1ColorOverride, configValue: CONFIG.team1ColorOverride },
+    glow: { ...SETTINGS.team1GlowColor, configValue: CONFIG.team1GlowColor },
+    name: { ...SETTINGS.team1Name, configValue: CONFIG.team1Name },
+    nameOverride: { ...SETTINGS.team1NameOverride, configValue: CONFIG.team1NameOverride },
+    text: { ...SETTINGS.team1TextColor, configValue: CONFIG.team1TextColor }
+  },
+  2: {
+    panel: CLASSES.team2PanelSelector,
+    background: { ...SETTINGS.team2BackgroundColor, configValue: CONFIG.team2BackgroundColor },
+    colorOverride: { ...SETTINGS.team2ColorOverride, configValue: CONFIG.team2ColorOverride },
+    glow: { ...SETTINGS.team2GlowColor, configValue: CONFIG.team2GlowColor },
+    name: { ...SETTINGS.team2Name, configValue: CONFIG.team2Name },
+    nameOverride: { ...SETTINGS.team2NameOverride, configValue: CONFIG.team2NameOverride },
+    text: { ...SETTINGS.team2TextColor, configValue: CONFIG.team2TextColor }
+  }
+};
+
+// The colors a team can override, each named for the CRG field it replaces
+const TEAM_COLORS = ['background', 'glow', 'text'];
 
 // Channel prefix for the settings the admin page writes
 // Each setting holds a string, and an empty string reads as unset
@@ -125,6 +163,11 @@ const SETTING_CHANNEL_PREFIX = STORAGE.settingChannelPrefix;
 // Scoreboard channel for settings storage
 function settingChannel(name) {
   return `${SETTING_CHANNEL_PREFIX}${name})`;
+}
+
+// Scoreboard channel holding one of a team's fields
+function teamChannel(teamNumber, field) {
+  return `${STORAGE.teamChannelPrefix}${teamNumber}).${field}`;
 }
 
 // A setting's stored value, or 'undefined' when not set by the admin page
@@ -178,7 +221,8 @@ const CHANNELS = {
   ruleFouloutCount: 'ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout)',
   rulePeriodCount: 'ScoreBoard.CurrentGame.Rule(Period.Number)',
   team1Skaters: 'ScoreBoard.CurrentGame.Team(1).Skater',
-  team2Skaters: 'ScoreBoard.CurrentGame.Team(2).Skater'
+  team2Skaters: 'ScoreBoard.CurrentGame.Team(2).Skater',
+  timeoutRunning: 'ScoreBoard.CurrentGame.Clock(Timeout).Running'
 };
 
 /**************************
@@ -244,6 +288,17 @@ function isBoolean(value) {
   }
 
   return { reason: 'must be true or false', display: `"${value}"` };
+}
+
+// Every hex color CSS accepts, which covers the six digits a color picker writes
+const HEX_COLOR = /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+
+function isColor(value) {
+  if (typeof value !== 'string' || !HEX_COLOR.test(value.trim())) {
+    return { reason: 'must be a hex color, as in #b3122e', display: `"${value}"` };
+  }
+
+  return { value: value.trim().toLowerCase() };
 }
 
 // Read a setting from the admin page, then config.js, then the validated default
@@ -679,12 +734,159 @@ window.showCaptainIndicator = function (_k, captainFlags) {
   return flags.includes(captainFlag) ? captainFlag : flags.includes(altCaptainFlag) ? altCaptainFlag : '';
 };
 
-// Convert the text glow color to the text-shadow color
-window.glowColorToShadow = function (_k, glowColor) {
-  if (!glowColor || glowColor === '') {
-    return CLASSES.textShadow;
+/***********************************
+ ** Team Color and Name Functions **
+ **********************************/
+
+// The team number inside a setting name, as in Penalties.Overlay.Team1BackgroundColor
+const TEAM_SETTING_NUMBER = /Team(\d+)/;
+
+// A binding repaints on every scoreboard update, so a bad override is reported when it changes
+const warnedOverrides = new Map();
+
+function warnOnce(setting, value, message) {
+  if (warnedOverrides.get(setting) === value) {
+    return;
   }
-  return `${CONFIG.defaultRosterShadowProperties} ${glowColor}`;
+
+  warnedOverrides.set(setting, value);
+  console.warn(message);
+}
+
+// The team a binding fired for, read from the key CRG hands the helper
+// CRG passes whichever registered path holds a value, so a team path and a setting both arrive
+function teamNumberFromKey(k) {
+  if (!k) {
+    return undefined;
+  }
+
+  if (k.Team) {
+    return k.Team;
+  }
+
+  const [, teamNumber] = String(k.Setting ?? '').match(TEAM_SETTING_NUMBER) ?? [];
+
+  return teamNumber;
+}
+
+// A team override, from the admin page then config.js, and blank when neither sets one
+// Blank is how an override reads as unset, so only a value that is there is validated
+function overrideValue(setting, validate) {
+  const stored = storedSetting(setting.setting);
+  const raw = stored === undefined ? setting.configValue : stored;
+
+  if (raw === undefined || raw === null || String(raw).trim() === '') {
+    return '';
+  }
+
+  const result = validate(String(raw).trim());
+
+  if ('value' in result) {
+    return result.value;
+  }
+
+  // The label names the setting mid-sentence, so it starts lowercase here
+  const described = setting.label.charAt(0).toLowerCase() + setting.label.slice(1);
+
+  warnOnce(
+    setting.setting,
+    raw,
+    `Invalid ${described} value ${result.display} (${result.reason}) - using the value CRG supplies.`
+  );
+
+  return '';
+}
+
+// Whether a team shows admin-defined colors rather than the ones CRG supplies
+function teamColorOverridden(teamNumber) {
+  const team = TEAM_SETTINGS[teamNumber];
+
+  return Boolean(team) && overrideValue(team.colorOverride, isBoolean) === true;
+}
+
+// Whether a team shows an admin-defined name rather than the one CRG supplies
+function teamNameOverridden(teamNumber) {
+  const team = TEAM_SETTINGS[teamNumber];
+
+  return Boolean(team) && overrideValue(team.nameOverride, isBoolean) === true;
+}
+
+// A team color: the override when the team is set to override, and CRG's color otherwise
+function teamColor(teamNumber, color) {
+  const team = TEAM_SETTINGS[teamNumber];
+  const crgColor = WS.state[teamChannel(teamNumber, STORAGE.teamChannels[color])] ?? '';
+
+  if (!team || !teamColorOverridden(teamNumber)) {
+    return crgColor;
+  }
+
+  return overrideValue(team[color], isColor) || crgColor;
+}
+
+// A blank color comes off the element, so the default in the stylesheet applies
+function setTeamProperty(panel, property, value) {
+  if (value) {
+    panel.style.setProperty(property, value);
+  } else {
+    panel.style.removeProperty(property);
+  }
+}
+
+// Paint each team's panel with the colors it shows, which its rules read from the panel
+function applyTeamColors() {
+  for (const [teamNumber, team] of Object.entries(TEAM_SETTINGS)) {
+    const panel = document.querySelector(team.panel);
+
+    if (!panel) {
+      continue;
+    }
+
+    const glowColor = teamColor(teamNumber, 'glow');
+    const glowShadow = glowColor ? `${CONFIG.defaultRosterShadowProperties} ${glowColor}` : '';
+
+    setTeamProperty(panel, '--team-background-color', teamColor(teamNumber, 'background'));
+    setTeamProperty(panel, '--team-text-color', teamColor(teamNumber, 'text'));
+    setTeamProperty(panel, '--team-text-shadow', glowShadow);
+  }
+}
+
+// Register the CRG colors the team panels follow, so a whiteboard change repaints them
+function registerTeamColors() {
+  const channels = Object.keys(TEAM_SETTINGS).flatMap((teamNumber) =>
+    TEAM_COLORS.map((color) => teamChannel(teamNumber, STORAGE.teamChannels[color]))
+  );
+
+  WS.Register(channels, applyTeamColors);
+}
+
+// Display team names with fallback mechanisms to prevent a blank name
+window.getTeamNameWithDefault = function (k) {
+  const teamNumber = teamNumberFromKey(k) ?? '?';
+  const team = TEAM_SETTINGS[teamNumber];
+
+  // Try the name the admin page sets first, which waits on its own switch
+  const override = teamNameOverridden(teamNumber) ? overrideValue(team.name, isText) : '';
+
+  if (override) {
+    return override;
+  }
+
+  // Try AlternateName(whiteboard) second
+  const alternateName = WS.state[teamChannel(teamNumber, STORAGE.teamChannels.alternateName)];
+
+  if (typeof alternateName === 'string' && alternateName.trim() !== '') {
+    return alternateName;
+  }
+
+  // Try team name (Name) read from WS.state third
+  const name = WS.state[teamChannel(teamNumber, STORAGE.teamChannels.name)];
+
+  if (typeof name === 'string' && name.trim() !== '') {
+    return name;
+  }
+
+  // Use "Team N" fourth
+  return `${LABELS.defaultTeamNamePrefix} ${teamNumber}`;
 };
 
 /*************************
@@ -837,26 +1039,6 @@ window.prependGameNo = function (_k, gameNum) {
     return '';
   }
   return ` \u00b7 Game ${gameNum}`;
-};
-
-// Display team names with fallback mechanisms to prevent a blank name
-window.getTeamNameWithDefault = function (k, alternateName) {
-  // Try AlternateName(whiteboard) first
-  if (typeof alternateName === 'string' && alternateName.trim() !== '') {
-    return alternateName;
-  }
-
-  // Try team name (Name) read from WS.state second
-  const teamNum = k.Team || '?';
-  const nameKey = `ScoreBoard.CurrentGame.Team(${teamNum}).Name`;
-  const name = WS.state[nameKey];
-
-  if (typeof name === 'string' && name.trim() !== '') {
-    return name;
-  }
-
-  // Use "Team N" third
-  return `${LABELS.defaultTeamNamePrefix} ${teamNum}`;
 };
 
 // Determine if the period clock should be hidden
@@ -1203,6 +1385,27 @@ function limitRosterRows() {
   }
 }
 
+// Content that runs past the room the overlay has for it
+// The overlay's own background is positioned and animated, and a transform on it
+// counts toward `scrollHeight` without being content, so this measures the rows
+function contentOverflow(overlay) {
+  const box = getComputedStyle(overlay);
+  const room = overlay.clientHeight - parseFloat(box.paddingTop) - parseFloat(box.paddingBottom);
+  let used = 0;
+
+  for (const child of overlay.children) {
+    const style = getComputedStyle(child);
+
+    if (style.position === 'absolute' || style.display === 'none') {
+      continue;
+    }
+
+    used += child.offsetHeight + parseFloat(style.marginTop) + parseFloat(style.marginBottom);
+  }
+
+  return Number.isFinite(room) ? Math.max(0, used - room) : 0;
+}
+
 // Keep the overlay tall enough for everything in it
 function holdOverlayHeight() {
   const root = document.documentElement;
@@ -1229,7 +1432,7 @@ function holdOverlayHeight() {
 
     // Content that runs past the box it is drawn in, plus the room the logos lost
     // Room to spare is not a reason to leave the logos short, so it counts as none
-    const overflow = Math.max(0, overlay.scrollHeight - overlay.clientHeight);
+    const overflow = contentOverflow(overlay);
     const deficit = overflow + squeezed;
 
     if (!Number.isFinite(deficit) || deficit <= 0) {
@@ -1268,7 +1471,25 @@ function scheduleRosterTextFit() {
 
 // Register the WebSocket paths the roster text scaling depends on
 function registerRosterTextFit() {
-  WS.Register([CHANNELS.team1Skaters, CHANNELS.team2Skaters], scheduleRosterTextFit);
+  // A timeout takes the banner row from nothing to its full height, and the logo row gives way to it
+  WS.Register([CHANNELS.team1Skaters, CHANNELS.team2Skaters, CHANNELS.timeoutRunning], scheduleRosterTextFit);
+}
+
+// The banner row grows and shrinks under a CSS transition, so the fit that measures
+// what it takes has to wait for the transition to land
+// A browser asked for reduced motion sends no transition, and the channel above covers it
+function registerTimeoutBannerFit() {
+  const row = document.querySelector(CLASSES.timeoutBannerRowSelector);
+
+  if (!row) {
+    return;
+  }
+
+  row.addEventListener('transitionend', function (event) {
+    if (event.propertyName === 'height') {
+      scheduleRosterTextFit();
+    }
+  });
 }
 
 // Apply all display settings
@@ -1288,6 +1509,7 @@ function applyOverlaySettings() {
   setTitleBannerVisible();
   setTeamLogos();
   setTeamsRowHeight();
+  applyTeamColors();
   setRosterTextScaling();
   scheduleRosterTextFit();
 
@@ -1511,6 +1733,9 @@ $(function () {
   // Set the loading overlay text
   $(CLASSES.loadingOverlayTextSelector).text(CONFIG.loadingOverlayText);
 
+  // Refit once the banner row settles at its new height
+  registerTimeoutBannerFit();
+
   // Attempt to load a custom logo
   loadCustomLogo();
 
@@ -1525,6 +1750,7 @@ $(function () {
       registerPenaltyCodeKey();
       registerRosterTextFit();
       registerOverlaySettings();
+      registerTeamColors();
       console.log('WebSocket connected.');
 
       // Attempt to retry the WebSocket connection if it is not yet available

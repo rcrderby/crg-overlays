@@ -334,5 +334,85 @@ Deno.test('the overlay refits when a roster changes', async () => {
 
   const registered = applied.WS.registrations.at(-1).paths;
 
-  assert.deepEqual(registered, ['ScoreBoard.CurrentGame.Team(1).Skater', 'ScoreBoard.CurrentGame.Team(2).Skater']);
+  assert.deepEqual(registered, [
+    'ScoreBoard.CurrentGame.Team(1).Skater',
+    'ScoreBoard.CurrentGame.Team(2).Skater',
+    'ScoreBoard.CurrentGame.Clock(Timeout).Running'
+  ]);
+});
+
+// The timeout banner row goes from nothing to its full height under a CSS transition,
+// and the logo row gives way to it
+Deno.test('the banner row settling at its new height refits the overlay', async () => {
+  const overlay = await loadOverlay({ rosters: [{ rows: 10 }, { rows: 10 }] });
+
+  overlay.registerTimeoutBannerFit();
+  overlay.settleBannerRow();
+
+  assert.equal(overlay.timers.length, 1, 'the row landing schedules a fit');
+  assert.equal(overlay.timers[0].delay, overlay.TIMING.rosterTextFit);
+});
+
+Deno.test('a property other than the row height is left alone', async () => {
+  const overlay = await loadOverlay({ rosters: [{ rows: 10 }, { rows: 10 }] });
+
+  overlay.registerTimeoutBannerFit();
+  overlay.settleBannerRow('opacity');
+
+  assert.equal(overlay.timers.length, 0, 'the banner fading in is not a height change');
+});
+
+// The overlay draws its own animated background, and a transform on it counts toward
+// scrollHeight without being content
+Deno.test('the overlay measures its content, not what it draws around it', async () => {
+  const overlay = await loadOverlay({
+    rosters: [{ rows: 10 }, { rows: 10 }],
+    overlayFrame: { offsetHeight: 800, clientHeight: 800, scrollHeight: 800 }
+  });
+
+  const element = {
+    children: overlay.overlayChildren,
+    clientHeight: 800,
+    paddingTop: '0px',
+    paddingBottom: '0px',
+    position: 'relative'
+  };
+
+  assert.equal(overlay.contentOverflow(element), 0, 'the content fits the room it has');
+
+  overlay.overlayChildren.push({
+    offsetHeight: 4000,
+    marginTop: '0px',
+    marginBottom: '0px',
+    position: 'absolute',
+    display: 'block'
+  });
+
+  assert.equal(overlay.contentOverflow(element), 0, 'a positioned decoration is not content');
+
+  overlay.overlayChildren.push({
+    offsetHeight: 60,
+    marginTop: '0px',
+    marginBottom: '0px',
+    position: 'static',
+    display: 'block'
+  });
+
+  assert.equal(overlay.contentOverflow(element), 60, 'a row that does not fit is');
+});
+
+// `scrollHeight` counts the animated background the overlay draws behind its rows,
+// so a floor that chased it would grow the overlay around nothing
+Deno.test('the height floor ignores a background that reaches past the rows', async () => {
+  const overlay = await loadOverlay({
+    rosters: [
+      { rows: 10, height: 400 },
+      { rows: 10, height: 400 }
+    ],
+    overlayFrame: { offsetHeight: 800, clientHeight: 800, scrollHeight: 900, content: 800, logoRow: 100 }
+  });
+
+  overlay.holdOverlayHeight();
+
+  assert.equal(overlay.properties['--overlay-min-height'], undefined, 'the rows fit, so nothing is held');
 });

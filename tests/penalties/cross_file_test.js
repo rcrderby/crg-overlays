@@ -114,12 +114,13 @@ Deno.test('every class the penalty code key builds has a rule', () => {
   }
 });
 
-Deno.test('every custom property the overlay writes is read by its stylesheet', () => {
-  const written = [...js.matchAll(/setProperty\('(--[a-z-]+)'/g)].map((match) => match[1]);
+// index.js writes some properties through a helper, so every name it holds is checked
+Deno.test('every custom property index.js names is read by its stylesheet', () => {
+  const named = [...js.matchAll(/'(--[a-z-]+)'/g)].map((match) => match[1]);
 
-  assert.notEqual(written.length, 0, 'index.js writes no custom properties');
+  assert.notEqual(named.length, 0, 'index.js names no custom properties');
 
-  for (const property of [...new Set(written)]) {
+  for (const property of [...new Set(named)]) {
     assert.ok(css.includes(`var(${property}`), `index.css never reads ${property}`);
   }
 });
@@ -143,6 +144,34 @@ Deno.test('the rule that anchors the overlay lays its children out in a column',
   assert.match(rule, /justify-content: var\(--overlay-justify/, 'body places the overlay');
   assert.match(rule, /display: flex/, 'body is a flex container');
   assert.match(rule, /flex-direction: column/, 'and stacks down the frame');
+});
+
+// The colors reach the panel as custom properties, so nothing in the markup names them
+Deno.test('the team heading and its panel read the colors index.js writes', () => {
+  const [, heading] = css.match(/\n\.team-heading \{([\s\S]*?)\n\}/);
+  const [, panel] = css.match(/\n\.roster-penalties-container \{([\s\S]*?)\n\}/);
+
+  assert.match(heading, /background-color: var\(--team-background-color,/, 'the heading takes the team background');
+  assert.match(heading, /\n {2}color: var\(--team-text-color,/, 'and the team text color');
+  assert.match(heading, /text-shadow: var\(--team-text-shadow,/, 'and the team glow');
+  assert.match(panel, /var\(--team-background-color,/, 'the panel border takes the team background');
+});
+
+// The name binding lists the setting alongside the CRG paths, so either can fire it
+Deno.test('every team name binding follows the name setting the admin page writes', async () => {
+  const { SETTINGS, settingChannel } = await loadOverlay();
+  const bindings = [...html.matchAll(/sbDisplay="([\s\S]*?getTeamNameWithDefault)"/g)].map((match) => match[1]);
+
+  assert.equal(bindings.length, 4, 'both teams show their name twice');
+
+  for (const team of [1, 2]) {
+    for (const setting of [`team${team}Name`, `team${team}NameOverride`]) {
+      const path = `/${settingChannel(SETTINGS[setting].setting)}`;
+      const following = bindings.filter((binding) => binding.includes(`${path},`) || binding.includes(`${path}:`));
+
+      assert.equal(following.length, 2, `team ${team} follows ${path} in both places`);
+    }
+  }
 });
 
 Deno.test('the text shadow the configuration file names is defined', () => {

@@ -114,16 +114,6 @@ Deno.test('the game number appears only when CRG has one', async () => {
   assert.equal(window.prependGameNo(null, ''), '');
 });
 
-Deno.test('a team falls back to its CRG name, then to a numbered default', async () => {
-  const { window, WS } = await loadOverlay({
-    state: { 'ScoreBoard.CurrentGame.Team(1).Name': 'Bad Apples' }
-  });
-  assert.equal(window.getTeamNameWithDefault({ Team: '1' }, 'Whiteboard Name'), 'Whiteboard Name');
-  assert.equal(window.getTeamNameWithDefault({ Team: '1' }, ''), 'Bad Apples');
-  assert.equal(window.getTeamNameWithDefault({ Team: '2' }, ''), 'Team 2');
-  assert.equal(typeof WS.state, 'object');
-});
-
 // Build an overlay in a two period game at the given point
 function atGameState(state) {
   return loadOverlay({ state: { [PERIOD_RULE]: '2', ...state } });
