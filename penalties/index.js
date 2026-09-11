@@ -291,12 +291,13 @@ function isBoolean(value) {
   return { reason: 'must be true or false', display: `"${value}"` };
 }
 
-// Every hex color CSS accepts, which covers the six digits a color picker writes
-const HEX_COLOR = /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+// The hex color a color picker holds and hands back unchanged
+// A picker writes six digits, and drops a shorthand or an alpha channel without saying so
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
 function isColor(value) {
   if (typeof value !== 'string' || !HEX_COLOR.test(value.trim())) {
-    return { reason: 'must be a hex color, as in #b3122e', display: `"${value}"` };
+    return { reason: 'must be a six digit hex color, as in #b3122e', display: `"${value}"` };
   }
 
   return { value: value.trim().toLowerCase() };

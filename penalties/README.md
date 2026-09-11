@@ -349,7 +349,7 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | `rosterScale` | Largest roster text scale, held so nine penalty codes still fit | object | max `1.18` | :warning: |
   | `rosterTextScaling` | Default for `rosterTextScaling` | object | `true` | :warning: |
   | `scale` | Allowed range and default for `overlayScale` | object | `1` to `100`, default `100` | :warning: |
-  | `teamColor` | Default for every team color, shared by both teams | object | `''` | :warning: |
+  | `teamColor` | Default for every team color, shared by both teams, as six hex digits | object | `''` | :warning: |
   | `teamColorOverride` | Default for `team1ColorOverride` and `team2ColorOverride` | object | `false` | :warning: |
   | `teamLogos` | Default for `teamLogos` | object | `true` | :warning: |
   | `teamName` | Default for `team1Name` and `team2Name` | object | `''` | :warning: |

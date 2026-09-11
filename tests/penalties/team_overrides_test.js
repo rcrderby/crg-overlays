@@ -82,17 +82,18 @@ Deno.test('an invalid override falls back to CRG and reports itself once', async
   const reported = overlay.warnings.filter((message) => message.includes('team 2 text color'));
 
   assert.equal(reported.length, 1, 'a repaint does not report it again');
-  assert.match(reported[0], /must be a hex color/);
+  assert.match(reported[0], /must be a six digit hex color/);
 });
 
-Deno.test('a hex color is accepted in every length CSS allows', async () => {
+Deno.test('a hex color is accepted in the length a color picker holds', async () => {
   const { isColor } = await withOverrides();
 
-  for (const value of ['#abc', '#abcd', '#aabbcc', '#aabbccdd', '#AABBCC']) {
-    assert.equal(isColor(value).value, value.toLowerCase(), `${value} is a color`);
+  for (const value of ['#aabbcc', '#AABBCC', ' #aabbcc ']) {
+    assert.equal(isColor(value).value, value.trim().toLowerCase(), `${value} is a color`);
   }
 
-  for (const value of ['aabbcc', '#ab', '#abcde', 'red', '', '#gggggg']) {
+  // A picker holds none of these, and replaces one with black rather than reporting it
+  for (const value of ['#abc', '#abcd', '#aabbccdd', 'aabbcc', '#ab', '#abcde', 'red', '', '#gggggg']) {
     assert.equal('value' in isColor(value), false, `${value} is not a color`);
   }
 });

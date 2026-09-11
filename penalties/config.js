@@ -80,6 +80,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Names and colors that replace those supplied by CRG
     // Any blank value uses CRG values
     // Colors only apply when a team's override is set to `true`
+    // A color is six hex digits, as in `#b3122e`, which is what the admin page writes
     team1BackgroundColor: '',
     team1ColorOverride: false,
     team1GlowColor: '',
