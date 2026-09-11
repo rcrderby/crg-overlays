@@ -157,7 +157,39 @@
           </div>
         </div>
 
-        <!-- Game information area -->
+        <!-- Overlay heading area, above the rosters -->
+        <div class="setting-group">
+          <h2>Heading</h2>
+
+          <div class="setting-row">
+            <label>Title</label>
+            <div class="setting-choices setting-switch-row" data-setting="TitleVisible">
+              <button class="setting-switch setting-choice" type="button" data-value="true"
+                      aria-label="Show the overlay title"></button>
+              <span class="setting-switch-note">Show or hide the overlay title</span>
+            </div>
+            <div></div>
+          </div>
+
+          <div class="setting-row setting-row-child">
+            <label for="title-text">Title Text</label>
+            <input id="title-text" type="text" maxlength="40" data-setting="TitleText">
+            <div></div>
+          </div>
+
+          <div class="setting-row">
+            <label>Team Logos</label>
+            <div class="setting-choices setting-switch-row" data-setting="TeamLogos">
+              <button class="setting-switch setting-choice" type="button" data-value="true"
+                      aria-label="Show the team logos"></button>
+              <span class="setting-switch-note">Show or hide team logos from CRG</span>
+            </div>
+            <div></div>
+          </div>
+
+        </div>
+
+        <!-- Game information area, below the rosters -->
         <div class="setting-group">
           <h2>Game Information</h2>
 
@@ -190,32 +222,6 @@
                       aria-label="Show the penalties key"></button>
               <span class="setting-switch-note">Visible when players have penalties</span>
             </div>
-            <div></div>
-          </div>
-
-          <div class="setting-row">
-            <label>Team Logos</label>
-            <div class="setting-choices setting-switch-row" data-setting="TeamLogos">
-              <button class="setting-switch setting-choice" type="button" data-value="true"
-                      aria-label="Show the team logos"></button>
-              <span class="setting-switch-note">Show or hide team logos from CRG</span>
-            </div>
-            <div></div>
-          </div>
-
-          <div class="setting-row">
-            <label>Title</label>
-            <div class="setting-choices setting-switch-row" data-setting="TitleVisible">
-              <button class="setting-switch setting-choice" type="button" data-value="true"
-                      aria-label="Show the overlay title"></button>
-              <span class="setting-switch-note">Show or hide the overlay title</span>
-            </div>
-            <div></div>
-          </div>
-
-          <div class="setting-row setting-row-child">
-            <label for="title-text">Title Text</label>
-            <input id="title-text" type="text" maxlength="40" data-setting="TitleText">
             <div></div>
           </div>
         </div>
