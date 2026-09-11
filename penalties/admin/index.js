@@ -536,6 +536,26 @@ function copyUrl(url) {
   });
 }
 
+// A list left open covers the controls beneath it, so anything away from it closes it
+function registerUrlListDismissal() {
+  const isOpen = () => $('#copy-url-list').hasClass('open');
+
+  // The button and its list share a group, and a click inside that group is the list's own
+  $(document).on('click', function (event) {
+    if (isOpen() && $(event.target).closest('#copy-url-group').length === 0) {
+      setUrlListOpen(false);
+    }
+  });
+
+  // Escape closes the list and hands the focus back to the button that opened it
+  $(document).on('keydown', function (event) {
+    if (event.key === 'Escape' && isOpen()) {
+      setUrlListOpen(false);
+      $('#copy-url').trigger('focus');
+    }
+  });
+}
+
 function registerActions() {
   const button = $('#copy-url');
 
@@ -589,6 +609,7 @@ $(function () {
   registerSliderPreview();
   registerBackdrops();
   registerActions();
+  registerUrlListDismissal();
   paintControls();
   loadNetworkUrls();
 

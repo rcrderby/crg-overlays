@@ -188,6 +188,7 @@ async function boundPage(options = {}) {
   page.registerSliderPreview();
   page.registerBackdrops();
   page.registerActions();
+  page.registerUrlListDismissal();
   page.paintControls();
 
   return page;
@@ -650,6 +651,59 @@ Deno.test('a second copy replaces the first reply, and the label still comes bac
 
   page.runTimers();
   assert.equal(button.label, 'Copy Overlay URL', 'the label comes back, rather than the first reply');
+});
+
+// An address list is a menu, and a menu that only closes on itself sits over the page
+Deno.test('a click away from the list closes it', async () => {
+  const page = await boundPage({ urls: CRG_URLS });
+
+  await page.loadNetworkUrls();
+  page.dom.fire(page.dom.button('copy-url'), 'click');
+
+  assert.equal(page.dom.element('copy-url-list').classes.has('open'), true);
+
+  page.dom.fire(page.dom.document, 'click', { target: page.dom.button('reset-settings') });
+
+  assert.equal(page.dom.element('copy-url-list').classes.has('open'), false);
+  assert.equal(page.dom.button('copy-url').attrs['aria-expanded'], 'false');
+});
+
+Deno.test('a click on the button or its list leaves the list open', async () => {
+  const page = await boundPage({ urls: CRG_URLS });
+
+  await page.loadNetworkUrls();
+  page.dom.fire(page.dom.button('copy-url'), 'click');
+
+  // The click that opened the list reaches the document too, and must not close it again
+  page.dom.fire(page.dom.document, 'click', { target: page.dom.button('copy-url') });
+  assert.equal(page.dom.element('copy-url-list').classes.has('open'), true, 'the button belongs to the list');
+
+  page.dom.fire(page.dom.document, 'click', { target: page.dom.options('copy-url-option')[0] });
+  assert.equal(page.dom.element('copy-url-list').classes.has('open'), true, 'an address belongs to the list');
+});
+
+Deno.test('Escape closes the list and hands the focus back', async () => {
+  const page = await boundPage({ urls: CRG_URLS });
+
+  await page.loadNetworkUrls();
+  page.dom.fire(page.dom.button('copy-url'), 'click');
+
+  page.dom.fire(page.dom.document, 'keydown', { key: 'a' });
+  assert.equal(page.dom.element('copy-url-list').classes.has('open'), true, 'another key leaves it alone');
+
+  page.dom.fire(page.dom.document, 'keydown', { key: 'Escape' });
+
+  assert.equal(page.dom.element('copy-url-list').classes.has('open'), false);
+  assert.equal(page.dom.button('copy-url').focused, true, 'the focus does not stay on the closed list');
+});
+
+Deno.test('Escape takes the focus only when the list is open', async () => {
+  const page = await boundPage({ urls: CRG_URLS });
+
+  await page.loadNetworkUrls();
+  page.dom.fire(page.dom.document, 'keydown', { key: 'Escape' });
+
+  assert.equal(page.dom.button('copy-url').focused, false, 'a closed list has no focus to hand back');
 });
 
 Deno.test('a page CRG cannot answer keeps the button it already had', async () => {
