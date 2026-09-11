@@ -3,17 +3,17 @@
 
 import assert from 'node:assert/strict';
 import { loadOverlay, loadAdminPage, readSource } from './support/overlay.js';
-import { overlaySetting } from './support/channels.js';
+import { overlaySetting, teamAlternateName, teamColorChannel } from './support/channels.js';
 
 const html = await readSource('penalties/admin/index.html');
 const js = await readSource('penalties/admin/index.js');
 
 // The settings the page knows, and where each one reads its default
 const [, table] = js.match(/const SETTINGS = \{([\s\S]*?)\n\};/);
-const known = [...table.matchAll(/([A-Za-z]+): \{ config: '([A-Za-z]+)', validation: '([A-Za-z]+)' \}/g)];
+const known = [...table.matchAll(/([A-Za-z0-9]+): \{ config: '([A-Za-z0-9]+)', validation: '([A-Za-z0-9]+)' \}/g)];
 
 // The settings the page's controls write
-const written = [...new Set([...html.matchAll(/data-setting="([A-Za-z]+)"/g)].map((match) => match[1]))];
+const written = [...new Set([...html.matchAll(/data-setting="([A-Za-z0-9]+)"/g)].map((match) => match[1]))];
 
 Deno.test('the admin page writes every setting the overlay reads', async () => {
   const { SETTINGS } = await loadOverlay();
@@ -184,6 +184,7 @@ async function boundPage(options = {}) {
 
   page.registerChoices();
   page.registerFields();
+  page.registerDefaults();
   page.registerSliderPreview();
   page.registerBackdrops();
   page.registerActions();
@@ -381,4 +382,115 @@ Deno.test('the channel prefix comes from the configuration file', async () => {
   assert.ok(page.settingChannel('Width').startsWith(settingChannelPrefix));
   assert.equal(page.settingChannel('Width'), overlay.settingChannel('Width'));
   assert.equal(js.includes("'ScoreBoard.Settings.Setting("), false, 'the page names the prefix itself');
+});
+
+// The colors and the name CRG is sending, which the team controls fall back to
+const CRG_TEAM_STATE = {
+  [teamColorChannel(1, 'bg')]: '#78cbca',
+  [teamColorChannel(1, 'fg')]: '#000000',
+  [teamColorChannel(1, 'glow')]: '#ffffff',
+  [teamAlternateName(1)]: 'Wheels of Justice'
+};
+
+const TEAM_1_COLORS = ['Team1BackgroundColor', 'Team1TextColor', 'Team1GlowColor'];
+
+Deno.test('a color picker opens on the color CRG is sending, until an override replaces it', async () => {
+  const page = await boundPage({ state: { ...CRG_TEAM_STATE, [overlaySetting('Team1ColorOverride')]: 'true' } });
+
+  assert.equal(page.dom.field('Team1BackgroundColor', 'color').value, '#78cbca');
+
+  page.WS.Set(page.settingChannel('Team1BackgroundColor'), '#123456');
+
+  assert.equal(page.dom.field('Team1BackgroundColor', 'color').value, '#123456');
+
+  // Turning the switch off puts the control back on what CRG is sending
+  page.WS.Set(page.settingChannel('Team1ColorOverride'), 'false');
+
+  assert.equal(page.dom.field('Team1BackgroundColor', 'color').value, '#78cbca');
+  assert.equal(page.WS.state[page.settingChannel('Team1BackgroundColor')], '#123456', 'the override is kept');
+});
+
+Deno.test('a name switch enables the name field and the button beside it', async () => {
+  const page = await boundPage({
+    state: { ...CRG_TEAM_STATE, [overlaySetting('Team1Name')]: 'Bad Apples' }
+  });
+  const name = page.dom.field('Team1Name', 'text');
+
+  assert.equal(name.props.disabled, true, 'the field waits for the switch');
+  assert.equal(page.dom.reset('Team1Name').props.disabled, true);
+  assert.equal(name.value, '', 'and shows nothing of its own while CRG supplies the name');
+
+  page.dom.fire(page.dom.choice('Team1NameOverride', 'true'), 'click');
+
+  assert.equal(name.props.disabled, false);
+  assert.equal(page.dom.reset('Team1Name').props.disabled, false);
+  assert.equal(name.value, 'Bad Apples', 'the override comes back');
+});
+
+Deno.test('a team switch enables the pickers and default buttons beneath it', async () => {
+  const page = await boundPage({ state: CRG_TEAM_STATE });
+
+  for (const setting of TEAM_1_COLORS) {
+    assert.equal(page.dom.field(setting, 'color').props.disabled, true, `${setting} waits for the switch`);
+    assert.equal(page.dom.reset(setting).props.disabled, true, `${setting} cannot be cleared yet`);
+  }
+
+  page.dom.fire(page.dom.choice('Team1ColorOverride', 'true'), 'click');
+
+  for (const setting of TEAM_1_COLORS) {
+    assert.equal(page.dom.field(setting, 'color').props.disabled, false, `${setting} is writable`);
+    assert.equal(page.dom.reset(setting).props.disabled, false, `${setting} can be cleared`);
+  }
+
+  assert.equal(page.dom.field('Team2BackgroundColor', 'color').props.disabled, true, 'team 2 has its own switch');
+});
+
+Deno.test('a default button clears one setting and leaves the rest', async () => {
+  const page = await boundPage({
+    state: {
+      ...CRG_TEAM_STATE,
+      [overlaySetting('Team1ColorOverride')]: 'true',
+      [overlaySetting('Team1BackgroundColor')]: '#123456',
+      [overlaySetting('Team1TextColor')]: '#abcdef'
+    }
+  });
+
+  page.dom.fire(page.dom.reset('Team1BackgroundColor'), 'click');
+
+  assert.deepEqual(page.WS.sets.at(-1), { path: page.settingChannel('Team1BackgroundColor'), value: '' });
+  assert.equal(page.dom.field('Team1BackgroundColor', 'color').value, '#78cbca', 'back to the CRG color');
+  assert.equal(page.dom.field('Team1TextColor', 'color').value, '#abcdef', 'the other override stands');
+});
+
+Deno.test('a team name field stays empty, and shows the name CRG sends behind it', async () => {
+  const page = await boundPage({ state: CRG_TEAM_STATE });
+  const name = page.dom.field('Team1Name', 'text');
+
+  assert.equal(name.value, '');
+  assert.equal(name.attrs.placeholder, 'Wheels of Justice');
+
+  name.value = 'Bad Apples';
+  page.dom.fire(name, 'input');
+
+  assert.deepEqual(page.WS.sets.at(-1), { path: page.settingChannel('Team1Name'), value: 'Bad Apples' });
+});
+
+Deno.test('a name placeholder follows the name CRG sends', async () => {
+  const page = await boundPage({ state: CRG_TEAM_STATE });
+
+  page.WS.Set(teamAlternateName(1), 'Bruise Crew');
+
+  assert.equal(page.dom.field('Team1Name', 'text').attrs.placeholder, 'Bruise Crew');
+});
+
+// A control the page never binds looks right and does nothing
+Deno.test('the page binds every control group when it loads', () => {
+  const [, ready] = js.match(/\$\(function \(\) \{([\s\S]*?)\n\}\);/);
+  const defined = [...js.matchAll(/^function (register[A-Za-z]+)\(/gm)].map((match) => match[1]);
+
+  assert.notEqual(defined.length, 0, 'the page defines no register functions');
+
+  for (const name of defined) {
+    assert.ok(ready.includes(`${name}();`), `the page never calls ${name}`);
+  }
 });

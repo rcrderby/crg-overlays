@@ -153,3 +153,16 @@ Deno.test('debug logging is the only setting the URL carries', async () => {
   assert.match(js, /const DEBUG_URL_PARAM = 'debug';/);
   assert.equal(/[?&](scale|width|opacity|anchor|font|background|timeout|key)=/.test(html), false);
 });
+
+// A channel the overlay never registers reports nothing, and the overlay looks right
+// until the moment it goes stale
+Deno.test('the overlay registers every watcher it defines when it starts', () => {
+  const [, start] = js.match(/\n\$\(function \(\) \{([\s\S]*)\n\}\);/);
+  const defined = [...js.matchAll(/^function (register[A-Za-z]+)\(/gm)].map((match) => match[1]);
+
+  assert.notEqual(defined.length, 0, 'index.js defines no register functions');
+
+  for (const name of defined) {
+    assert.ok(start.includes(`${name}();`), `index.js never calls ${name}`);
+  }
+});

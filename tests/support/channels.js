@@ -29,3 +29,8 @@ export const penaltyCode = (code) => `${PENALTY_CODE}(${code})`;
 
 // Where the admin page stores an overlay setting
 export const overlaySetting = (name) => `ScoreBoard.Settings.Setting(Penalties.Overlay.${name})`;
+
+// Where CRG publishes a team's whiteboard colors and the names behind them
+export const teamColorChannel = (team, channel) => `ScoreBoard.CurrentGame.Team(${team}).Color(whiteboard.${channel})`;
+export const teamAlternateName = (team) => `ScoreBoard.CurrentGame.Team(${team}).AlternateName(whiteboard)`;
+export const teamNameChannel = (team) => `ScoreBoard.CurrentGame.Team(${team}).Name`;

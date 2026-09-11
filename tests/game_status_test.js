@@ -117,13 +117,6 @@ Deno.test('the intermission clock shows only between periods', async () => {
   assert.equal(official.window.shouldHideIntermissionClock(null, true), true);
 });
 
-Deno.test('a team glow color becomes a text shadow, and its absence falls back', async () => {
-  const { window, CONFIG, CLASSES } = await atGameState();
-  assert.equal(window.glowColorToShadow(null, '#ff0000'), `${CONFIG.defaultRosterShadowProperties} #ff0000`);
-  assert.equal(window.glowColorToShadow(null, ''), CLASSES.textShadow);
-  assert.equal(window.glowColorToShadow(null, null), CLASSES.textShadow);
-});
-
 Deno.test('the small binding helpers behave', async () => {
   const { window } = await atGameState();
   assert.equal(window.hasValue(null, 'Bad Apples'), true);

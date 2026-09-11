@@ -17,6 +17,8 @@ const INTERNALS = [
   'RULES',
   'SETTINGS',
   'SETTING_SOURCES',
+  'TEAM_COLORS',
+  'TEAM_SETTINGS',
   'TIMING',
   'TOGGLES',
   'VALIDATION',
@@ -44,14 +46,27 @@ const INTERNALS = [
   'settingChannel',
   'storedSetting',
 
+  // Functions that resolve a team's name and colors
+  'applyTeamColors',
+  'isColor',
+  'overrideValue',
+  'registerTeamColors',
+  'teamChannel',
+  'teamColor',
+  'teamColorOverridden',
+  'teamNameOverridden',
+  'teamNumberFromKey',
+
   // Functions that build and size the penalty code key
   'buildPenaltyCodeKey',
   'fitPenaltyCodeKey',
   'fitRosterText',
   'holdOverlayHeight',
   'limitRosterRows',
+  'contentOverflow',
   'registerPenaltyCodeKey',
   'registerRosterTextFit',
+  'registerTimeoutBannerFit',
   'schedulePenaltyCodeKeyRebuild',
   'scheduleRosterTextFit',
 
@@ -204,18 +219,26 @@ const ADMIN_PAGE_INTERNALS = [
   'CONFIG',
   'READY_CHANNEL',
   'SETTINGS',
+  'TEAM_COLOR_FIELDS',
+  'TEAM_NAME_FIELDS',
+  'TIMING',
   'VALIDATION',
 
   // Functions that read a setting
   'committedValue',
+  'crgTeamName',
+  'onceChosen',
   'settingChannel',
   'settingValue',
+  'teamChannel',
+  'watchedChannels',
 
   // Functions that bind and paint the controls
   'paintControls',
   'registerActions',
   'registerBackdrops',
   'registerChoices',
+  'registerDefaults',
   'registerFields',
   'registerSliderPreview',
 
@@ -240,8 +263,8 @@ function adminPageDom(html) {
       children: [],
       handlers: {},
       parent: null,
+      props: {},
       value: '',
-      checked: false,
       focused: false,
       label: ''
     };
@@ -285,6 +308,11 @@ function adminPageDom(html) {
 
     choice.parent = group;
     group.children.push(choice);
+  }
+
+  // The buttons that clear one setting back to the value CRG supplies
+  for (const tag of html.match(/<button[^>]*class="setting-default"[^>]*>/g) ?? []) {
+    node({ 'data-setting': (tag.match(/data-setting="([^"]*)"/) ?? [])[1] }, ['setting-default']);
   }
 
   // The preview backdrops, the stage they paint, and the page's own buttons
@@ -358,10 +386,10 @@ function adminPageDom(html) {
       },
       prop(name, value) {
         if (value === undefined) {
-          return name === 'checked' ? Boolean(first?.checked) : first?.attrs[name];
+          return first?.props[name];
         }
 
-        list.forEach((element) => (element.checked = Boolean(value)));
+        list.forEach((element) => (element.props[name] = value));
 
         return api;
       },
@@ -436,6 +464,7 @@ function adminPageDom(html) {
         (child) => child.attrs['data-value'] === value
       ),
     backdrop: (name) => find((n) => n.classes.has('preview-backdrop') && n.attrs['data-backdrop'] === name),
+    reset: (setting) => find((n) => n.classes.has('setting-default') && n.attrs['data-setting'] === setting),
     stage: () => find((n) => n.attrs.id === 'preview-stage'),
     button: (id) => find((n) => n.attrs.id === id),
 
@@ -476,8 +505,16 @@ export async function loadAdminPage({ configSource, state = {}, stageWidth = 960
   };
 
   // Timers the page sets, run only when a test asks for them
+  // A cleared timer stays in the list and never runs, the way the browser drops it
   const timers = [];
-  const setTimeoutStub = (callback, delay) => timers.push({ callback, delay });
+  const setTimeoutStub = (callback, delay) => {
+    const timer = { callback, delay, cleared: false };
+
+    timers.push(timer);
+
+    return timer;
+  };
+  const clearTimeoutStub = (timer) => timer && (timer.cleared = true);
 
   const api = new Function(
     'window',
@@ -486,9 +523,10 @@ export async function loadAdminPage({ configSource, state = {}, stageWidth = 960
     '$',
     'WS',
     'setTimeout',
+    'clearTimeout',
     'navigator',
     `${index}\nreturn { ${ADMIN_PAGE_INTERNALS.join(', ')} };`
-  )(window, document, consoleStub, dom.jQuery, WS, setTimeoutStub, {});
+  )(window, document, consoleStub, dom.jQuery, WS, setTimeoutStub, clearTimeoutStub, {});
 
   return {
     ...api,
@@ -498,7 +536,11 @@ export async function loadAdminPage({ configSource, state = {}, stageWidth = 960
     frame,
     previewOverlay,
     timers,
-    runTimers: () => timers.splice(0).map((timer) => (timer.callback(), timer))
+    runTimers: () =>
+      timers
+        .splice(0)
+        .filter((timer) => !timer.cleared)
+        .map((timer) => (timer.callback(), timer))
   };
 }
 
@@ -534,10 +576,23 @@ export async function loadOverlay({
   const properties = {};
   const warnings = [];
 
+  // The overlay reports its content as one in-flow child, so a test names the height
+  // its content takes and the fit measures that against the room the box has
+  const overlayContent = {
+    offsetHeight: frame.content ?? frame.scrollHeight,
+    marginTop: '0px',
+    marginBottom: '0px',
+    position: 'static',
+    display: 'block'
+  };
+
   // Classes the animation settings apply to the overlay element
   const overlayClasses = new Set();
   const overlayElement = {
     dataset: {},
+    children: [overlayContent],
+    paddingTop: '0px',
+    paddingBottom: '0px',
 
     // Setting the floor grows the box, the way it does in a real layout,
     // and the room inside it grows with it
@@ -562,6 +617,25 @@ export async function loadOverlay({
   const keyDom = penaltyCodeKeyDom(dom);
   const rosterElements = rosterDom(rosters);
 
+  // The panel each team's colors are written to, keyed by the selector config.js names
+  const teamPanels = {};
+  const teamPanel = (selector) => {
+    const panel = (teamPanels[selector] = teamPanels[selector] ?? {
+      properties: {},
+      style: {
+        // CSSOM treats setting an empty value as a removal, and so does this
+        setProperty: (name, value) =>
+          value === '' ? delete panel.properties[name] : (panel.properties[name] = String(value)),
+        removeProperty: (name) => delete panel.properties[name]
+      }
+    });
+
+    return panel;
+  };
+
+  const configClasses = window.AppConfig.PenaltiesOverlayConfig.classes;
+  const teamPanelSelectors = [configClasses.team1PanelSelector, configClasses.team2PanelSelector];
+
   // A roster panel answers for the lines and headings inside it
   for (const panel of rosterElements.panels) {
     panel.querySelectorAll = (selector) => rosterElements.forPanel(panel, selector);
@@ -582,6 +656,10 @@ export async function loadOverlay({
 
       if (selector === '#timeout-banner-row') {
         return bannerRow;
+      }
+
+      if (teamPanelSelectors.includes(selector)) {
+        return teamPanel(selector);
       }
 
       return keyDom.querySelector(selector);
@@ -652,11 +730,21 @@ export async function loadOverlay({
       return step;
     }
   };
-  const bannerRow = { offsetHeight: frame.timeoutRow };
+  // The banner row grows under a CSS transition, and the overlay waits for it to land
+  const bannerHandlers = [];
+  const bannerRow = {
+    offsetHeight: frame.timeoutRow,
+    addEventListener: (event, handler) => event === 'transitionend' && bannerHandlers.push(handler)
+  };
 
   const computedStyle = (element) => {
     if (element === document.documentElement) {
       return { getPropertyValue: (name) => frameTokens[name] ?? '' };
+    }
+
+    // An element stand-in that names its own position describes itself
+    if (element === overlayElement || (element && 'position' in element)) {
+      return element;
     }
 
     return element && 'marginBottom' in element ? rosterElements.getComputedStyle(element) : keyDom.getComputedStyle();
@@ -691,6 +779,18 @@ export async function loadOverlay({
     hasClass,
     key: keyDom.rendered,
     dom: { rosters: rosterElements.panels },
+
+    // The height the overlay's content takes, which a test may change mid-run
+    overlayContent,
+
+    // Everything the overlay draws itself around, so a test can add a decoration
+    overlayChildren: overlayElement.children,
+
+    // The banner row reaching its new height, the way the browser reports it
+    settleBannerRow: (property = 'height') => bannerHandlers.forEach((handler) => handler({ propertyName: property })),
+
+    // The colors index.js wrote to one team's panel
+    teamProperties: (teamNumber) => teamPanel(configClasses[`team${teamNumber}PanelSelector`]).properties,
     timers,
     runTimers
   };
