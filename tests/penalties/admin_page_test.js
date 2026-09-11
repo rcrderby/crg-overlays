@@ -483,14 +483,169 @@ Deno.test('a name placeholder follows the name CRG sends', async () => {
   assert.equal(page.dom.field('Team1Name', 'text').attrs.placeholder, 'Bruise Crew');
 });
 
-// A control the page never binds looks right and does nothing
+// A control the page never binds, or a fetch it never makes, looks right and does nothing
 Deno.test('the page binds every control group when it loads', () => {
   const [, ready] = js.match(/\$\(function \(\) \{([\s\S]*?)\n\}\);/);
-  const defined = [...js.matchAll(/^function (register[A-Za-z]+)\(/gm)].map((match) => match[1]);
+  const defined = [...js.matchAll(/^function ((?:register|load)[A-Za-z]+)\(/gm)].map((match) => match[1]);
 
-  assert.notEqual(defined.length, 0, 'the page defines no register functions');
+  assert.notEqual(defined.length, 0, 'the page defines no startup functions');
 
   for (const name of defined) {
     assert.ok(ready.includes(`${name}();`), `the page never calls ${name}`);
   }
+});
+
+// CRG reports the addresses it answers on at a path of its own, and a streaming
+// computer reaches it over the network rather than at this page's own address
+const CRG_URLS = 'http://192.168.1.50:8000/\n';
+
+Deno.test('only an IPv4 address CRG reports is worth offering', async () => {
+  const page = await loadAdminPage();
+
+  assert.equal(page.ipv4Host('http://192.168.1.50:8000/'), '192.168.1.50:8000');
+  assert.equal(page.ipv4Host('  http://10.0.0.8:8000/  '), '10.0.0.8:8000', 'a line arrives with its newline');
+  assert.equal(page.ipv4Host('http://[fe80::1]:8000/'), '', 'IPv6 arrives bracketed');
+  assert.equal(page.ipv4Host('http://scoreboard.local:8000/'), '', 'a name resolves differently elsewhere');
+  assert.equal(page.ipv4Host(''), '');
+  assert.equal(page.ipv4Host('not a url'), '');
+});
+
+Deno.test('the addresses on offer start with the one this page was opened from', async () => {
+  const page = await loadAdminPage();
+
+  assert.deepEqual(page.overlayUrlChoices(CRG_URLS), [
+    'http://scoreboard:8000/custom/overlay/penalties',
+    'http://192.168.1.50:8000/custom/overlay/penalties'
+  ]);
+
+  assert.deepEqual(page.overlayUrlChoices(''), ['http://scoreboard:8000/custom/overlay/penalties']);
+});
+
+Deno.test('an address CRG reports twice, or one already on offer, is listed once', async () => {
+  const page = await loadAdminPage();
+  const repeated = 'http://192.168.1.50:8000/\nhttp://192.168.1.50:8000/\nhttp://[fe80::1]:8000/\n';
+
+  assert.equal(page.overlayUrlChoices(repeated).length, 2);
+
+  // The page itself opened on an address CRG also reports
+  const sameHost = await loadAdminPage();
+  sameHost.window.location.href = 'http://192.168.1.50:8000/custom/overlay/penalties/admin/';
+
+  assert.deepEqual(sameHost.overlayUrlChoices(CRG_URLS), ['http://192.168.1.50:8000/custom/overlay/penalties']);
+});
+
+Deno.test('the button copies straight away when there is nothing to choose between', async () => {
+  const page = await boundPage();
+  const button = page.dom.button('copy-url');
+
+  await page.loadNetworkUrls();
+
+  assert.equal(page.dom.options('copy-url-option').length, 0, 'no list is built');
+
+  button.label = 'Copy Overlay URL';
+  page.dom.fire(button, 'click');
+  await Promise.resolve();
+
+  assert.equal(button.label, page.overlayUrl(), 'no clipboard here, so the address is shown to copy by hand');
+});
+
+Deno.test('the button opens a list once CRG reports an address of its own', async () => {
+  const page = await boundPage({ urls: CRG_URLS });
+  const button = page.dom.button('copy-url');
+
+  await page.loadNetworkUrls();
+
+  const options = page.dom.options('copy-url-option');
+
+  assert.deepEqual(
+    options.map((option) => option.label),
+    ['http://scoreboard:8000/custom/overlay/penalties', 'http://192.168.1.50:8000/custom/overlay/penalties']
+  );
+
+  assert.equal(page.dom.element('copy-url-list').classes.has('open'), false, 'the list starts closed');
+
+  page.dom.fire(button, 'click');
+  assert.equal(page.dom.element('copy-url-list').classes.has('open'), true);
+  assert.equal(button.attrs['aria-expanded'], 'true');
+
+  page.dom.fire(button, 'click');
+  assert.equal(page.dom.element('copy-url-list').classes.has('open'), false, 'a second click closes it');
+});
+
+Deno.test('choosing an address copies it and closes the list', async () => {
+  const page = await boundPage({ urls: CRG_URLS });
+
+  await page.loadNetworkUrls();
+  page.dom.fire(page.dom.button('copy-url'), 'click');
+
+  const crgAddress = page.dom.options('copy-url-option')[1];
+
+  page.dom.button('copy-url').label = 'Copy Overlay URL';
+  page.dom.fire(crgAddress, 'click');
+  await Promise.resolve();
+
+  assert.equal(page.dom.button('copy-url').label, 'http://192.168.1.50:8000/custom/overlay/penalties');
+  assert.equal(page.dom.element('copy-url-list').classes.has('open'), false);
+
+  page.runTimers();
+  assert.equal(page.dom.button('copy-url').label, 'Copy Overlay URL', 'the label comes back');
+});
+
+Deno.test('a page CRG cannot answer keeps the button it already had', async () => {
+  const page = await boundPage({ urls: null });
+
+  await page.loadNetworkUrls();
+
+  assert.deepEqual(page.fetched, [page.window.AppConfig.PenaltiesOverlayConfig.storage.networkUrlsPath]);
+  assert.equal(page.dom.options('copy-url-option').length, 0);
+
+  const button = page.dom.button('copy-url');
+
+  button.label = 'Copy Overlay URL';
+  page.dom.fire(button, 'click');
+  await Promise.resolve();
+
+  assert.equal(button.label, page.overlayUrl(), 'the page address still copies');
+});
+
+// CRG serves over HTTP, so a page opened any other way still hands out a usable address
+Deno.test('every address on offer carries the HTTP scheme', async () => {
+  const page = await loadAdminPage();
+
+  page.window.location.href = 'https://scoreboard:8000/custom/overlay/penalties/admin/';
+
+  for (const url of page.overlayUrlChoices(CRG_URLS)) {
+    assert.match(url, /^http:\/\//);
+  }
+});
+
+// The list is built as the page runs, so its classes are not in the markup to check
+Deno.test('every class the admin page builds has a rule', async () => {
+  const css = await readSource('penalties/admin/index.css');
+  const built = [...js.matchAll(/addClass\('([a-z-]+)'\)/g)].map((match) => match[1]);
+
+  assert.notEqual(built.length, 0, 'the page builds no classes');
+
+  for (const name of built) {
+    assert.match(css, new RegExp(`\\.${name}\\b`), `index.css has no .${name} rule`);
+  }
+});
+
+Deno.test('the page asks CRG at the path the configuration file names', async () => {
+  const source = await readSource('penalties/config.js');
+  const configSource = source.replace("networkUrlsPath: '/urls'", "networkUrlsPath: '/addresses'");
+  const page = await loadAdminPage({ configSource, urls: CRG_URLS });
+
+  await page.loadNetworkUrls();
+
+  assert.deepEqual(page.fetched, ['/addresses']);
+});
+
+// An overlay served from the root has no path to carry, and the addresses still match
+Deno.test('every address on offer is written the same way', async () => {
+  const page = await loadAdminPage();
+
+  page.window.location.href = 'http://127.0.0.1:8000/admin/';
+
+  assert.deepEqual(page.overlayUrlChoices(CRG_URLS), ['http://127.0.0.1:8000', 'http://192.168.1.50:8000']);
 });

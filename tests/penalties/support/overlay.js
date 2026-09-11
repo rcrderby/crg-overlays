@@ -1,7 +1,7 @@
 // Load the overlay scripts outside a browser to test their logic
 // Stubs for 'window', 'document', 'console', 'jQuery' and 'WS' are enough to run index.js
 
-const REPO = new URL('../../', import.meta.url);
+const REPO = new URL('../../../', import.meta.url);
 
 // Names index.js keeps in module scope, exposed so tests can reach them
 // Grouped by what each name is, then alphabetical within a group
@@ -244,8 +244,13 @@ const ADMIN_PAGE_INTERNALS = [
 
   // Functions that serve the preview and the page's own buttons
   'copyText',
+  'ipv4Host',
+  'loadNetworkUrls',
   'overlayUrl',
+  'overlayUrlChoices',
   'previewDocument',
+  'setUrlListOpen',
+  'showUrlChoices',
   'previewWindow',
   'refitPreview',
   'scalePreview'
@@ -321,7 +326,7 @@ function adminPageDom(html) {
   for (const tag of html.match(/<button[^>]*class="preview-backdrop[^>]*>/g) ?? []) {
     node({ 'data-backdrop': (tag.match(/data-backdrop="([a-z]+)"/) ?? [])[1] }, ['preview-backdrop']);
   }
-  for (const id of ['copy-url', 'reset-settings']) {
+  for (const id of ['copy-url', 'copy-url-list', 'reset-settings']) {
     node({ id });
   }
 
@@ -410,6 +415,33 @@ function adminPageDom(html) {
       },
       is: (selector) => (selector === ':focus' ? Boolean(first?.focused) : matches(first, selector)),
       hasClass: (name) => Boolean(first?.classes.has(name)),
+      addClass(name) {
+        list.forEach((element) => element.classes.add(name));
+
+        return api;
+      },
+      // The list of addresses is built as the page runs, so an append joins the tree
+      elements: list,
+      append(child) {
+        const added = child && child.elements ? child.elements : [].concat(child ?? []);
+
+        if (first) {
+          added.forEach((element) => {
+            element.parent = first;
+            first.children.push(element);
+          });
+        }
+
+        return api;
+      },
+      empty() {
+        list.forEach((element) => {
+          element.children.forEach((child) => (child.parent = null));
+          element.children = [];
+        });
+
+        return api;
+      },
       toggleClass(name, on) {
         list.forEach((element) => (on ? element.classes.add(name) : element.classes.delete(name)));
 
@@ -426,7 +458,11 @@ function adminPageDom(html) {
         return wrap(element ? [element] : []);
       },
       css: () => api,
-      appendTo: () => api,
+      appendTo(target) {
+        (typeof target === 'string' ? jQuery(target) : target).append(api);
+
+        return api;
+      },
       remove: () => api,
       trigger: () => api
     };
@@ -467,6 +503,8 @@ function adminPageDom(html) {
     reset: (setting) => find((n) => n.classes.has('setting-default') && n.attrs['data-setting'] === setting),
     stage: () => find((n) => n.attrs.id === 'preview-stage'),
     button: (id) => find((n) => n.attrs.id === id),
+    element: (id) => find((n) => n.attrs.id === id),
+    options: (className) => nodes.filter((n) => n.classes.has(className)),
 
     // Run the handlers a control carries for one event
     fire: (element, event) => (element.handlers[event] ?? []).forEach((handler) => handler.call(element, {}))
@@ -475,7 +513,7 @@ function adminPageDom(html) {
 
 // Run config.js and the admin page's index.js
 // The page reaches the DOM from its 'ready' callback, which does not run here
-export async function loadAdminPage({ configSource, state = {}, stageWidth = 960 } = {}) {
+export async function loadAdminPage({ configSource, state = {}, stageWidth = 960, urls = '' } = {}) {
   const config = configSource ?? (await readSource('penalties/config.js'));
   const index = await readSource('penalties/admin/index.js');
 
@@ -504,6 +542,16 @@ export async function loadAdminPage({ configSource, state = {}, stageWidth = 960
     getElementById: (id) => (id === 'preview-stage' ? stage : id === 'preview-overlay' ? frame : null)
   };
 
+  // CRG reports the addresses it answers on over plain HTTP
+  const fetched = [];
+  const fetchStub = (path) => {
+    fetched.push(path);
+
+    return urls === null
+      ? Promise.reject(new Error('unreachable'))
+      : Promise.resolve({ ok: true, text: () => Promise.resolve(urls) });
+  };
+
   // Timers the page sets, run only when a test asks for them
   // A cleared timer stays in the list and never runs, the way the browser drops it
   const timers = [];
@@ -525,8 +573,9 @@ export async function loadAdminPage({ configSource, state = {}, stageWidth = 960
     'setTimeout',
     'clearTimeout',
     'navigator',
+    'fetch',
     `${index}\nreturn { ${ADMIN_PAGE_INTERNALS.join(', ')} };`
-  )(window, document, consoleStub, dom.jQuery, WS, setTimeoutStub, clearTimeoutStub, {});
+  )(window, document, consoleStub, dom.jQuery, WS, setTimeoutStub, clearTimeoutStub, {}, fetchStub);
 
   return {
     ...api,
@@ -535,6 +584,7 @@ export async function loadAdminPage({ configSource, state = {}, stageWidth = 960
     dom,
     frame,
     previewOverlay,
+    fetched,
     timers,
     runTimers: () =>
       timers
