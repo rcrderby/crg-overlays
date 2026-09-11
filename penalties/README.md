@@ -28,7 +28,7 @@ Video streaming teams often display an overlay with penalty data during timeouts
 - How many penalties each team has.
 - Tournament information, if applicable.
 - The status of any active timeout.
-- Optionally, the host league, tournament, or sanctioning body's logo.
+- Optionally, the logo of the host league, tournament, or sanctioning body.
 
 ## Features
 
@@ -43,7 +43,7 @@ The overlay gets the information and settings it needs from CRG, so you can prep
   - Indicates team captains with a "C" and alternate captains with an "A".
   - Hides roster names that are marked as:
     - "Bench Alt Captain"
-    - "Bench Staff".
+    - "Bench Staff"
     - "Not Skating"
   - Uses each team's custom "whiteboard" background, text, and glow colors if set.
     - Defaults to black backgrounds with white text if not set.
@@ -51,7 +51,7 @@ The overlay gets the information and settings it needs from CRG, so you can prep
   - Two penalties before a foul out in yellow :yellow_square:
   - One penalty before a foul out in orange :orange_square:
   - Foul outs, expulsions, and removals in red :red_square:
-  - Reads the number of penalties that cause a foul out from the active ruleset, so the colors follow the ruleset a game uses.
+  - Reads the ruleset from CRG to determine the number of penalties that result in a foul out, so colored backgrounds follow active game rules.
 - Changes player numeric penalty counts to:
   - "FO" for foul outs.
   - "EXP" for expulsions.
@@ -73,7 +73,7 @@ The overlay gets the information and settings it needs from CRG, so you can prep
 - Displays each team's score.
 - Displays the game clock.
 - Displays a game status label:
-  - Uses the appropriate label set by clicking the "Intermission Labels" button section on CRG's "Settings" page:
+  - Uses the appropriate labels, set by clicking the "Intermission Labels" button on CRG's "Settings" page:
     - **Pre Game** - defaults to "Time to Derby".
     - **Intermission** - defaults to "Intermission".
     - **Unofficial Score** - defaults to "Unofficial Score".
@@ -178,13 +178,13 @@ The overlay logs the settings it reads and the decisions it makes during a game 
 
 ## Admin Page
 
-The overlay has an admin page at at `http://<crg-ip-address>:8000/custom/overlay/penalties/admin` [^1] that allows you to adjust several configurable options.  The default and the allowed range(s) for each option are in the [Configuration Reference](#configuration-reference "Configuration File Reference").  The admin page includes:
+The overlay has an admin page at `http://<crg-ip-address>:8000/custom/overlay/penalties/admin`[^1] that allows you to adjust several configurable options.  The default and the allowed range(s) for each option are in the [Configuration Reference](#configuration-reference "Configuration File Reference").  The admin page includes:
 
-- A **Live Preview** of the overlay, so you can see your changes in real-time.
+- A **Live Preview** of the overlay, so you can see your changes in real time.
 - A **Copy Overlay URL** button that allows you to copy a URL for the overlay to your clipboard.
-- A **Reset to Defaults** button sets every option back to the values in the overlay configuration file ([config.js](./config.js)).
+- A **Reset to Defaults** button that sets every option back to the values in the overlay configuration file ([config.js](./config.js)).
 
-The admin page allows you to adjust:
+The admin page has configurable sections for:
 
 ### Fit
 
@@ -240,7 +240,7 @@ Override the team names and colors from CRG.  Each team has its own **Name** and
 | Text | Text color for the team name above the roster |
 | Glow/Shadow | Text shadow behind the team name above the roster |
 
-Turning an override switch off sets the values back to those supplied by CRG without discarding your custom values.  As such, a set of custom override values can be set and toggled at any time.  Each **Default** button resets its corresponding value to CRG's configured value.
+Turning an override switch off sets the values back to those supplied by CRG without discarding your custom values.  As such, custom override values can be staged and toggled at any time.  Each **Default** button resets its corresponding value to CRG's configured value.
 
 ## Configuration File
 
@@ -492,7 +492,7 @@ The tests cover:
 - The names `index.html`, `index.js`, `index.css` and `config.js` share.
 - U.S. English spelling conformance.
 
-The [devcontainer](../.devcontainer "Devcontainer Configuration") includes Deno, so the suite runs there with no further setup.  [GitHub Actions](../.github/workflows "Workflows") run every suite under `tests/`, plus [Super Linter](https://github.com/super-linter/super-linter "Super Linter"), on each push and pull request.
+The [devcontainer](../.devcontainer "Devcontainer Configuration") includes Deno, so the test suite runs with no further setup.  [GitHub Actions Workflows](../.github/workflows "GitHub Actions Workflows") run every suite under `tests/`, plus [Super Linter](https://github.com/super-linter/super-linter "Super Linter"), on each push and pull request.
 
 ### Contributing
 
