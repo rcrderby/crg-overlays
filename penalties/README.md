@@ -10,6 +10,7 @@
 - [Configuration File](#configuration-file "Overlay Configuration File")
 - [Configuration Reference](#configuration-reference "Configuration File Reference")
 - [Upgrading from 3.x](#upgrading-from-3x "Upgrade Notes")
+- [Development](#development "Development and Tests")
 
 ## Preview
 
@@ -177,9 +178,69 @@ The overlay logs the settings it reads and the decisions it makes during a game 
 
 ## Admin Page
 
-The overlay has an admin page that allows you to adjust configurable options at `https://<crg-ip-address>:8000/custom/overlay/penalties/admin`.[^1]
+The overlay has an admin page at at `https://<crg-ip-address>:8000/custom/overlay/penalties/admin` [^1] that allows you to adjust several configurable options.  The default and the allowed range(s) for each option are in the [Configuration Reference](#configuration-reference "Configuration File Reference").  The admin page includes:
 
-There are several animation options available for the overlay background and timeout banner, browsers that request reduced motion will show no animation for either.
+- A **Live Preview** of the overlay, so you can see your changes in real-time.
+- A **Copy Overlay URL** button that allows you to copy a URL for the overlay to your clipboard.
+- A **Reset to Defaults** button sets every option back to the values in the overlay configuration file ([config.js](./config.js)).
+
+The admin page allows you to adjust:
+
+### Fit
+
+Where the overlay sits in the video frame, and how much of the frame it uses.
+
+| Option | Description |
+| - | - |
+| Scale | Size of the overlay and everything in it |
+| Scale From | Edge the overlay sits against and scales from: top, center, or bottom |
+| Width | Width of the overlay, as a percentage of the video frame |
+| Height | Height of the overlay, as a percentage of the video frame |
+| Scale Text | Grows the roster text to fill the panel when a roster is short.  Switch it off to hold the text at its configured sizes |
+
+### Appearance
+
+How the overlay is drawn.
+
+| Option | Description |
+| - | - |
+| Background Opacity | Opacity of the overlay background, from solid to invisible |
+| Font | Font pairing the overlay displays: Saira, League Gothic, Anton, or Bricolage |
+| Background | Animation behind the overlay: Trace, Organic, Shine, or Off [^3] |
+
+### Heading
+
+The area above the rosters.
+
+| Option | Description |
+| - | - |
+| Title | Shows or hides the overlay title |
+| Title Text | Overlay title |
+| Team Logos | Shows or hides the team logos CRG supplies |
+
+### Game Information
+
+The area below the rosters.
+
+| Option | Description |
+| - | - |
+| Timeout Banner | Animation the timeout banner uses: Glow, Pulse, Shine, or Off [^3] |
+| Penalties Key | Shows a key of the penalty codes in play below the rosters, once players have penalties |
+
+### Teams
+
+Override the team names and colors from CRG.  Each team has its own **Name** and **Colors** override switches, both off by default.  The fields beneath each switch only apply when the switch is on.
+
+| Option | Description |
+| - | - |
+| Name | Enables or disables overriding the team name from CRG |
+| Custom Name | The team name the overlay displays above its roster and in the game information band |
+| Colors | Enables or disables overriding the team colors from CRG |
+| Background | Background color for the team name above the roster and the color of its panel border |
+| Text | Text color for the team name above the roster |
+| Glow/Shadow | Text shadow behind the team name above the roster |
+
+Turning an override switch off sets the values back to those supplied by CRG without discarding your custom values.  As such, a set of custom override values can be set and toggled at any time.  Each **Default** button resets its corresponding value to CRG's configured value.
 
 ## Configuration File
 
@@ -234,6 +295,18 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | `overlayWidth` | Overlay width percentage of the video frame (70 to 100) | int or float | `85` | :white_check_mark: |
   | `penaltyCodeKey` | Penalty code key visibility below the rosters | boolean | `true` | :white_check_mark: |
   | `rosterTextScaling` | Grow the roster text to fill the panel when a roster is short | boolean | `true` | :white_check_mark: |
+  | `team1BackgroundColor` | Team 1 background color, blank to use the color CRG supplies | string | `''` | :white_check_mark: |
+  | `team1ColorOverride` | Show team 1's colors below rather than the ones CRG supplies | boolean | `false` | :white_check_mark: |
+  | `team1GlowColor` | Team 1 text glow color, blank to use the color CRG supplies | string | `''` | :white_check_mark: |
+  | `team1Name` | Team 1 name, blank to use the name CRG supplies | string | `''` | :white_check_mark: |
+  | `team1NameOverride` | Show team 1's name below rather than the one CRG supplies | boolean | `false` | :white_check_mark: |
+  | `team1TextColor` | Team 1 text color, blank to use the color CRG supplies | string | `''` | :white_check_mark: |
+  | `team2BackgroundColor` | Team 2 background color, blank to use the color CRG supplies | string | `''` | :white_check_mark: |
+  | `team2ColorOverride` | Show team 2's colors below rather than the ones CRG supplies | boolean | `false` | :white_check_mark: |
+  | `team2GlowColor` | Team 2 text glow color, blank to use the color CRG supplies | string | `''` | :white_check_mark: |
+  | `team2Name` | Team 2 name, blank to use the name CRG supplies | string | `''` | :white_check_mark: |
+  | `team2NameOverride` | Show team 2's name below rather than the one CRG supplies | boolean | `false` | :white_check_mark: |
+  | `team2TextColor` | Team 2 text color, blank to use the color CRG supplies | string | `''` | :white_check_mark: |
   | `teamLogos` | Show the team logos CRG supplies | boolean | `true` | :white_check_mark: |
   | `timeoutAnimation` | Timeout banner animation: `glow`, `pulse`, `shine`, or `off` | string | `glow` | :white_check_mark: |
 
@@ -244,6 +317,13 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
   | `settingChannelPrefix` | Channel prefix CRG stores the overlay's settings under | string | `ScoreBoard.Settings.Setting(Penalties.Overlay.` | :x: |
+  | `networkUrlsPath` | Path CRG serves the addresses it answers on, one URL per line | string | `/urls` | :x: |
+  | `teamChannelPrefix` | Channel prefix CRG stores a team's game data under, completed with the team number | string | `ScoreBoard.CurrentGame.Team(` | :x: |
+  | `teamChannels.alternateName` | Field holding a team's "whiteboard" alternate name | string | `AlternateName(whiteboard)` | :x: |
+  | `teamChannels.background` | Field holding a team's "whiteboard" background color | string | `Color(whiteboard.bg)` | :x: |
+  | `teamChannels.glow` | Field holding a team's "whiteboard" glow color | string | `Color(whiteboard.glow)` | :x: |
+  | `teamChannels.name` | Field holding a team's name | string | `Name` | :x: |
+  | `teamChannels.text` | Field holding a team's "whiteboard" text color | string | `Color(whiteboard.fg)` | :x: |
 
   ---
 
@@ -265,7 +345,11 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | `rosterScale` | Largest roster text scale, held so nine penalty codes still fit | object | max `1.18` | :warning: |
   | `rosterTextScaling` | Default for `rosterTextScaling` | object | `true` | :warning: |
   | `scale` | Allowed range and default for `overlayScale` | object | `1` to `100`, default `100` | :warning: |
+  | `teamColor` | Default for every team color, shared by both teams | object | `''` | :warning: |
+  | `teamColorOverride` | Default for `team1ColorOverride` and `team2ColorOverride` | object | `false` | :warning: |
   | `teamLogos` | Default for `teamLogos` | object | `true` | :warning: |
+  | `teamName` | Default for `team1Name` and `team2Name` | object | `''` | :warning: |
+  | `teamNameOverride` | Default for `team1NameOverride` and `team2NameOverride` | object | `false` | :warning: |
   | `timeoutAnimation` | Default for `timeoutAnimation` | object | `glow` | :warning: |
   | `title` | Default for `titleBannerText` | object | `PENALTIES` | :warning: |
   | `titleVisible` | Default for `titleBannerVisible` | object | `true` | :warning: |
@@ -285,7 +369,10 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | `rosterLineSelector` | CSS Selector for a roster line | string | `.roster-line` | :x: |
   | `rosterLineOverLimitSelector` | CSS Selector for a roster line past the display limit | string | `.over-limit` | :x: |
   | `teamHeadingSelector` | CSS Selector for the team name heading above a roster | string | `.team-heading` | :x: |
+  | `team1PanelSelector` | CSS Selector for team 1's roster and penalties panel | string | `#team1-rosters-penalties` | :x: |
+  | `team2PanelSelector` | CSS Selector for team 2's roster and penalties panel | string | `#team2-rosters-penalties` | :x: |
   | `penaltiesTitleH1Selector` | CSS Selector for the penalties title H1 text | string | `#penalties-title h1` | :x: |
+  | `timeoutBannerRowSelector` | CSS Selector for the row the timeout banner grows into | string | `#timeout-banner-row` | :x: |
   | `textShadow` | CSS Variable for text shadows | string | `var(--team-penalties-default-text-shadow)` | :x: |
 
   ---
@@ -349,6 +436,7 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
 
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
+  | `colorCommit` | Delay before storing a color once the picker stops moving (ms) | integer | `150` | :warning: |
   | `initWebSocket` | Delay before initializing display after WebSocket connects (ms) | integer | `100` | :x: |
   | `loadCheckInterval` | How often to check if the game rules arrived (ms) | integer | `100` | :x: |
   | `maxLoadWaitMs` | Longest time to wait for the game rules to arrive (ms) | integer | `5000` | :warning: |
@@ -382,8 +470,39 @@ Version 4.x reads more of its behavior from CRG, so these settings no longer exi
 
 See the [Configuration Reference](#configuration-reference "Configuration Reference Section") for the settings a 4.x `config.js` holds.
 
+## Development
+
+### Tests
+
+The overlay tests live in [tests/penalties](../tests/penalties "Penalties Overlay Tests").  They run with [Deno](https://deno.com "Deno Website") and need no other tools.  Run the tests from the root of the repository:
+
+```bash
+deno test --allow-read tests/penalties/
+```
+
+The tests cover:
+
+- Setting limits in `config.js`.
+- Roster and penalty functions CRG calls through the `sb` bindings.
+- The penalty code key.
+- Roster text fit.
+- Team name and color overrides.
+- Game information labels and clocks.
+- Admin page controls.
+- The names `index.html`, `index.js`, `index.css` and `config.js` share.
+- U.S. English spelling conformance.
+
+The [devcontainer](../.devcontainer "Devcontainer Configuration") includes Deno, so the suite runs there with no further setup.  [GitHub Actions](../.github/workflows "Workflows") run every suite under `tests/`, plus [Super Linter](https://github.com/super-linter/super-linter "Super Linter"), on each push and pull request.
+
+### Contributing
+
+Please open an [Issue](https://github.com/rcrderby/crg-overlays/issues "Repository Issues") to report a problem or request a feature.
+
+A new configurable option touches `config.js`, the overlay, the admin page, the [Configuration Reference](#configuration-reference "Configuration File Reference") and the test suite together.  The tests fail until each names the option, so they describe what a complete change looks like.
+
 <!-- Footnotes -->
 
 [^1]: Replace `<crg-ip-address>` with the IP address of your CRG instance.
 [^2]: The overlay will constrain your logo to a 170px x 92px container and apply a drop shadow.  
 Logos with a transparent background will produce the best appearance.
+[^3]: Browsers that request reduced motion show no animation for the overlay background or the timeout banner.
