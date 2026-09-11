@@ -40,7 +40,7 @@
 
   /* Team and penalty default colors, used when CRG supplies none and nothing overrides them
      index.js writes --team-background-color, --team-text-color and --team-text-shadow
-     on each team's panel in the admin page */
+     on each team's roster and penalties panel */
   --team-penalties-default-fg-color: white;
   --team-penalties-default-bg-color: black;
   --team-penalties-default-border-color: white;

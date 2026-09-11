@@ -327,7 +327,10 @@ function adminPageDom(html) {
     node({ 'data-backdrop': (tag.match(/data-backdrop="([a-z]+)"/) ?? [])[1] }, ['preview-backdrop']);
   }
   for (const id of ['copy-url', 'copy-url-list', 'reset-settings']) {
-    node({ id });
+    const button = node({ id });
+
+    // A button reports back on itself, so it starts on the label the markup gives it
+    button.label = (html.match(new RegExp(`<button[^>]*id="${id}"[^>]*>([^<]*)</button>`)) ?? [])[1] ?? '';
   }
 
   // Selectors the page uses, in the shapes it writes them

@@ -373,7 +373,6 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | `team2PanelSelector` | CSS Selector for team 2's roster and penalties panel | string | `#team2-rosters-penalties` | :x: |
   | `penaltiesTitleH1Selector` | CSS Selector for the penalties title H1 text | string | `#penalties-title h1` | :x: |
   | `timeoutBannerRowSelector` | CSS Selector for the row the timeout banner grows into | string | `#timeout-banner-row` | :x: |
-  | `textShadow` | CSS Variable for text shadows | string | `var(--team-penalties-default-text-shadow)` | :x: |
 
   ---
 

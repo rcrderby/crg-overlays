@@ -78,9 +78,7 @@ Deno.test('every selector in the classes section resolves to markup or a rule', 
   const built = ['penaltyCodeKeyItemsSelector', 'rosterLineOverLimitSelector'];
 
   for (const [name, selector] of Object.entries(CLASSES)) {
-    if (!selector.startsWith('#') && !selector.startsWith('.')) {
-      continue;
-    }
+    assert.ok(selector.startsWith('#') || selector.startsWith('.'), `${name} is not a selector`);
 
     if (built.includes(name)) {
       assert.ok(js.includes(`CLASSES.${name}`), `index.js never uses ${name}`);
@@ -174,8 +172,13 @@ Deno.test('every team name binding follows the name setting the admin page write
   }
 });
 
-Deno.test('the text shadow the configuration file names is defined', () => {
-  const [, property] = CLASSES.textShadow.match(/var\((--[a-z-]+)\)/);
+// index.js removes a blank color from a panel, so the stylesheet's own default applies
+Deno.test('every team color a panel can leave unset names a default that exists', () => {
+  const defaults = [...css.matchAll(/var\(--team-[a-z-]+, var\((--[a-z-]+)\)\)/g)].map(([, name]) => name);
 
-  assert.match(css, new RegExp(`\\n\\s+${property}:`), `index.css never defines ${property}`);
+  assert.equal(defaults.length, 4, 'the border, background, text and shadow each name a default');
+
+  for (const property of new Set(defaults)) {
+    assert.match(css, new RegExp(`\\n\\s+${property}:`), `index.css never defines ${property}`);
+  }
 });

@@ -235,10 +235,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
     penaltiesTitleH1Selector: '#penalties-title h1',
 
     // CSS Selector for the row the timeout banner grows into
-    timeoutBannerRowSelector: '#timeout-banner-row',
-
-    // CSS Variable for text shadows
-    textShadow: 'var(--team-penalties-default-text-shadow)'
+    timeoutBannerRowSelector: '#timeout-banner-row'
   },
 
   /*******************

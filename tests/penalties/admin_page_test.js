@@ -362,7 +362,6 @@ Deno.test('the copy button reports back, then restores its label', async () => {
   const page = await boundPage();
   const button = page.dom.button('copy-url');
 
-  button.label = 'Copy Overlay URL';
   page.dom.fire(button, 'click');
   await Promise.resolve();
 
@@ -542,7 +541,6 @@ Deno.test('the button copies straight away when there is nothing to choose betwe
 
   assert.equal(page.dom.options('copy-url-option').length, 0, 'no list is built');
 
-  button.label = 'Copy Overlay URL';
   page.dom.fire(button, 'click');
   await Promise.resolve();
 
@@ -580,7 +578,6 @@ Deno.test('choosing an address copies it and closes the list', async () => {
 
   const crgAddress = page.dom.options('copy-url-option')[1];
 
-  page.dom.button('copy-url').label = 'Copy Overlay URL';
   page.dom.fire(crgAddress, 'click');
   await Promise.resolve();
 
@@ -589,6 +586,29 @@ Deno.test('choosing an address copies it and closes the list', async () => {
 
   page.runTimers();
   assert.equal(page.dom.button('copy-url').label, 'Copy Overlay URL', 'the label comes back');
+});
+
+Deno.test('a second copy replaces the first reply, and the label still comes back', async () => {
+  const page = await boundPage({ urls: CRG_URLS });
+
+  await page.loadNetworkUrls();
+  page.dom.fire(page.dom.button('copy-url'), 'click');
+
+  const options = page.dom.options('copy-url-option');
+  const button = page.dom.button('copy-url');
+
+  page.dom.fire(options[0], 'click');
+  await Promise.resolve();
+
+  // A second copy while the first reply is still on display
+  page.dom.fire(button, 'click');
+  page.dom.fire(options[1], 'click');
+  await Promise.resolve();
+
+  assert.equal(button.label, options[1].label, 'the second address is the one reported');
+
+  page.runTimers();
+  assert.equal(button.label, 'Copy Overlay URL', 'the label comes back, rather than the first reply');
 });
 
 Deno.test('a page CRG cannot answer keeps the button it already had', async () => {
@@ -601,7 +621,6 @@ Deno.test('a page CRG cannot answer keeps the button it already had', async () =
 
   const button = page.dom.button('copy-url');
 
-  button.label = 'Copy Overlay URL';
   page.dom.fire(button, 'click');
   await Promise.resolve();
 

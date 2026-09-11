@@ -509,32 +509,41 @@ function showUrlChoices(reported) {
   });
 }
 
-// Copy an address and report back on the button, which carries its own label
+// The label the markup gives the copy button, read before a reply covers it
+let copyUrlLabel = '';
+
+// The timer that puts the label back, so a second copy replaces the first reply
+let copyUrlReply = null;
+
+// Copy an address and report back on the button, which returns to its label
 function copyUrl(url) {
   const button = $('#copy-url');
-  const label = button.text();
 
   return copyText(url).then(function (copied) {
     button.text(copied ? 'Copied' : url);
-    setTimeout(function () {
-      button.text(label);
+
+    clearTimeout(copyUrlReply);
+    copyUrlReply = setTimeout(function () {
+      button.text(copyUrlLabel);
     }, 2000);
   });
 }
 
 function registerActions() {
-  $('#copy-url')
-    .attr('title', overlayUrl())
-    .on('click', function () {
-      // One address is this page's own, and there is nothing to choose between
-      if (urlChoices.length < 2) {
-        copyUrl(overlayUrl());
+  const button = $('#copy-url');
 
-        return;
-      }
+  copyUrlLabel = button.text();
 
-      setUrlListOpen(!$('#copy-url-list').hasClass('open'));
-    });
+  button.attr('title', overlayUrl()).on('click', function () {
+    // One address is this page's own, and there is nothing to choose between
+    if (urlChoices.length < 2) {
+      copyUrl(overlayUrl());
+
+      return;
+    }
+
+    setUrlListOpen(!$('#copy-url-list').hasClass('open'));
+  });
 
   $('#reset-settings').on('click', function () {
     Object.keys(SETTINGS).forEach(function (name) {

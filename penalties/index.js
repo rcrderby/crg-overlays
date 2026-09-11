@@ -206,7 +206,7 @@ console.log('Debug mode:', DEBUG);
 const HEIGHT_HOLD_PASSES = 3;
 
 // Overlay version to display as a watermark and log to the console
-const OVERLAY_VERSION = '4.1.0';
+const OVERLAY_VERSION = '4.2.0';
 
 // CRG WebSocket channels the overlay reads
 const CHANNELS = {
@@ -269,7 +269,7 @@ function oneOf(choices) {
   };
 }
 
-// Accept a boolean, or the text a stored setting supplies for one
+// Accept text, which a blank string is not
 function isText(value) {
   if (typeof value !== 'string' || value.trim() === '') {
     return { reason: 'must be text', display: `"${value}"` };
@@ -278,6 +278,7 @@ function isText(value) {
   return { value: value.trim() };
 }
 
+// Accept a boolean, or the text a stored setting supplies for one
 function isBoolean(value) {
   if (typeof value === 'boolean') {
     return { value };
