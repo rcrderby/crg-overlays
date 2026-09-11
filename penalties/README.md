@@ -123,7 +123,7 @@ To make this overlay available to your video streaming team, you need to downloa
 
 **Verify the availability of the penalties overlay:**
 
-1. Access your running instance of CRG using your web browser (`https://<crg-ip-address>:8000`).[^1]
+1. Access your running instance of CRG using your web browser (`http://<crg-ip-address>:8000`).[^1]
 2. In the **BROADCAST OVERLAYS** section on the left side of the main page, click the **Custom Overlays** link.
 3. From the displayed list of files and directories, click the **penalties** link to display the overlay.
 
@@ -133,7 +133,7 @@ Provide this information to your video streaming team to give them access to the
 
 | Setting | Value |
 | - | - |
-| URL | `https://<crg-ip-address>:8000/custom/overlay/penalties`[^1] |
+| URL | `http://<crg-ip-address>:8000/custom/overlay/penalties`[^1] |
 | Width | `1920` |
 | Height | `1080` |
 | Control audio via OBS | Unchecked |
@@ -170,15 +170,15 @@ The overlay logs the settings it reads and the decisions it makes during a game 
 
 | Debug logging | URL |
 | - | - |
-| Off (default) | `https://<crg-ip-address>:8000/custom/overlay/penalties`[^1] |
-| On | `https://<crg-ip-address>:8000/custom/overlay/penalties?debug=true`[^1] |
+| Off (default) | `http://<crg-ip-address>:8000/custom/overlay/penalties`[^1] |
+| On | `http://<crg-ip-address>:8000/custom/overlay/penalties?debug=true`[^1] |
 
 > [!TIP]
 > Open your browser's developer tools to read the console.  Warnings about invalid settings always appear, whether debug logging is on or off.  To log from every browser source, set `debug.enabled` to `true` in [config.js](./config.js) instead.
 
 ## Admin Page
 
-The overlay has an admin page at at `https://<crg-ip-address>:8000/custom/overlay/penalties/admin` [^1] that allows you to adjust several configurable options.  The default and the allowed range(s) for each option are in the [Configuration Reference](#configuration-reference "Configuration File Reference").  The admin page includes:
+The overlay has an admin page at at `http://<crg-ip-address>:8000/custom/overlay/penalties/admin` [^1] that allows you to adjust several configurable options.  The default and the allowed range(s) for each option are in the [Configuration Reference](#configuration-reference "Configuration File Reference").  The admin page includes:
 
 - A **Live Preview** of the overlay, so you can see your changes in real-time.
 - A **Copy Overlay URL** button that allows you to copy a URL for the overlay to your clipboard.
