@@ -69,15 +69,15 @@
     <div id="rosters-penalties-container">
 
       <!-- Team 1 (Home) Roster and Penalties -->
+      <!-- index.js writes the team colors to this element, and the rules inside read them -->
       <div id="team1-rosters-penalties" sbContext="Team(1)">
-        <div class="roster-penalties-container"
-             sbCss="border-color: Color(whiteboard.bg)">
+        <div class="roster-penalties-container">
 
           <div class="team-heading"
-               sbCss="background-color: Color(whiteboard.bg) |
-                      color: Color(whiteboard.fg) |
-                      text-shadow: Color(whiteboard.glow): glowColorToShadow"
-               sbDisplay="AlternateName(whiteboard), Name: getTeamNameWithDefault">
+               sbDisplay="AlternateName(whiteboard),
+                          Name,
+                          /ScoreBoard.Settings.Setting(Penalties.Overlay.Team1Name),
+                          /ScoreBoard.Settings.Setting(Penalties.Overlay.Team1NameOverride): getTeamNameWithDefault">
           </div>
 
           <div id="team1-roster" class="roster">
@@ -128,15 +128,15 @@
       </div>
 
       <!-- Team 2 (Away) Roster and Penalties -->
+      <!-- index.js writes the team colors to this element, and the rules inside read them -->
       <div id="team2-rosters-penalties" sbContext="Team(2)">
-        <div class="roster-penalties-container"
-             sbCss="border-color: Color(whiteboard.bg)">
+        <div class="roster-penalties-container">
 
           <div class="team-heading"
-               sbCss="background-color: Color(whiteboard.bg) |
-                      color: Color(whiteboard.fg) |
-                      text-shadow: Color(whiteboard.glow): glowColorToShadow"
-               sbDisplay="AlternateName(whiteboard), Name: getTeamNameWithDefault">
+               sbDisplay="AlternateName(whiteboard),
+                          Name,
+                          /ScoreBoard.Settings.Setting(Penalties.Overlay.Team2Name),
+                          /ScoreBoard.Settings.Setting(Penalties.Overlay.Team2NameOverride): getTeamNameWithDefault">
           </div>
 
           <div id="team2-roster" class="roster">
@@ -214,7 +214,10 @@
           <!-- Team 1 (Home) -->
           <div class="team-score-block" sbContext="Team(1)">
             <div class="team-name"
-                 sbDisplay="AlternateName(whiteboard), Name: getTeamNameWithDefault"></div>
+                 sbDisplay="AlternateName(whiteboard),
+                            Name,
+                            /ScoreBoard.Settings.Setting(Penalties.Overlay.Team1Name),
+                            /ScoreBoard.Settings.Setting(Penalties.Overlay.Team1NameOverride): getTeamNameWithDefault"></div>
             <div class="score" sbDisplay="Score"></div>
           </div>
 
@@ -300,7 +303,10 @@
           <!-- Team 2 (Away) -->
           <div class="team-score-block" sbContext="Team(2)">
             <div class="team-name"
-                 sbDisplay="AlternateName(whiteboard), Name: getTeamNameWithDefault"></div>
+                 sbDisplay="AlternateName(whiteboard),
+                            Name,
+                            /ScoreBoard.Settings.Setting(Penalties.Overlay.Team2Name),
+                            /ScoreBoard.Settings.Setting(Penalties.Overlay.Team2NameOverride): getTeamNameWithDefault"></div>
             <div class="score" sbDisplay="Score"></div>
           </div>
 

@@ -193,6 +193,56 @@ input[type='text'] {
   color: var(--settings-fg-dim);
 }
 
+/* Each team's settings, separated so the two teams read apart */
+.team-block {
+  border-top: 1px solid var(--settings-line-soft);
+  margin-top: 18px;
+  padding-top: 18px;
+}
+
+.team-block:first-of-type {
+  border-top: 0;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.team-block-name {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+/* The swatch a color picker shows, sized to the row rather than the browser default */
+input[type='color'] {
+  background: rgb(0 0 0 / 35%);
+  border: 1px solid var(--settings-line);
+  border-radius: 4px;
+  cursor: pointer;
+  height: 34px;
+  padding: 4px;
+  width: 72px;
+}
+
+/* Clears one setting, so the overlay falls back to the value CRG supplies */
+.setting-default {
+  font-size: 12px;
+  padding: 7px 10px;
+  width: 100%;
+}
+
+/* A picker and its button only apply while the team's switch is on */
+input:disabled,
+button:disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+button:disabled:hover {
+  background: var(--settings-surface-raised);
+}
+
 .setting-choices {
   display: flex;
   gap: 6px;

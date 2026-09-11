@@ -13,7 +13,7 @@ if (!PenaltiesOverlayConfig) {
 }
 
 // Sections the admin page reads
-const REQUIRED_SECTIONS = ['config', 'storage', 'validation'];
+const REQUIRED_SECTIONS = ['config', 'storage', 'timing', 'validation'];
 const missingSections = REQUIRED_SECTIONS.filter((section) => !PenaltiesOverlayConfig[section]);
 
 if (missingSections.length > 0) {
@@ -25,6 +25,7 @@ if (missingSections.length > 0) {
 
 const CONFIG = PenaltiesOverlayConfig.config;
 const STORAGE = PenaltiesOverlayConfig.storage;
+const TIMING = PenaltiesOverlayConfig.timing;
 const VALIDATION = PenaltiesOverlayConfig.validation;
 
 // CRG stores every setting as a string under one prefix
@@ -33,6 +34,14 @@ const SETTING_CHANNEL_PREFIX = STORAGE.settingChannelPrefix;
 // The scoreboard channel a setting is stored in
 function settingChannel(name) {
   return `${SETTING_CHANNEL_PREFIX}${name})`;
+}
+
+// Fields CRG holds beneath a team, which an unset override falls back to
+const TEAM_CHANNELS = STORAGE.teamChannels;
+
+// The scoreboard channel holding one of a team's fields
+function teamChannel(teamNumber, field) {
+  return `${STORAGE.teamChannelPrefix}${teamNumber}).${field}`;
 }
 
 // CRG covers a page with its loading screen until a registered channel sends a value
@@ -50,12 +59,58 @@ const SETTINGS = {
   PenaltyCodeKey: { config: 'penaltyCodeKey', validation: 'penaltyCodeKey' },
   RosterTextScaling: { config: 'rosterTextScaling', validation: 'rosterTextScaling' },
   Scale: { config: 'overlayScale', validation: 'scale' },
+  Team1BackgroundColor: { config: 'team1BackgroundColor', validation: 'teamColor' },
+  Team1ColorOverride: { config: 'team1ColorOverride', validation: 'teamColorOverride' },
+  Team1GlowColor: { config: 'team1GlowColor', validation: 'teamColor' },
+  Team1Name: { config: 'team1Name', validation: 'teamName' },
+  Team1NameOverride: { config: 'team1NameOverride', validation: 'teamNameOverride' },
+  Team1TextColor: { config: 'team1TextColor', validation: 'teamColor' },
+  Team2BackgroundColor: { config: 'team2BackgroundColor', validation: 'teamColor' },
+  Team2ColorOverride: { config: 'team2ColorOverride', validation: 'teamColorOverride' },
+  Team2GlowColor: { config: 'team2GlowColor', validation: 'teamColor' },
+  Team2Name: { config: 'team2Name', validation: 'teamName' },
+  Team2NameOverride: { config: 'team2NameOverride', validation: 'teamNameOverride' },
+  Team2TextColor: { config: 'team2TextColor', validation: 'teamColor' },
   TeamLogos: { config: 'teamLogos', validation: 'teamLogos' },
   TimeoutAnimation: { config: 'timeoutAnimation', validation: 'timeoutAnimation' },
   TitleText: { config: 'titleBannerText', validation: 'title' },
   TitleVisible: { config: 'titleBannerVisible', validation: 'titleVisible' },
   Width: { config: 'overlayWidth', validation: 'width' }
 };
+
+// Each color picker's switch and the CRG color behind it
+const TEAM_COLOR_FIELDS = {
+  Team1BackgroundColor: { override: 'Team1ColorOverride', crg: teamChannel(1, TEAM_CHANNELS.background) },
+  Team1GlowColor: { override: 'Team1ColorOverride', crg: teamChannel(1, TEAM_CHANNELS.glow) },
+  Team1TextColor: { override: 'Team1ColorOverride', crg: teamChannel(1, TEAM_CHANNELS.text) },
+  Team2BackgroundColor: { override: 'Team2ColorOverride', crg: teamChannel(2, TEAM_CHANNELS.background) },
+  Team2GlowColor: { override: 'Team2ColorOverride', crg: teamChannel(2, TEAM_CHANNELS.glow) },
+  Team2TextColor: { override: 'Team2ColorOverride', crg: teamChannel(2, TEAM_CHANNELS.text) }
+};
+
+// Each name field's switch and the names CRG sends behind it, in the order the overlay reads them
+const TEAM_NAME_FIELDS = {
+  Team1Name: {
+    override: 'Team1NameOverride',
+    crg: [teamChannel(1, TEAM_CHANNELS.alternateName), teamChannel(1, TEAM_CHANNELS.name)]
+  },
+  Team2Name: {
+    override: 'Team2NameOverride',
+    crg: [teamChannel(2, TEAM_CHANNELS.alternateName), teamChannel(2, TEAM_CHANNELS.name)]
+  }
+};
+
+// The switch a team control waits on, or nothing for a control that has none
+function overrideSwitch(name) {
+  return (TEAM_COLOR_FIELDS[name] ?? TEAM_NAME_FIELDS[name])?.override;
+}
+
+// Whether a team control's switch is on, and a control with no switch always is
+function overrideOn(name) {
+  const override = overrideSwitch(name);
+
+  return override === undefined || settingValue(override) === 'true';
+}
 
 // The functions that show each control its value, for the first paint
 const painters = [];
@@ -132,14 +187,14 @@ function registerFields() {
     const name = field.data('setting');
     const channel = settingChannel(name);
     const limits = VALIDATION[SETTINGS[name].validation];
+    const picker = TEAM_COLOR_FIELDS[name] !== undefined;
 
     // A range lives in the configuration file, so it is set in one place
     if (limits.min !== undefined) {
       field.attr({ min: limits.min, max: limits.max });
     }
 
-    // Commit text as it is typed, and a slider value when the operator lets go
-    field.on(field.attr('type') === 'text' ? 'input' : 'change', function () {
+    const commit = function () {
       const value = committedValue(field, name);
 
       WS.Set(channel, value);
@@ -148,16 +203,58 @@ function registerFields() {
       if (field.attr('type') === 'number') {
         field.val(value === '' ? settingValue(name) : value);
       }
-    });
+    };
+
+    // Commit text as it is typed, a color as it is chosen, and a slider value when the operator lets go
+    // A picker reports a color to 'input' and closes without a 'change', so a color
+    // waiting on 'change' is lost the moment the operator clicks away
+    const live = picker || field.attr('type') === 'text';
+
+    field.on(live ? 'input' : 'change', picker ? onceChosen(commit) : commit);
 
     const paint = paintField(field, name);
 
     // Repaint on blur, so an empty field shows the value the overlay falls back to
-    field.on('blur', paint);
+    // A picker holds a color at all times, and repainting one undoes a pick that has not been stored yet
+    if (!picker) {
+      field.on('blur', paint);
+    }
 
     painters.push(paint);
-    WS.Register([channel], paint);
+    WS.Register(watchedChannels(name), paint);
   });
+}
+
+// A team control follows the switch that gates it and the CRG value behind it
+function watchedChannels(name) {
+  const color = TEAM_COLOR_FIELDS[name];
+
+  if (color) {
+    return [settingChannel(name), settingChannel(color.override), color.crg];
+  }
+
+  const team = TEAM_NAME_FIELDS[name];
+
+  if (team) {
+    return [settingChannel(name), settingChannel(team.override), ...team.crg];
+  }
+
+  return [settingChannel(name)];
+}
+
+// The name CRG is sending for a team, which stands behind an empty name field
+function crgTeamName(name) {
+  return TEAM_NAME_FIELDS[name].crg.map((channel) => WS.state[channel]).find((value) => value) ?? '';
+}
+
+// A drag through a picker reports every color it crosses, so the write waits for the operator to settle on one
+function onceChosen(commit) {
+  let pending = null;
+
+  return function () {
+    clearTimeout(pending);
+    pending = setTimeout(commit, TIMING.colorCommit);
+  };
 }
 
 // The value a field stores, held to the range in the configuration file
@@ -186,8 +283,56 @@ function paintField(field, name) {
       return;
     }
 
+    // A team control shows what the overlay is showing, which is CRG's value while its switch is off
+    const color = TEAM_COLOR_FIELDS[name];
+
+    if (color) {
+      field.val((overrideOn(name) && settingValue(name)) || WS.state[color.crg] || '');
+      field.prop('disabled', !overrideOn(name));
+
+      return;
+    }
+
+    // A name field stays empty until it overrides, and shows CRG's name behind it
+    if (TEAM_NAME_FIELDS[name]) {
+      field.attr('placeholder', crgTeamName(name));
+      field.val(overrideOn(name) ? settingValue(name) : '');
+      field.prop('disabled', !overrideOn(name));
+
+      return;
+    }
+
     field.val(settingValue(name));
   };
+}
+
+/**********************
+ ** Default Buttons **
+ *********************/
+
+// A default button clears its setting, so the overlay falls back to CRG-supplied values
+function registerDefaults() {
+  $('.setting-default').each(function () {
+    const button = $(this);
+    const name = button.data('setting');
+    const override = overrideSwitch(name);
+
+    button.on('click', function () {
+      WS.Set(settingChannel(name), '');
+    });
+
+    if (override === undefined) {
+      return;
+    }
+
+    // A button follows the switch that gates the control beside it
+    const paint = function () {
+      button.prop('disabled', !overrideOn(name));
+    };
+
+    painters.push(paint);
+    WS.Register([settingChannel(override)], paint);
+  });
 }
 
 /*************************
@@ -337,6 +482,7 @@ $(function () {
   WS.Register([READY_CHANNEL]);
   registerChoices();
   registerFields();
+  registerDefaults();
   registerSliderPreview();
   registerBackdrops();
   registerActions();
