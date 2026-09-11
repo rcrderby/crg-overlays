@@ -108,6 +108,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Channel prefix CRG stores the overlay's settings under
     settingChannelPrefix: 'ScoreBoard.Settings.Setting(Penalties.Overlay.',
 
+    // Path CRG serves the addresses it answers on, one URL per line
+    networkUrlsPath: '/urls',
+
     // Channel prefix CRG stores a team's game data under, completed with the team number
     teamChannelPrefix: 'ScoreBoard.CurrentGame.Team(',
 

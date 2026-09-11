@@ -14,6 +14,7 @@
   --settings-surface: rgb(255 255 255 / 5%);
   --settings-surface-raised: rgb(255 255 255 / 8%);
   --settings-well: rgb(0 0 0 / 30%);
+  --settings-shadow-menu: 0 8px 20px rgb(0 0 0 / 45%);
 
   /* Fonts, from the overlay's bundled faces */
   --settings-font: 'Saira', arial, sans-serif;
@@ -68,6 +69,45 @@ body {
   display: flex;
   gap: 10px;
   margin-left: auto;
+}
+
+/* The list of URLs displays below the button that opens it */
+#copy-url-group {
+  position: relative;
+}
+
+#copy-url-list {
+  background: #15141b;
+  border: 1px solid var(--settings-line);
+  border-radius: 4px;
+  box-shadow: var(--settings-shadow-menu);
+  display: none;
+  list-style: none;
+  min-width: 100%;
+  padding: 4px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  white-space: nowrap;
+  z-index: 2;
+}
+
+#copy-url-list.open {
+  display: block;
+}
+
+.copy-url-option {
+  background: none;
+  border: none;
+  border-radius: 3px;
+  font-size: 12px;
+  padding: 7px 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.copy-url-option:hover {
+  background: rgb(255 255 255 / 13%);
 }
 
 /* The controls stay narrow, so the settings run down the page rather than across it */

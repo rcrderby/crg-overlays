@@ -427,26 +427,113 @@ function scalePreview() {
 
 // The URL a streaming team points a browser source at
 function overlayUrl() {
-  return new URL('../', window.location.href).href.replace(/\/$/, '');
+  const address = new URL('../', window.location.href);
+
+  return `http://${address.host}${address.pathname.replace(/\/$/, '')}`;
+}
+
+// Only report IPv4 CRG addresses
+// Host names may resolve differently from one computer to the next
+// IPv6 are surrounded with brackets
+const IPV4_ADDRESS = /^\d{1,3}(\.\d{1,3}){3}$/;
+
+function ipv4Host(line) {
+  try {
+    const address = new URL(line.trim());
+
+    return IPV4_ADDRESS.test(address.hostname) ? address.host : '';
+  } catch {
+    return '';
+  }
+}
+
+// URLs for every address the overlay listens on, plus the current URL
+function overlayUrlChoices(reported) {
+  const here = overlayUrl();
+
+  // Take the path from the address above, so every choice is written the same way
+  const path = here.slice(new URL(here).origin.length);
+  const choices = [here];
+
+  String(reported)
+    .split('\n')
+    .forEach(function (line) {
+      const host = ipv4Host(line);
+
+      if (host && !choices.some((choice) => new URL(choice).host === host)) {
+        choices.push(`http://${host}${path}`);
+      }
+    });
+
+  return choices;
+}
+
+// Addresses the overlay listens on, filled in once CRG reports them
+let urlChoices = [];
+
+// Ask CRG for the addresses it listens on, and offer them beside the current URL
+function loadNetworkUrls() {
+  return fetch(STORAGE.networkUrlsPath)
+    .then((response) => (response.ok ? response.text() : ''))
+    .catch(() => '')
+    .then(showUrlChoices);
+}
+
+function setUrlListOpen(open) {
+  $('#copy-url-list').toggleClass('open', open);
+  $('#copy-url').attr('aria-expanded', String(open));
+}
+
+// List the addresses to choose between, and leave the list empty when there is no choice
+function showUrlChoices(reported) {
+  urlChoices = overlayUrlChoices(reported);
+
+  const list = $('#copy-url-list');
+
+  list.empty();
+  setUrlListOpen(false);
+
+  if (urlChoices.length < 2) {
+    return;
+  }
+
+  urlChoices.forEach(function (url) {
+    const option = $('<button>').addClass('copy-url-option').attr('type', 'button').text(url);
+
+    option.on('click', function () {
+      copyUrl(url);
+      setUrlListOpen(false);
+    });
+
+    $('<li>').append(option).appendTo(list);
+  });
+}
+
+// Copy an address and report back on the button, which carries its own label
+function copyUrl(url) {
+  const button = $('#copy-url');
+  const label = button.text();
+
+  return copyText(url).then(function (copied) {
+    button.text(copied ? 'Copied' : url);
+    setTimeout(function () {
+      button.text(label);
+    }, 2000);
+  });
 }
 
 function registerActions() {
-  const url = overlayUrl();
-
   $('#copy-url')
-    .attr('title', url)
+    .attr('title', overlayUrl())
     .on('click', function () {
-      const button = $(this);
+      // One address is this page's own, and there is nothing to choose between
+      if (urlChoices.length < 2) {
+        copyUrl(overlayUrl());
 
-      // The button carries its own label, so the markup names it once
-      const label = button.text();
+        return;
+      }
 
-      copyText(url).then(function (copied) {
-        button.text(copied ? 'Copied' : url);
-        setTimeout(function () {
-          button.text(label);
-        }, 2000);
-      });
+      setUrlListOpen(!$('#copy-url-list').hasClass('open'));
     });
 
   $('#reset-settings').on('click', function () {
@@ -486,9 +573,8 @@ $(function () {
   registerSliderPreview();
   registerBackdrops();
   registerActions();
-
-  // Controls start on the values the overlay is showing
   paintControls();
+  loadNetworkUrls();
 
   scalePreview();
   $(window).on('resize', scalePreview);
