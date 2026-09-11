@@ -3,7 +3,8 @@
 // Each check proves a name still resolves, not that every rule using it survived
 
 import assert from 'node:assert/strict';
-import { loadOverlay, readSource } from './support/overlay.js';
+import { loadAdminPage, loadOverlay, readSource } from './support/overlay.js';
+import { overlaySetting, teamAlternateName, teamColorChannel, teamNameChannel } from './support/channels.js';
 
 const html = await readSource('penalties/index.html');
 const css = await readSource('penalties/index.css');
@@ -197,5 +198,33 @@ Deno.test('the preview frame renders at the size the overlay is drawn at', () =>
     const [, drawn] = css.match(new RegExp(`\\n\\s+${variable}: (\\d+px);`));
 
     assert.equal(framed, drawn, `#preview-overlay ${property} disagrees with ${variable}`);
+  }
+});
+
+// Each page carries its own copy of these, because a CRG custom screen stands alone
+// A page that drifts reads or writes a channel the other one never sees
+Deno.test('the overlay and the admin page name the same channels', async () => {
+  const overlay = await loadOverlay();
+  const admin = await loadAdminPage();
+
+  // The right side is written out in full, so neither page's copy stands as its own proof
+  for (const name of ['TitleVisible', 'Team1Name', 'Team2ColorOverride', 'Width']) {
+    assert.equal(overlay.settingChannel(name), overlaySetting(name), `the overlay stores ${name} elsewhere`);
+    assert.equal(admin.settingChannel(name), overlaySetting(name), `the admin page stores ${name} elsewhere`);
+  }
+
+  for (const team of [1, 2]) {
+    const fields = [
+      ['Name', teamNameChannel(team)],
+      ['AlternateName(whiteboard)', teamAlternateName(team)],
+      ['Color(whiteboard.bg)', teamColorChannel(team, 'bg')],
+      ['Color(whiteboard.fg)', teamColorChannel(team, 'fg')],
+      ['Color(whiteboard.glow)', teamColorChannel(team, 'glow')]
+    ];
+
+    for (const [field, channel] of fields) {
+      assert.equal(overlay.teamChannel(team, field), channel, `the overlay reads team ${team} ${field} elsewhere`);
+      assert.equal(admin.teamChannel(team, field), channel, `the admin page reads team ${team} ${field} elsewhere`);
+    }
   }
 });
