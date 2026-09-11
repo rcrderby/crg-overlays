@@ -440,6 +440,7 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
   | `colorCommit` | Delay before storing a color once the picker stops moving (ms) | integer | `150` | :warning: |
+  | `copyReply` | How long the copy button reports an address before showing its label again (ms) | integer | `2000` | :warning: |
   | `initWebSocket` | Delay before initializing display after WebSocket connects (ms) | integer | `100` | :x: |
   | `loadCheckInterval` | How often to check if the game rules arrived (ms) | integer | `100` | :x: |
   | `maxLoadWaitMs` | Longest time to wait for the game rules to arrive (ms) | integer | `5000` | :warning: |

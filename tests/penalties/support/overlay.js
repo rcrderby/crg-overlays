@@ -516,7 +516,7 @@ function adminPageDom(html) {
 
 // Run config.js and the admin page's index.js
 // The page reaches the DOM from its 'ready' callback, which does not run here
-export async function loadAdminPage({ configSource, state = {}, stageWidth = 960, urls = '' } = {}) {
+export async function loadAdminPage({ configSource, frameWidth = 1920, state = {}, stageWidth = 960, urls = '' } = {}) {
   const config = configSource ?? (await readSource('penalties/config.js'));
   const index = await readSource('penalties/admin/index.js');
 
@@ -536,6 +536,7 @@ export async function loadAdminPage({ configSource, state = {}, stageWidth = 960
 
   const frame = {
     style: {},
+    offsetWidth: frameWidth,
     contentWindow: previewOverlay,
     contentDocument: {
       documentElement: { style: { setProperty: (name, value) => (previewOverlay.properties[name] = String(value)) } }

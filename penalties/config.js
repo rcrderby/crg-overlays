@@ -333,6 +333,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Delay before storing a color once the picker stops moving (ms)
     colorCommit: 150,
 
+    // How long the copy button reports an address before showing its label again (ms)
+    copyReply: 2000,
+
     // Delay before initializing display after WebSocket connects (ms)
     initWebSocket: 100,
 

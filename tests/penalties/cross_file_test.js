@@ -9,6 +9,7 @@ const html = await readSource('penalties/index.html');
 const css = await readSource('penalties/index.css');
 const js = await readSource('penalties/index.js');
 const adminHtml = await readSource('penalties/admin/index.html');
+const adminCss = await readSource('penalties/admin/index.css');
 
 const { CLASSES, TOGGLES } = await loadOverlay();
 
@@ -180,5 +181,21 @@ Deno.test('every team color a panel can leave unset names a default that exists'
 
   for (const property of new Set(defaults)) {
     assert.match(css, new RegExp(`\\n\\s+${property}:`), `index.css never defines ${property}`);
+  }
+});
+
+// The admin page divides the panel width by the frame's own width to scale the preview
+// A frame that disagrees with the overlay scales the preview to the wrong size
+Deno.test('the preview frame renders at the size the overlay is drawn at', () => {
+  const frame = adminCss.match(/#preview-overlay \{[^}]*\}/)[0];
+
+  for (const [property, variable] of [
+    ['width', '--overlay-width'],
+    ['height', '--overlay-height']
+  ]) {
+    const [, framed] = frame.match(new RegExp(`\\n\\s+${property}: (\\d+px);`));
+    const [, drawn] = css.match(new RegExp(`\\n\\s+${variable}: (\\d+px);`));
+
+    assert.equal(framed, drawn, `#preview-overlay ${property} disagrees with ${variable}`);
   }
 });

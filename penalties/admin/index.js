@@ -409,16 +409,17 @@ function registerBackdrops() {
  ** Preview Scaling **
  ********************/
 
-// The overlay renders at 1920x1080, then scales to fill available space
+// The overlay renders at the size the stylesheet gives the frame, then scales to fill the panel
 function scalePreview() {
   const stage = document.getElementById('preview-stage');
   const frame = document.getElementById('preview-overlay');
 
-  if (!stage || !frame) {
+  // A transform leaves `offsetWidth` alone, so the frame reports the size it renders at
+  if (!stage || !frame || !frame.offsetWidth) {
     return;
   }
 
-  frame.style.transform = `scale(${stage.clientWidth / 1920})`;
+  frame.style.transform = `scale(${stage.clientWidth / frame.offsetWidth})`;
 }
 
 /******************
@@ -525,7 +526,7 @@ function copyUrl(url) {
     clearTimeout(copyUrlReply);
     copyUrlReply = setTimeout(function () {
       button.text(copyUrlLabel);
-    }, 2000);
+    }, TIMING.copyReply);
   });
 }
 

@@ -368,6 +368,10 @@ Deno.test('the copy button reports back, then restores its label', async () => {
   assert.equal(button.label, page.overlayUrl(), 'no clipboard, so the address is shown to copy by hand');
   assert.equal(button.attrs.title, page.overlayUrl());
 
+  const { timing } = page.window.AppConfig.PenaltiesOverlayConfig;
+
+  assert.equal(page.timers.at(-1).delay, timing.copyReply, 'the reply waits the time the configuration file sets');
+
   page.runTimers();
   assert.equal(button.label, 'Copy Overlay URL');
 });
