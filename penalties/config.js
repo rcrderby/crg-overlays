@@ -80,6 +80,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
     // Names and colors that replace those supplied by CRG
     // Any blank value uses CRG values
     // Colors only apply when a team's override is set to `true`
+    // A color is six hex digits, as in `#b3122e`, which is what the admin page writes
     team1BackgroundColor: '',
     team1ColorOverride: false,
     team1GlowColor: '',
@@ -235,10 +236,7 @@ window.AppConfig.PenaltiesOverlayConfig = {
     penaltiesTitleH1Selector: '#penalties-title h1',
 
     // CSS Selector for the row the timeout banner grows into
-    timeoutBannerRowSelector: '#timeout-banner-row',
-
-    // CSS Variable for text shadows
-    textShadow: 'var(--team-penalties-default-text-shadow)'
+    timeoutBannerRowSelector: '#timeout-banner-row'
   },
 
   /*******************
@@ -335,6 +333,9 @@ window.AppConfig.PenaltiesOverlayConfig = {
   timing: {
     // Delay before storing a color once the picker stops moving (ms)
     colorCommit: 150,
+
+    // How long the copy button reports an address before showing its label again (ms)
+    copyReply: 2000,
 
     // Delay before initializing display after WebSocket connects (ms)
     initWebSocket: 100,

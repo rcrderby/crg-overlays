@@ -188,6 +188,7 @@ async function boundPage(options = {}) {
   page.registerSliderPreview();
   page.registerBackdrops();
   page.registerActions();
+  page.registerUrlListDismissal();
   page.paintControls();
 
   return page;
@@ -358,16 +359,56 @@ Deno.test('the overlay URL drops the admin page from the address', async () => {
   assert.equal(page.overlayUrl(), 'http://scoreboard:8000/custom/overlay/penalties');
 });
 
+// A switch is drawn from a class, which carries nothing an assistive technology reads
+Deno.test('a switch reports whether it is on', async () => {
+  const page = await boundPage({ state: { [overlaySetting('TitleVisible')]: 'false' } });
+  const off = page.dom.choice('TitleVisible', 'true');
+
+  assert.equal(off.attrs['aria-checked'], 'false');
+
+  page.dom.fire(off, 'click');
+  assert.equal(off.attrs['aria-checked'], 'true', 'turning it on reports it on');
+
+  page.dom.fire(off, 'click');
+  assert.equal(off.attrs['aria-checked'], 'false', 'turning it off reports it off');
+});
+
+// Every control the markup labels has to resolve, or the label names nothing
+Deno.test('every label names a control that exists', async () => {
+  const markup = await readSource('penalties/admin/index.html');
+  const ids = new Set([...markup.matchAll(/\sid="([^"]+)"/g)].map(([, id]) => id));
+
+  const named = [...markup.matchAll(/<label(?:\s+for="([^"]*)")?[^>]*>/g)];
+
+  assert.ok(named.length > 0, 'the page has labels');
+
+  for (const [, control] of named) {
+    // A label with no `for` names a group through aria-labelledby instead
+    if (control === undefined) {
+      continue;
+    }
+
+    assert.ok(ids.has(control), `no control has the id ${control}`);
+  }
+
+  for (const [, label] of markup.matchAll(/aria-labelledby="([^"]+)"/g)) {
+    assert.ok(ids.has(label), `no element has the id ${label}`);
+  }
+});
+
 Deno.test('the copy button reports back, then restores its label', async () => {
   const page = await boundPage();
   const button = page.dom.button('copy-url');
 
-  button.label = 'Copy Overlay URL';
   page.dom.fire(button, 'click');
   await Promise.resolve();
 
   assert.equal(button.label, page.overlayUrl(), 'no clipboard, so the address is shown to copy by hand');
   assert.equal(button.attrs.title, page.overlayUrl());
+
+  const { timing } = page.window.AppConfig.PenaltiesOverlayConfig;
+
+  assert.equal(page.timers.at(-1).delay, timing.copyReply, 'the reply waits the time the configuration file sets');
 
   page.runTimers();
   assert.equal(button.label, 'Copy Overlay URL');
@@ -542,7 +583,6 @@ Deno.test('the button copies straight away when there is nothing to choose betwe
 
   assert.equal(page.dom.options('copy-url-option').length, 0, 'no list is built');
 
-  button.label = 'Copy Overlay URL';
   page.dom.fire(button, 'click');
   await Promise.resolve();
 
@@ -580,7 +620,6 @@ Deno.test('choosing an address copies it and closes the list', async () => {
 
   const crgAddress = page.dom.options('copy-url-option')[1];
 
-  page.dom.button('copy-url').label = 'Copy Overlay URL';
   page.dom.fire(crgAddress, 'click');
   await Promise.resolve();
 
@@ -589,6 +628,82 @@ Deno.test('choosing an address copies it and closes the list', async () => {
 
   page.runTimers();
   assert.equal(page.dom.button('copy-url').label, 'Copy Overlay URL', 'the label comes back');
+});
+
+Deno.test('a second copy replaces the first reply, and the label still comes back', async () => {
+  const page = await boundPage({ urls: CRG_URLS });
+
+  await page.loadNetworkUrls();
+  page.dom.fire(page.dom.button('copy-url'), 'click');
+
+  const options = page.dom.options('copy-url-option');
+  const button = page.dom.button('copy-url');
+
+  page.dom.fire(options[0], 'click');
+  await Promise.resolve();
+
+  // A second copy while the first reply is still on display
+  page.dom.fire(button, 'click');
+  page.dom.fire(options[1], 'click');
+  await Promise.resolve();
+
+  assert.equal(button.label, options[1].label, 'the second address is the one reported');
+
+  page.runTimers();
+  assert.equal(button.label, 'Copy Overlay URL', 'the label comes back, rather than the first reply');
+});
+
+// An address list is a menu, and a menu that only closes on itself sits over the page
+Deno.test('a click away from the list closes it', async () => {
+  const page = await boundPage({ urls: CRG_URLS });
+
+  await page.loadNetworkUrls();
+  page.dom.fire(page.dom.button('copy-url'), 'click');
+
+  assert.equal(page.dom.element('copy-url-list').classes.has('open'), true);
+
+  page.dom.fire(page.dom.document, 'click', { target: page.dom.button('reset-settings') });
+
+  assert.equal(page.dom.element('copy-url-list').classes.has('open'), false);
+  assert.equal(page.dom.button('copy-url').attrs['aria-expanded'], 'false');
+});
+
+Deno.test('a click on the button or its list leaves the list open', async () => {
+  const page = await boundPage({ urls: CRG_URLS });
+
+  await page.loadNetworkUrls();
+  page.dom.fire(page.dom.button('copy-url'), 'click');
+
+  // The click that opened the list reaches the document too, and must not close it again
+  page.dom.fire(page.dom.document, 'click', { target: page.dom.button('copy-url') });
+  assert.equal(page.dom.element('copy-url-list').classes.has('open'), true, 'the button belongs to the list');
+
+  page.dom.fire(page.dom.document, 'click', { target: page.dom.options('copy-url-option')[0] });
+  assert.equal(page.dom.element('copy-url-list').classes.has('open'), true, 'an address belongs to the list');
+});
+
+Deno.test('Escape closes the list and hands the focus back', async () => {
+  const page = await boundPage({ urls: CRG_URLS });
+
+  await page.loadNetworkUrls();
+  page.dom.fire(page.dom.button('copy-url'), 'click');
+
+  page.dom.fire(page.dom.document, 'keydown', { key: 'a' });
+  assert.equal(page.dom.element('copy-url-list').classes.has('open'), true, 'another key leaves it alone');
+
+  page.dom.fire(page.dom.document, 'keydown', { key: 'Escape' });
+
+  assert.equal(page.dom.element('copy-url-list').classes.has('open'), false);
+  assert.equal(page.dom.button('copy-url').focused, true, 'the focus does not stay on the closed list');
+});
+
+Deno.test('Escape takes the focus only when the list is open', async () => {
+  const page = await boundPage({ urls: CRG_URLS });
+
+  await page.loadNetworkUrls();
+  page.dom.fire(page.dom.document, 'keydown', { key: 'Escape' });
+
+  assert.equal(page.dom.button('copy-url').focused, false, 'a closed list has no focus to hand back');
 });
 
 Deno.test('a page CRG cannot answer keeps the button it already had', async () => {
@@ -601,7 +716,6 @@ Deno.test('a page CRG cannot answer keeps the button it already had', async () =
 
   const button = page.dom.button('copy-url');
 
-  button.label = 'Copy Overlay URL';
   page.dom.fire(button, 'click');
   await Promise.resolve();
 

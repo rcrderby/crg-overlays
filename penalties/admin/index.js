@@ -169,8 +169,14 @@ function paintChoices(group, name) {
 
     group.find('.setting-choice').each(function () {
       const button = $(this);
+      const chosen = String(button.data('value')) === value;
 
-      button.toggleClass('selected', String(button.data('value')) === value);
+      button.toggleClass('selected', chosen);
+
+      // A switch carries its own state, which the class it is drawn from does not report
+      if (button.hasClass('setting-switch')) {
+        button.attr('aria-checked', String(chosen));
+      }
     });
   };
 }
@@ -409,16 +415,17 @@ function registerBackdrops() {
  ** Preview Scaling **
  ********************/
 
-// The overlay renders at 1920x1080, then scales to fill available space
+// The overlay renders at the size the stylesheet gives the frame, then scales to fill the panel
 function scalePreview() {
   const stage = document.getElementById('preview-stage');
   const frame = document.getElementById('preview-overlay');
 
-  if (!stage || !frame) {
+  // A transform leaves `offsetWidth` alone, so the frame reports the size it renders at
+  if (!stage || !frame || !frame.offsetWidth) {
     return;
   }
 
-  frame.style.transform = `scale(${stage.clientWidth / 1920})`;
+  frame.style.transform = `scale(${stage.clientWidth / frame.offsetWidth})`;
 }
 
 /******************
@@ -509,32 +516,61 @@ function showUrlChoices(reported) {
   });
 }
 
-// Copy an address and report back on the button, which carries its own label
+// The label the markup gives the copy button, read before a reply covers it
+let copyUrlLabel = '';
+
+// The timer that puts the label back, so a second copy replaces the first reply
+let copyUrlReply = null;
+
+// Copy an address and report back on the button, which returns to its label
 function copyUrl(url) {
   const button = $('#copy-url');
-  const label = button.text();
 
   return copyText(url).then(function (copied) {
     button.text(copied ? 'Copied' : url);
-    setTimeout(function () {
-      button.text(label);
-    }, 2000);
+
+    clearTimeout(copyUrlReply);
+    copyUrlReply = setTimeout(function () {
+      button.text(copyUrlLabel);
+    }, TIMING.copyReply);
+  });
+}
+
+// A list left open covers the controls beneath it, so anything away from it closes it
+function registerUrlListDismissal() {
+  const isOpen = () => $('#copy-url-list').hasClass('open');
+
+  // The button and its list share a group, and a click inside that group is the list's own
+  $(document).on('click', function (event) {
+    if (isOpen() && $(event.target).closest('#copy-url-group').length === 0) {
+      setUrlListOpen(false);
+    }
+  });
+
+  // Escape closes the list and hands the focus back to the button that opened it
+  $(document).on('keydown', function (event) {
+    if (event.key === 'Escape' && isOpen()) {
+      setUrlListOpen(false);
+      $('#copy-url').trigger('focus');
+    }
   });
 }
 
 function registerActions() {
-  $('#copy-url')
-    .attr('title', overlayUrl())
-    .on('click', function () {
-      // One address is this page's own, and there is nothing to choose between
-      if (urlChoices.length < 2) {
-        copyUrl(overlayUrl());
+  const button = $('#copy-url');
 
-        return;
-      }
+  copyUrlLabel = button.text();
 
-      setUrlListOpen(!$('#copy-url-list').hasClass('open'));
-    });
+  button.attr('title', overlayUrl()).on('click', function () {
+    // One address is this page's own, and there is nothing to choose between
+    if (urlChoices.length < 2) {
+      copyUrl(overlayUrl());
+
+      return;
+    }
+
+    setUrlListOpen(!$('#copy-url-list').hasClass('open'));
+  });
 
   $('#reset-settings').on('click', function () {
     Object.keys(SETTINGS).forEach(function (name) {
@@ -573,6 +609,7 @@ $(function () {
   registerSliderPreview();
   registerBackdrops();
   registerActions();
+  registerUrlListDismissal();
   paintControls();
   loadNetworkUrls();
 

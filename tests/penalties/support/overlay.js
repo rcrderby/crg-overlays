@@ -241,6 +241,7 @@ const ADMIN_PAGE_INTERNALS = [
   'registerDefaults',
   'registerFields',
   'registerSliderPreview',
+  'registerUrlListDismissal',
 
   // Functions that serve the preview and the page's own buttons
   'copyText',
@@ -326,9 +327,23 @@ function adminPageDom(html) {
   for (const tag of html.match(/<button[^>]*class="preview-backdrop[^>]*>/g) ?? []) {
     node({ 'data-backdrop': (tag.match(/data-backdrop="([a-z]+)"/) ?? [])[1] }, ['preview-backdrop']);
   }
+  const copyUrlGroup = node({ id: 'copy-url-group' });
+
   for (const id of ['copy-url', 'copy-url-list', 'reset-settings']) {
-    node({ id });
+    const button = node({ id });
+
+    // A button reports back on itself, so it starts on the label the markup gives it
+    button.label = (html.match(new RegExp(`<button[^>]*id="${id}"[^>]*>([^<]*)</button>`)) ?? [])[1] ?? '';
+
+    // The markup holds the copy button and its list together, which the page reads
+    if (id.startsWith('copy-url')) {
+      button.parent = copyUrlGroup;
+      copyUrlGroup.children.push(button);
+    }
   }
+
+  // The page listens for clicks and keys that land anywhere, so the document carries handlers
+  const documentNode = node({});
 
   // Selectors the page uses, in the shapes it writes them
   const matches = (element, selector) =>
@@ -464,7 +479,13 @@ function adminPageDom(html) {
         return api;
       },
       remove: () => api,
-      trigger: () => api
+      trigger(event) {
+        if (event === 'focus') {
+          list.forEach((element) => (element.focused = true));
+        }
+
+        return api;
+      }
     };
 
     return api;
@@ -502,18 +523,20 @@ function adminPageDom(html) {
     backdrop: (name) => find((n) => n.classes.has('preview-backdrop') && n.attrs['data-backdrop'] === name),
     reset: (setting) => find((n) => n.classes.has('setting-default') && n.attrs['data-setting'] === setting),
     stage: () => find((n) => n.attrs.id === 'preview-stage'),
+    document: documentNode,
     button: (id) => find((n) => n.attrs.id === id),
     element: (id) => find((n) => n.attrs.id === id),
     options: (className) => nodes.filter((n) => n.classes.has(className)),
 
-    // Run the handlers a control carries for one event
-    fire: (element, event) => (element.handlers[event] ?? []).forEach((handler) => handler.call(element, {}))
+    // Run the handlers a control carries for one event, which names what it landed on
+    fire: (element, event, payload = {}) =>
+      (element.handlers[event] ?? []).forEach((handler) => handler.call(element, { target: element, ...payload }))
   };
 }
 
 // Run config.js and the admin page's index.js
 // The page reaches the DOM from its 'ready' callback, which does not run here
-export async function loadAdminPage({ configSource, state = {}, stageWidth = 960, urls = '' } = {}) {
+export async function loadAdminPage({ configSource, frameWidth = 1920, state = {}, stageWidth = 960, urls = '' } = {}) {
   const config = configSource ?? (await readSource('penalties/config.js'));
   const index = await readSource('penalties/admin/index.js');
 
@@ -533,14 +556,15 @@ export async function loadAdminPage({ configSource, state = {}, stageWidth = 960
 
   const frame = {
     style: {},
+    offsetWidth: frameWidth,
     contentWindow: previewOverlay,
     contentDocument: {
       documentElement: { style: { setProperty: (name, value) => (previewOverlay.properties[name] = String(value)) } }
     }
   };
-  const document = {
+  const document = Object.assign(dom.document, {
     getElementById: (id) => (id === 'preview-stage' ? stage : id === 'preview-overlay' ? frame : null)
-  };
+  });
 
   // CRG reports the addresses it answers on over plain HTTP
   const fetched = [];

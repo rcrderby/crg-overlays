@@ -2,6 +2,7 @@
 
 ## Contents
 
+- [Preview](#preview "Overlay Preview")
 - [Overview](#overview "Overlay Overview")
 - [Features](#features "Overlay Features")
 - [Compatibility](#compatibility "Overlay CRG Compatibility")
@@ -36,17 +37,19 @@ The overlay gets the information and settings it needs from CRG, so you can prep
 
 ### Rosters & Penalties Area
 
-- Displays team logos.
+- Displays team logos, which the [Admin Page](#admin-page "Overlay Admin Page") can hide.
   - Logos automatically resize to fit a 100px tall container, up to 300px wide.
   - Shrinks the logos and the space they occupy when a full roster and a timeout banner need the room.
 - Displays rosters for each team that include player numbers, names, assigned penalty codes, and total penalty count for each player.
   - Indicates team captains with a "C" and alternate captains with an "A".
+  - Grows the roster text to fill the panel when a roster is short, which the [Admin Page](#admin-page "Overlay Admin Page") can switch off.
   - Hides roster names that are marked as:
     - "Bench Alt Captain"
     - "Bench Staff"
     - "Not Skating"
   - Uses each team's custom "whiteboard" background, text, and glow colors if set.
     - Defaults to black backgrounds with white text if not set.
+    - The [Admin Page](#admin-page "Overlay Admin Page") can override all three colors for either team.
 - Highlights player penalty counts with different color backgrounds as a player approaches a foul out.
   - Two penalties before a foul out in yellow :yellow_square:
   - One penalty before a foul out in orange :orange_square:
@@ -67,6 +70,7 @@ The overlay gets the information and settings it needs from CRG, so you can prep
 - Displays the tournament name if set.
   - Displays the game number if it and the tournament name are set.
 - Displays team names if set.
+  - Uses the name set on the [Admin Page](#admin-page "Overlay Admin Page") for a team if that team's name override is on.
   - Uses the "whiteboard" alternate name text for each team if set.
   - Uses the "Team" fields in the "Teams" tab for a game if the "whiteboard" name is not set.
   - Defaults to "Team 1" and "Team 2" if neither the "whiteboard" nor "Team" names are set.
@@ -282,7 +286,7 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | - | - | - | - | - |
   | `bannerLogoPath` | Path to an optional custom logo in the game information section | string | `logos/banner-logo.png` | :warning: |
   | `filteredSkaterFlags` | Skater flags to filter from roster display (Not Skating, Bench Alt Captain, Bench Staff) | array of strings | `['ALT', 'B', 'BA']` | :x: |
-  | `defaultRosterShadowProperties` | Default roster shadow properties | string | `.5px .5px 1px` | :x: |
+  | `defaultRosterShadowProperties` | Default roster shadow properties | string | `0.5px 0.5px 1px` | :x: |
   | `loadingOverlayText` | Text displayed on the "loading" screen | string | `Loading game data...` | :white_check_mark: |
   | `titleBannerText` | Title text | string | `PENALTIES` | :white_check_mark: |
   | `titleBannerVisible` | Title visibility | boolean | `true` | :white_check_mark: |
@@ -291,7 +295,7 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | `overlayFont` | Font pairing: `saira`, `league-gothic`, `anton`, or `bricolage` | string | `saira` | :white_check_mark: |
   | `overlayHeight` | Overlay height percentage of the video frame (50 to 100) | int or float | `100` | :white_check_mark: |
   | `overlayOpacity` | Overlay background opacity percentage: 100 is solid, 0 is invisible (0 to 100) | int or float | `98` | :white_check_mark: |
-  | `overlayScale` | Overlay scale percentage: 100  = full scale, 90 = 90% scale, etc. (1 to 100) | int or float | `100` | :white_check_mark: |
+  | `overlayScale` | Overlay scale percentage: 100 = full scale, 90 = 90% scale, etc. (1 to 100) | int or float | `100` | :white_check_mark: |
   | `overlayWidth` | Overlay width percentage of the video frame (70 to 100) | int or float | `85` | :white_check_mark: |
   | `penaltyCodeKey` | Penalty code key visibility below the rosters | boolean | `true` | :white_check_mark: |
   | `rosterTextScaling` | Grow the roster text to fill the panel when a roster is short | boolean | `true` | :white_check_mark: |
@@ -345,7 +349,7 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | `rosterScale` | Largest roster text scale, held so nine penalty codes still fit | object | max `1.18` | :warning: |
   | `rosterTextScaling` | Default for `rosterTextScaling` | object | `true` | :warning: |
   | `scale` | Allowed range and default for `overlayScale` | object | `1` to `100`, default `100` | :warning: |
-  | `teamColor` | Default for every team color, shared by both teams | object | `''` | :warning: |
+  | `teamColor` | Default for every team color, shared by both teams, as six hex digits | object | `''` | :warning: |
   | `teamColorOverride` | Default for `team1ColorOverride` and `team2ColorOverride` | object | `false` | :warning: |
   | `teamLogos` | Default for `teamLogos` | object | `true` | :warning: |
   | `teamName` | Default for `team1Name` and `team2Name` | object | `''` | :warning: |
@@ -373,7 +377,6 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | `team2PanelSelector` | CSS Selector for team 2's roster and penalties panel | string | `#team2-rosters-penalties` | :x: |
   | `penaltiesTitleH1Selector` | CSS Selector for the penalties title H1 text | string | `#penalties-title h1` | :x: |
   | `timeoutBannerRowSelector` | CSS Selector for the row the timeout banner grows into | string | `#timeout-banner-row` | :x: |
-  | `textShadow` | CSS Variable for text shadows | string | `var(--team-penalties-default-text-shadow)` | :x: |
 
   ---
 
@@ -437,6 +440,7 @@ Expand `Configuration File Details` to review the parameters in [config.js](./co
   | Setting | Description | Type | Default | Adjustable |
   | - | - | - | - | - |
   | `colorCommit` | Delay before storing a color once the picker stops moving (ms) | integer | `150` | :warning: |
+  | `copyReply` | How long the copy button reports an address before showing its label again (ms) | integer | `2000` | :warning: |
   | `initWebSocket` | Delay before initializing display after WebSocket connects (ms) | integer | `100` | :x: |
   | `loadCheckInterval` | How often to check if the game rules arrived (ms) | integer | `100` | :x: |
   | `maxLoadWaitMs` | Longest time to wait for the game rules to arrive (ms) | integer | `5000` | :warning: |
@@ -489,7 +493,7 @@ The tests cover:
 - Team name and color overrides.
 - Game information labels and clocks.
 - Admin page controls.
-- The names `index.html`, `index.js`, `index.css` and `config.js` share.
+- The names the overlay's `index.html`, `index.js`, `index.css` and `config.js` share.
 - U.S. English spelling conformance.
 
 The [devcontainer](../.devcontainer "Devcontainer Configuration") includes Deno, so the test suite runs with no further setup.  [GitHub Actions Workflows](../.github/workflows "GitHub Actions Workflows") run every suite under `tests/`, plus [Super Linter](https://github.com/super-linter/super-linter "Super Linter"), on each push and pull request.

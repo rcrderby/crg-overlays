@@ -3,15 +3,15 @@
 
 import assert from 'node:assert/strict';
 
-const SCANNED_EXTENSIONS = ['.js', '.mjs', '.css', '.html', '.md', '.yml', '.yaml', '.textlintrc'];
+const SCANNED_EXTENSIONS = ['.js', '.mjs', '.css', '.html', '.md', '.yml', '.yaml'];
 
 // The trees this repository owns
 // Everything else is ignored, downloaded from CRG, or a font, image or logo
 const SCANNED_PATHS = ['penalties/', '.github/', 'tests/', 'README.md'];
 const SKIPPED_DIRECTORIES = ['fonts', 'images', 'logos'];
 
-// These two name British spellings on purpose, to rule them out
-const SPELLING_SOURCES = ['spelling_test.js', '.textlintrc'];
+// This file names British spellings on purpose, to rule them out
+const SPELLING_SOURCES = ['spelling_test.js'];
 
 // British spellings and the U.S. forms to use instead
 const BRITISH_SPELLINGS = [

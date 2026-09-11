@@ -206,7 +206,7 @@ console.log('Debug mode:', DEBUG);
 const HEIGHT_HOLD_PASSES = 3;
 
 // Overlay version to display as a watermark and log to the console
-const OVERLAY_VERSION = '4.1.0';
+const OVERLAY_VERSION = '4.2.0';
 
 // CRG WebSocket channels the overlay reads
 const CHANNELS = {
@@ -269,7 +269,7 @@ function oneOf(choices) {
   };
 }
 
-// Accept a boolean, or the text a stored setting supplies for one
+// Accept text, which a blank string is not
 function isText(value) {
   if (typeof value !== 'string' || value.trim() === '') {
     return { reason: 'must be text', display: `"${value}"` };
@@ -278,6 +278,7 @@ function isText(value) {
   return { value: value.trim() };
 }
 
+// Accept a boolean, or the text a stored setting supplies for one
 function isBoolean(value) {
   if (typeof value === 'boolean') {
     return { value };
@@ -290,12 +291,13 @@ function isBoolean(value) {
   return { reason: 'must be true or false', display: `"${value}"` };
 }
 
-// Every hex color CSS accepts, which covers the six digits a color picker writes
-const HEX_COLOR = /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+// The hex color a color picker holds and hands back unchanged
+// A picker writes six digits, and drops a shorthand or an alpha channel without saying so
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
 function isColor(value) {
   if (typeof value !== 'string' || !HEX_COLOR.test(value.trim())) {
-    return { reason: 'must be a hex color, as in #b3122e', display: `"${value}"` };
+    return { reason: 'must be a six digit hex color, as in #b3122e', display: `"${value}"` };
   }
 
   return { value: value.trim().toLowerCase() };
