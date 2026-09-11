@@ -203,7 +203,9 @@ Deno.test('a name binding fired by its setting still finds its team', async () =
     { [teamNameChannel(2)]: 'Bad Apples' }
   );
 
-  assert.equal(overlay.window.getTeamNameWithDefault({ Setting: 'Penalties.Overlay.Team2Name' }), 'Axles of Annihilation');
+  const settingKey = { Setting: 'Penalties.Overlay.Team2Name' };
+
+  assert.equal(overlay.window.getTeamNameWithDefault(settingKey), 'Axles of Annihilation');
 });
 
 Deno.test('config.js sets an override, and the admin page outranks it', async () => {
