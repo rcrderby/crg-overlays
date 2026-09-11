@@ -53,8 +53,8 @@
           </div>
 
           <div class="setting-row">
-            <label>Scale From</label>
-            <div class="setting-choices" data-setting="Anchor">
+            <label id="anchor-label">Scale From</label>
+            <div class="setting-choices" role="group" aria-labelledby="anchor-label" data-setting="Anchor">
               <button class="setting-choice" type="button" data-value="top">Top</button>
               <button class="setting-choice" type="button" data-value="center">Center</button>
               <button class="setting-choice" type="button" data-value="bottom">Bottom</button>
@@ -83,9 +83,10 @@
           </div>
 
           <div class="setting-row setting-row-child">
-            <label>Scale Text</label>
+            <label for="scale-text-switch">Scale Text</label>
             <div class="setting-choices setting-switch-row" data-setting="RosterTextScaling">
               <button class="setting-switch setting-choice" type="button" data-value="true"
+                      id="scale-text-switch" role="switch" aria-checked="false"
                       aria-label="Scale the roster text"></button>
             </div>
             <div></div>
@@ -107,8 +108,8 @@
           </div>
 
           <div class="setting-row setting-row-wide">
-            <label>Font</label>
-            <div class="setting-cards setting-choices" data-setting="Font">
+            <label id="font-label">Font</label>
+            <div class="setting-cards setting-choices" role="group" aria-labelledby="font-label" data-setting="Font">
               <button class="setting-card setting-choice" type="button" data-value="saira">
                 <span class="setting-card-name">Saira</span>
                 <span class="setting-card-display font-saira-display">PENALTIES</span>
@@ -133,8 +134,8 @@
           </div>
 
           <div class="setting-row setting-row-wide">
-            <label>Background</label>
-            <div class="setting-tiles setting-choices" data-setting="BackgroundAnimation">
+            <label id="background-label">Background</label>
+            <div class="setting-tiles setting-choices" role="group" aria-labelledby="background-label" data-setting="BackgroundAnimation">
               <button class="setting-tile setting-choice" type="button" data-value="trace">
                 <span class="setting-tile-name">Trace</span>
                 <span class="setting-stage setting-stage-trace"></span>
@@ -162,9 +163,10 @@
           <h2>Heading</h2>
 
           <div class="setting-row">
-            <label>Title</label>
+            <label for="title-switch">Title</label>
             <div class="setting-choices setting-switch-row" data-setting="TitleVisible">
               <button class="setting-switch setting-choice" type="button" data-value="true"
+                      id="title-switch" role="switch" aria-checked="false"
                       aria-label="Show the overlay title"></button>
               <span class="setting-switch-note">Show or hide the overlay title</span>
             </div>
@@ -178,9 +180,10 @@
           </div>
 
           <div class="setting-row">
-            <label>Team Logos</label>
+            <label for="team-logos-switch">Team Logos</label>
             <div class="setting-choices setting-switch-row" data-setting="TeamLogos">
               <button class="setting-switch setting-choice" type="button" data-value="true"
+                      id="team-logos-switch" role="switch" aria-checked="false"
                       aria-label="Show the team logos"></button>
               <span class="setting-switch-note">Show or hide team logos from CRG</span>
             </div>
@@ -193,8 +196,8 @@
           <h2>Game Information</h2>
 
           <div class="setting-row setting-row-wide">
-            <label>Timeout Banner</label>
-            <div class="setting-tiles setting-choices" data-setting="TimeoutAnimation">
+            <label id="timeout-banner-label">Timeout Banner</label>
+            <div class="setting-tiles setting-choices" role="group" aria-labelledby="timeout-banner-label" data-setting="TimeoutAnimation">
               <button class="setting-tile setting-choice" type="button" data-value="glow">
                 <span class="setting-tile-name">Glow</span>
                 <span class="setting-stage"><i class="setting-banner setting-banner-glow">Timeout</i></span>
@@ -215,9 +218,10 @@
           </div>
 
           <div class="setting-row">
-            <label>Penalties Key</label>
+            <label for="penalties-key-switch">Penalties Key</label>
             <div class="setting-choices setting-switch-row" data-setting="PenaltyCodeKey">
               <button class="setting-switch setting-choice" type="button" data-value="true"
+                      id="penalties-key-switch" role="switch" aria-checked="false"
                       aria-label="Show the penalties key"></button>
               <span class="setting-switch-note">Visible when players have penalties</span>
             </div>
@@ -233,9 +237,10 @@
             <div class="team-block-name">Team 1</div>
 
             <div class="setting-row">
-              <label>Name</label>
+              <label for="team1-name-switch">Name</label>
               <div class="setting-choices setting-switch-row" data-setting="Team1NameOverride">
                 <button class="setting-switch setting-choice" type="button" data-value="true"
+                        id="team1-name-switch" role="switch" aria-checked="false"
                         aria-label="Override the team 1 name"></button>
                 <span class="setting-switch-note">Override CRG name</span>
               </div>
@@ -249,9 +254,10 @@
             </div>
 
             <div class="setting-row">
-              <label>Colors</label>
+              <label for="team1-colors-switch">Colors</label>
               <div class="setting-choices setting-switch-row" data-setting="Team1ColorOverride">
                 <button class="setting-switch setting-choice" type="button" data-value="true"
+                        id="team1-colors-switch" role="switch" aria-checked="false"
                         aria-label="Override the team 1 colors"></button>
                 <span class="setting-switch-note">Override CRG colors</span>
               </div>
@@ -281,9 +287,10 @@
             <div class="team-block-name">Team 2</div>
 
             <div class="setting-row">
-              <label>Name</label>
+              <label for="team2-name-switch">Name</label>
               <div class="setting-choices setting-switch-row" data-setting="Team2NameOverride">
                 <button class="setting-switch setting-choice" type="button" data-value="true"
+                        id="team2-name-switch" role="switch" aria-checked="false"
                         aria-label="Override the team 2 name"></button>
                 <span class="setting-switch-note">Override CRG name</span>
               </div>
@@ -297,9 +304,10 @@
             </div>
 
             <div class="setting-row">
-              <label>Colors</label>
+              <label for="team2-colors-switch">Colors</label>
               <div class="setting-choices setting-switch-row" data-setting="Team2ColorOverride">
                 <button class="setting-switch setting-choice" type="button" data-value="true"
+                        id="team2-colors-switch" role="switch" aria-checked="false"
                         aria-label="Override the team 2 colors"></button>
                 <span class="setting-switch-note">Override CRG colors</span>
               </div>

@@ -358,6 +358,43 @@ Deno.test('the overlay URL drops the admin page from the address', async () => {
   assert.equal(page.overlayUrl(), 'http://scoreboard:8000/custom/overlay/penalties');
 });
 
+// A switch is drawn from a class, which carries nothing an assistive technology reads
+Deno.test('a switch reports whether it is on', async () => {
+  const page = await boundPage({ state: { [overlaySetting('TitleVisible')]: 'false' } });
+  const off = page.dom.choice('TitleVisible', 'true');
+
+  assert.equal(off.attrs['aria-checked'], 'false');
+
+  page.dom.fire(off, 'click');
+  assert.equal(off.attrs['aria-checked'], 'true', 'turning it on reports it on');
+
+  page.dom.fire(off, 'click');
+  assert.equal(off.attrs['aria-checked'], 'false', 'turning it off reports it off');
+});
+
+// Every control the markup labels has to resolve, or the label names nothing
+Deno.test('every label names a control that exists', async () => {
+  const markup = await readSource('penalties/admin/index.html');
+  const ids = new Set([...markup.matchAll(/\sid="([^"]+)"/g)].map(([, id]) => id));
+
+  const named = [...markup.matchAll(/<label(?:\s+for="([^"]*)")?[^>]*>/g)];
+
+  assert.ok(named.length > 0, 'the page has labels');
+
+  for (const [, control] of named) {
+    // A label with no `for` names a group through aria-labelledby instead
+    if (control === undefined) {
+      continue;
+    }
+
+    assert.ok(ids.has(control), `no control has the id ${control}`);
+  }
+
+  for (const [, label] of markup.matchAll(/aria-labelledby="([^"]+)"/g)) {
+    assert.ok(ids.has(label), `no element has the id ${label}`);
+  }
+});
+
 Deno.test('the copy button reports back, then restores its label', async () => {
   const page = await boundPage();
   const button = page.dom.button('copy-url');

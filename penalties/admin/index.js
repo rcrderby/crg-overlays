@@ -169,8 +169,14 @@ function paintChoices(group, name) {
 
     group.find('.setting-choice').each(function () {
       const button = $(this);
+      const chosen = String(button.data('value')) === value;
 
-      button.toggleClass('selected', String(button.data('value')) === value);
+      button.toggleClass('selected', chosen);
+
+      // A switch carries its own state, which the class it is drawn from does not report
+      if (button.hasClass('setting-switch')) {
+        button.attr('aria-checked', String(chosen));
+      }
     });
   };
 }
