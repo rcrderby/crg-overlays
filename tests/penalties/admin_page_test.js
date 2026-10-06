@@ -653,6 +653,26 @@ Deno.test('a second copy replaces the first reply, and the label still comes bac
   assert.equal(button.label, 'Copy Overlay URL', 'the label comes back, rather than the first reply');
 });
 
+// The button still copies this page's address, so nothing on the page shows the lookup failed
+Deno.test('a lookup CRG does not answer is reported to the console', async () => {
+  const unreachable = await boundPage({ urls: null });
+
+  await unreachable.loadNetworkUrls();
+  assert.equal(unreachable.warnings.length, 1);
+  assert.match(unreachable.warnings[0], /CRG did not report its addresses \(unreachable\)/);
+
+  const refused = await boundPage({ urls: 503 });
+
+  await refused.loadNetworkUrls();
+  assert.match(refused.warnings[0], /CRG did not report its addresses \(HTTP 503\)/);
+  assert.equal(refused.dom.options('copy-url-option').length, 0, 'no list is built');
+
+  const answered = await boundPage({ urls: CRG_URLS });
+
+  await answered.loadNetworkUrls();
+  assert.deepEqual(answered.warnings, []);
+});
+
 // An address list is a menu, and a menu that only closes on itself sits over the page
 Deno.test('a click away from the list closes it', async () => {
   const page = await boundPage({ urls: CRG_URLS });

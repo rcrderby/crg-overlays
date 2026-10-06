@@ -50,6 +50,7 @@ const INTERNALS = [
   'applyTeamColors',
   'isColor',
   'overrideValue',
+  'registerGameRules',
   'registerTeamColors',
   'teamChannel',
   'teamColor',
@@ -544,7 +545,8 @@ export async function loadAdminPage({ configSource, frameWidth = 1920, state = {
   new Function('window', config)(window);
 
   const WS = scoreboard(state);
-  const consoleStub = { log: () => {}, error: () => {} };
+  const warnings = [];
+  const consoleStub = { log: () => {}, warn: (message) => warnings.push(message), error: () => {} };
   const dom = adminPageDom(await readSource('penalties/admin/index.html'));
 
   // The preview panel, which the page measures and scales the overlay into
@@ -571,9 +573,14 @@ export async function loadAdminPage({ configSource, frameWidth = 1920, state = {
   const fetchStub = (path) => {
     fetched.push(path);
 
-    return urls === null
-      ? Promise.reject(new Error('unreachable'))
-      : Promise.resolve({ ok: true, text: () => Promise.resolve(urls) });
+    if (urls === null) {
+      return Promise.reject(new Error('unreachable'));
+    }
+
+    // A number stands for the status CRG answers with when it has no addresses to give
+    return Promise.resolve(
+      typeof urls === 'number' ? { ok: false, status: urls } : { ok: true, text: () => Promise.resolve(urls) }
+    );
   };
 
   // Timers the page sets, run only when a test asks for them
@@ -609,6 +616,7 @@ export async function loadAdminPage({ configSource, frameWidth = 1920, state = {
     frame,
     previewOverlay,
     fetched,
+    warnings,
     timers,
     runTimers: () =>
       timers
@@ -649,6 +657,7 @@ export async function loadOverlay({
   // CSS custom properties the setters write, keyed by property name
   const properties = {};
   const warnings = [];
+  const logs = [];
 
   // The overlay reports its content as one in-flow child, so a test names the height
   // its content takes and the fit measures that against the room the box has
@@ -742,7 +751,7 @@ export async function loadOverlay({
     createTextNode: keyDom.createTextNode
   };
   const consoleStub = {
-    log: () => {},
+    log: (message) => logs.push(message),
     warn: (message) => warnings.push(message),
     error: (message) => warnings.push(message)
   };
@@ -848,6 +857,7 @@ export async function loadOverlay({
     WS,
     properties,
     warnings,
+    logs,
     overlayClasses,
     text,
     hasClass,
