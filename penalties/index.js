@@ -184,7 +184,10 @@ function storedSetting(name) {
 // Settings sources for validation messages
 const SETTING_SOURCES = {
   config: 'config.js',
+  crgTeamName: 'the CRG team name',
+  crgWhiteboardName: 'the CRG whiteboard name',
   default: 'default',
+  ruleset: 'the CRG ruleset',
   settings: 'the admin page',
   url: 'URL parameter'
 };
@@ -197,16 +200,29 @@ function getDebugParameter() {
   return new URLSearchParams(window.location.search).get(DEBUG_URL_PARAM);
 }
 
-// Debugging setting, read before the settings that log through it
-const DEBUG = getDebugSetting();
-console.log('Debug mode:', DEBUG);
+// Debugging setting and where it was set, read before the settings that log through it
+const { value: DEBUG, source: DEBUG_SOURCE } = getDebugSetting();
+console.log(`Debug logging ${DEBUG ? 'on' : 'off'} (from ${DEBUG_SOURCE}).`);
+
+// The last message logged on each topic, so a repaint that changes nothing stays quiet
+const loggedMessages = new Map();
+
+// Log a decision while debug logging is on, and only when it differs from the last one
+function logChange(topic, message) {
+  if (!DEBUG || loggedMessages.get(topic) === message) {
+    return;
+  }
+
+  loggedMessages.set(topic, message);
+  console.log(message);
+}
 
 // Most looks the height floor takes, so an unsettled layout cannot hold it up
 // It settles by gaining nothing on a pass, and two are enough in practice
 const HEIGHT_HOLD_PASSES = 3;
 
 // Overlay version to display as a watermark and log to the console
-const OVERLAY_VERSION = '4.2.0';
+const OVERLAY_VERSION = '4.2.1';
 
 // CRG WebSocket channels the overlay reads
 const CHANNELS = {
@@ -347,9 +363,9 @@ function resolveSetting({
   return { value: fallback, source: SETTING_SOURCES.default };
 }
 
-// Validate the debug logging setting
+// Validate the debug logging setting, and report where it was set
 function getDebugSetting() {
-  const { value } = resolveSetting({
+  return resolveSetting({
     ...SETTINGS.debug,
     urlValue: getDebugParameter(),
     configValue: PenaltiesOverlayConfig.debug?.enabled,
@@ -357,8 +373,6 @@ function getDebugSetting() {
     parse: lowercase,
     validate: isBoolean
   });
-
-  return value;
 }
 
 // Warn that the overlay ignores every URL parameter except `debug`
@@ -391,9 +405,7 @@ function setOverlayScale() {
   // Convert percentage to decimal for CSS transform
   document.documentElement.style.setProperty('--overlay-scale', value / 100);
 
-  if (DEBUG) {
-    console.log(`Overlay scaled to ${value}% (from ${source}).`);
-  }
+  logChange('setOverlayScale', `Overlay scaled to ${value}% (from ${source}).`);
 }
 
 // Validate and set the overlay width
@@ -411,9 +423,7 @@ function setOverlayWidth() {
   // Convert percentage to a decimal ratio of the video frame width
   document.documentElement.style.setProperty('--overlay-width-ratio', value / 100);
 
-  if (DEBUG) {
-    console.log(`Overlay width set to ${value}% of the video frame (from ${source}).`);
-  }
+  logChange('setOverlayWidth', `Overlay width set to ${value}% of the video frame (from ${source}).`);
 }
 
 // Validate and set the overlay height
@@ -431,9 +441,7 @@ function setOverlayHeight() {
   // Convert percentage to a decimal ratio of the video frame height
   document.documentElement.style.setProperty('--overlay-height-ratio', value / 100);
 
-  if (DEBUG) {
-    console.log(`Overlay height set to ${value}% of the video frame (from ${source}).`);
-  }
+  logChange('setOverlayHeight', `Overlay height set to ${value}% of the video frame (from ${source}).`);
 }
 
 // Animation option names mapped to the classes that drive them
@@ -473,9 +481,7 @@ function setAnimation(setting, configValue, animations, defaultName) {
     }
   }
 
-  if (DEBUG) {
-    console.log(`${setting.label} set to ${value} (from ${source}).`);
-  }
+  logChange(setting.setting, `${setting.label} set to ${value} (from ${source}).`);
 }
 
 // Validate and set the background animation
@@ -519,9 +525,7 @@ function setTitleBannerText() {
 
   $(CLASSES.penaltiesTitleH1Selector).text(value);
 
-  if (DEBUG) {
-    console.log(`Overlay title set to "${value}" (from ${source}).`);
-  }
+  logChange('setTitleBannerText', `Overlay title set to "${value}" (from ${source}).`);
 }
 
 // Validate and set the overlay title visibility
@@ -538,9 +542,7 @@ function setTitleBannerVisible() {
   titleBannerVisible = value;
   $(TOGGLES.titleBanner.selector).toggleClass(TOGGLES.titleBanner.class, value);
 
-  if (DEBUG) {
-    console.log(`Overlay title ${value ? 'shown' : 'hidden'} (from ${source}).`);
-  }
+  logChange('setTitleBannerVisible', `Overlay title ${value ? 'shown' : 'hidden'} (from ${source}).`);
 }
 
 // Validate and set the team logo visibility
@@ -557,9 +559,7 @@ function setTeamLogos() {
   teamLogosVisible = value;
   $(TOGGLES.teamLogos.selector).toggleClass(TOGGLES.teamLogos.class, !value);
 
-  if (DEBUG) {
-    console.log(`Team logos ${value ? 'shown' : 'hidden'} (from ${source}).`);
-  }
+  logChange('setTeamLogos', `Team logos ${value ? 'shown' : 'hidden'} (from ${source}).`);
 }
 
 // Give the teams row its space back once it has nothing left to show
@@ -569,9 +569,7 @@ function setTeamsRowHeight() {
 
   $(TOGGLES.teamsRow.selector).toggleClass(TOGGLES.teamsRow.class, empty);
 
-  if (DEBUG) {
-    console.log(`Teams row ${empty ? 'collapsed' : 'holding its space'}.`);
-  }
+  logChange('setTeamsRowHeight', `Teams row ${empty ? 'collapsed' : 'holding its space'}.`);
 }
 
 // Validate and set the roster text scaling
@@ -587,9 +585,7 @@ function setRosterTextScaling() {
 
   rosterTextScaling = value;
 
-  if (DEBUG) {
-    console.log(`Roster text scaling ${value ? 'on' : 'off'} (from ${source}).`);
-  }
+  logChange('setRosterTextScaling', `Roster text scaling ${value ? 'on' : 'off'} (from ${source}).`);
 }
 
 // Validate and set the penalty code key visibility
@@ -605,9 +601,7 @@ function setPenaltyCodeKey() {
 
   penaltyCodeKeyVisible = value;
 
-  if (DEBUG) {
-    console.log(`Penalty code key ${value ? 'enabled' : 'disabled'} (from ${source}).`);
-  }
+  logChange('setPenaltyCodeKey', `Penalty code key ${value ? 'enabled' : 'disabled'} (from ${source}).`);
 }
 
 // Validate and set the overlay background opacity
@@ -625,9 +619,7 @@ function setOverlayOpacity() {
   // The value sets the alpha channel of the overlay background color
   document.documentElement.style.setProperty('--overlay-opacity', `${value}%`);
 
-  if (DEBUG) {
-    console.log(`Overlay background opacity set to ${value}% (from ${source}).`);
-  }
+  logChange('setOverlayOpacity', `Overlay background opacity set to ${value}% (from ${source}).`);
 }
 
 // Overlay anchor values mapped to where the overlay sits in the video frame
@@ -652,9 +644,7 @@ function setOverlayAnchor() {
   document.documentElement.style.setProperty('--overlay-justify', anchor.justify);
   document.documentElement.style.setProperty('--overlay-origin', anchor.origin);
 
-  if (DEBUG) {
-    console.log(`Overlay anchored to ${value} (from ${source}).`);
-  }
+  logChange('setOverlayAnchor', `Overlay anchored to ${value} (from ${source}).`);
 }
 
 // Font pairings, keyed by their display face
@@ -691,9 +681,7 @@ function setOverlayFont() {
   document.documentElement.style.setProperty('--font-family-display', pairing.display);
   document.documentElement.style.setProperty('--font-family', pairing.body);
 
-  if (DEBUG) {
-    console.log(`Overlay font set to ${value} (from ${source}).`);
-  }
+  logChange('setOverlayFont', `Overlay font set to ${value} (from ${source}).`);
 }
 
 /*******************************
@@ -771,20 +759,21 @@ function teamNumberFromKey(k) {
   return teamNumber;
 }
 
-// A team override, from the admin page then config.js, and blank when neither sets one
+// A team override and where it was set: the admin page, then config.js, and blank when neither sets one
 // Blank is how an override reads as unset, so only a value that is there is validated
-function overrideValue(setting, validate) {
+function resolveOverride(setting, validate) {
   const stored = storedSetting(setting.setting);
   const raw = stored === undefined ? setting.configValue : stored;
+  const unset = { value: '', source: SETTING_SOURCES.default };
 
   if (raw === undefined || raw === null || String(raw).trim() === '') {
-    return '';
+    return unset;
   }
 
   const result = validate(String(raw).trim());
 
   if ('value' in result) {
-    return result.value;
+    return { value: result.value, source: stored === undefined ? SETTING_SOURCES.config : SETTING_SOURCES.settings };
   }
 
   // The label names the setting mid-sentence, so it starts lowercase here
@@ -796,7 +785,22 @@ function overrideValue(setting, validate) {
     `Invalid ${described} value ${result.display} (${result.reason}) - using the value CRG supplies.`
   );
 
-  return '';
+  return unset;
+}
+
+// A team override's value alone
+function overrideValue(setting, validate) {
+  return resolveOverride(setting, validate).value;
+}
+
+// How an override switch reads, and where it was set
+// The admin page stores a switch it turns off, which outranks a switch config.js turns on
+function describeOverrideSwitch(setting) {
+  const { value, source } = resolveOverride(setting, isBoolean);
+  const on = value === true;
+  const outranks = !on && source === SETTING_SOURCES.settings && isBoolean(setting.configValue).value === true;
+
+  return `${on ? 'on' : 'off'} (from ${source}${outranks ? ', which outranks true in config.js' : ''})`;
 }
 
 // Whether a team shows admin-defined colors rather than the ones CRG supplies
@@ -825,6 +829,23 @@ function teamColor(teamNumber, color) {
   return overrideValue(team[color], isColor) || crgColor;
 }
 
+// The colors a team shows, and where each was set
+function describeTeamColors(teamNumber, team) {
+  const override = `color override ${describeOverrideSwitch(team.colorOverride)}`;
+
+  if (!teamColorOverridden(teamNumber)) {
+    return `Team ${teamNumber} colors from CRG - ${override}.`;
+  }
+
+  const colors = TEAM_COLORS.map((color) => {
+    const { value, source } = resolveOverride(team[color], isColor);
+
+    return value ? `${color} ${value} (from ${source})` : `${color} from CRG`;
+  });
+
+  return `Team ${teamNumber} colors set to ${colors.join(', ')} - ${override}.`;
+}
+
 // A blank color comes off the element, so the default in the stylesheet applies
 function setTeamProperty(panel, property, value) {
   if (value) {
@@ -849,6 +870,10 @@ function applyTeamColors() {
     setTeamProperty(panel, '--team-background-color', teamColor(teamNumber, 'background'));
     setTeamProperty(panel, '--team-text-color', teamColor(teamNumber, 'text'));
     setTeamProperty(panel, '--team-text-shadow', glowShadow);
+
+    if (DEBUG) {
+      logChange(`team${teamNumber}Colors`, describeTeamColors(teamNumber, team));
+    }
   }
 }
 
@@ -861,34 +886,48 @@ function registerTeamColors() {
   WS.Register(channels, applyTeamColors);
 }
 
-// Display team names with fallback mechanisms to prevent a blank name
-window.getTeamNameWithDefault = function (k) {
-  const teamNumber = teamNumberFromKey(k) ?? '?';
+// A team's name and where it was set, with fallback mechanisms to prevent a blank name
+function resolveTeamName(teamNumber) {
   const team = TEAM_SETTINGS[teamNumber];
 
-  // Try the name the admin page sets first, which waits on its own switch
-  const override = teamNameOverridden(teamNumber) ? overrideValue(team.name, isText) : '';
+  // Try the name the admin page or config.js sets first, which waits on its own switch
+  const override = teamNameOverridden(teamNumber) ? resolveOverride(team.name, isText) : { value: '' };
 
-  if (override) {
-    return override;
+  if (override.value) {
+    return { name: override.value, source: override.source };
   }
 
   // Try AlternateName(whiteboard) second
   const alternateName = WS.state[teamChannel(teamNumber, STORAGE.teamChannels.alternateName)];
 
   if (typeof alternateName === 'string' && alternateName.trim() !== '') {
-    return alternateName;
+    return { name: alternateName, source: SETTING_SOURCES.crgWhiteboardName };
   }
 
   // Try team name (Name) read from WS.state third
   const name = WS.state[teamChannel(teamNumber, STORAGE.teamChannels.name)];
 
   if (typeof name === 'string' && name.trim() !== '') {
-    return name;
+    return { name, source: SETTING_SOURCES.crgTeamName };
   }
 
   // Use "Team N" fourth
-  return `${LABELS.defaultTeamNamePrefix} ${teamNumber}`;
+  return { name: `${LABELS.defaultTeamNamePrefix} ${teamNumber}`, source: SETTING_SOURCES.default };
+}
+
+// Display a team's name
+window.getTeamNameWithDefault = function (k) {
+  const teamNumber = teamNumberFromKey(k) ?? '?';
+  const team = TEAM_SETTINGS[teamNumber];
+  const { name, source } = resolveTeamName(teamNumber);
+
+  if (DEBUG && team) {
+    const override = `name override ${describeOverrideSwitch(team.nameOverride)}`;
+
+    logChange(`team${teamNumber}Name`, `Team ${teamNumber} name set to "${name}" (from ${source}) - ${override}.`);
+  }
+
+  return name;
 };
 
 /*************************
@@ -934,6 +973,35 @@ function getWarningCount(offset) {
   const warningCount = fouloutCount - offset;
 
   return warningCount >= 1 ? warningCount : null;
+}
+
+// Report the rules as they arrive, which decide the warning colors and the game status labels
+function logGameRules() {
+  const rules = [
+    { topic: 'fouloutCount', label: 'Foul out count', channel: CHANNELS.ruleFouloutCount, count: getFouloutCount() },
+    { topic: 'periodCount', label: 'Period count', channel: CHANNELS.rulePeriodCount, count: getPeriodCount() }
+  ];
+
+  for (const { topic, label, channel, count } of rules) {
+    const supplied = WS.state[channel];
+
+    // A rule that has not arrived yet says nothing about the game
+    if (supplied === undefined) {
+      continue;
+    }
+
+    logChange(
+      topic,
+      count === null
+        ? `${label} "${supplied}" is not a usable count (from ${SETTING_SOURCES.ruleset}).`
+        : `${label} set to ${count} (from ${SETTING_SOURCES.ruleset}).`
+    );
+  }
+}
+
+// Register the rules the overlay reads, so a ruleset change is reported
+function registerGameRules() {
+  WS.Register([CHANNELS.ruleFouloutCount, CHANNELS.rulePeriodCount], logGameRules);
 }
 
 /************************************
@@ -1233,9 +1301,7 @@ function buildPenaltyCodeKey() {
     fitPenaltyCodeKey();
   }
 
-  if (DEBUG) {
-    console.log(`Penalty code key rebuilt with ${items.length} code(s).`);
-  }
+  logChange('buildPenaltyCodeKey', `Penalty code key rebuilt with ${items.length} code(s).`);
 }
 
 // Adjust the size of the penalty key codes to fit on one line
@@ -1252,7 +1318,13 @@ function fitPenaltyCodeKey() {
   // Sum the codes, because scrollWidth misses overflow left of a centered row
   // `offsetWidth` ignores the overlay scale transform, which would hide an overflow
   const natural = [...items.children].reduce((total, code) => total + code.offsetWidth, 0);
-  if (available === 0 || natural <= available) {
+  if (available === 0) {
+    return;
+  }
+
+  if (natural <= available) {
+    logChange('fitPenaltyCodeKey', 'Penalty code key fits one line at its configured size.');
+
     return;
   }
 
@@ -1261,9 +1333,10 @@ function fitPenaltyCodeKey() {
   const fittedSize = Math.floor(configuredSize * (available / natural));
   items.style.setProperty('--font-penalty-code-key-size', `${fittedSize}px`);
 
-  if (DEBUG) {
-    console.log(`Penalty code key reduced from ${configuredSize}px to ${fittedSize}px to fit one line.`);
-  }
+  logChange(
+    'fitPenaltyCodeKey',
+    `Penalty code key reduced from ${configuredSize}px to ${fittedSize}px to fit one line.`
+  );
 }
 
 /***********************************
@@ -1325,9 +1398,7 @@ function fitRosterText() {
   const needed = teamHeading + rows * rowHeight + headingSpace;
 
   if (!rosterTextScaling) {
-    if (DEBUG) {
-      console.log('Roster text scaling is off - the configured sizes apply.');
-    }
+    logChange('fitRosterText', 'Roster text scaling is off - the configured sizes apply.');
 
     return;
   }
@@ -1337,6 +1408,8 @@ function fitRosterText() {
 
   // Rosters long enough to fill the panel already keep the configured sizes
   if (scale <= 1) {
+    logChange('fitRosterText', `Roster text at its configured sizes for ${rows} row(s).`);
+
     return;
   }
 
@@ -1344,11 +1417,9 @@ function fitRosterText() {
 
   root.style.setProperty('--roster-scale', rounded);
 
-  if (DEBUG) {
-    const capped = fit > VALIDATION.rosterScale.max ? ` (held at the ${VALIDATION.rosterScale.max} maximum)` : '';
+  const capped = fit > VALIDATION.rosterScale.max ? ` (held at the ${VALIDATION.rosterScale.max} maximum)` : '';
 
-    console.log(`Roster text scaled to ${rounded} for ${rows} row(s)${capped}.`);
-  }
+  logChange('fitRosterText', `Roster text scaled to ${rounded} for ${rows} row(s)${capped}.`);
 }
 
 // Show only the skaters the panel can hold
@@ -1456,9 +1527,10 @@ function holdOverlayHeight() {
     }
   }
 
-  if (DEBUG && held > 0) {
-    console.log(`Overlay held at ${held}px, so the background covers its content.`);
-  }
+  logChange(
+    'holdOverlayHeight',
+    held > 0 ? `Overlay held at ${held}px, so the background covers its content.` : 'Overlay at its configured height.'
+  );
 }
 
 // Fit once after a burst of WebSocket updates rather than on each one
@@ -1753,6 +1825,7 @@ $(function () {
       registerRosterTextFit();
       registerOverlaySettings();
       registerTeamColors();
+      registerGameRules();
       console.log('WebSocket connected.');
 
       // Attempt to retry the WebSocket connection if it is not yet available

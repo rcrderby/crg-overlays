@@ -177,6 +177,10 @@ The overlay logs the settings it reads and the decisions it makes during a game 
 | Off (default) | `http://<crg-ip-address>:8000/custom/overlay/penalties`[^1] |
 | On | `http://<crg-ip-address>:8000/custom/overlay/penalties?debug=true`[^1] |
 
+Each line names where its value was set: the admin page, `config.js`, CRG, or a default.  The overlay logs when a value or its source changes.
+
+Settings saved on the [Admin Page](#admin-page "Overlay Admin Page") take precedence over `config.js` values.  Clicking the **Reset to Defaults** button clears saved settings, which re-applies`config.js` values.
+
 > [!TIP]
 > Open your browser's developer tools to read the console.  Warnings about invalid settings always appear, whether debug logging is on or off.  To log from every browser source, set `debug.enabled` to `true` in [config.js](./config.js) instead.
 
@@ -493,6 +497,7 @@ The tests cover:
 - Team name and color overrides.
 - Game information labels and clocks.
 - Admin page controls.
+- Debug logging.
 - The names the overlay's `index.html`, `index.js`, `index.css` and `config.js` share.
 - U.S. English spelling conformance.
 

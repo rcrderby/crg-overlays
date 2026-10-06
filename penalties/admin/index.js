@@ -479,10 +479,21 @@ function overlayUrlChoices(reported) {
 let urlChoices = [];
 
 // Ask CRG for the addresses it listens on, and offer them beside the current URL
+// A lookup CRG does not answer leaves the button copying this page's own address
 function loadNetworkUrls() {
   return fetch(STORAGE.networkUrlsPath)
-    .then((response) => (response.ok ? response.text() : ''))
-    .catch(() => '')
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      return response.text();
+    })
+    .catch(function (error) {
+      console.warn(`CRG did not report its addresses (${error.message}) - offering this page's address only.`);
+
+      return '';
+    })
     .then(showUrlChoices);
 }
 

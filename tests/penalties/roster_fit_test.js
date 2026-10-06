@@ -416,3 +416,30 @@ Deno.test('the height floor ignores a background that reaches past the rows', as
 
   assert.equal(overlay.properties['--overlay-min-height'], undefined, 'the rows fit, so nothing is held');
 });
+
+// A fit runs after every roster update, so it reports the state it settles in once
+Deno.test('the fit logs each state it settles in, and a state that holds once', async () => {
+  const short = [panel(16, FULL_ROSTER), panel(16, FULL_ROSTER)];
+  const scaled = await loadOverlay({ rosters: short, search: '?debug=true' });
+  const fits = () => scaled.logs.filter((line) => line.startsWith('Roster text'));
+
+  scaled.fitRosterText();
+  scaled.fitRosterText();
+  assert.equal(fits().length, 1);
+  assert.match(fits()[0], /^Roster text scaled to [\d.]+ for 16 row\(s\)/);
+
+  const full = await loadOverlay({
+    rosters: [panel(20, FULL_ROSTER), panel(20, FULL_ROSTER)],
+    search: '?debug=true'
+  });
+
+  full.fitRosterText();
+  assert.ok(full.logs.includes('Roster text at its configured sizes for 20 row(s).'));
+  assert.ok(full.logs.includes('Overlay at its configured height.'));
+
+  const off = await loadOverlay({ rosters: short, search: '?debug=true', state: stored('RosterTextScaling', false) });
+
+  off.setRosterTextScaling();
+  off.fitRosterText();
+  assert.ok(off.logs.includes('Roster text scaling is off - the configured sizes apply.'));
+});

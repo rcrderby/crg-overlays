@@ -166,3 +166,28 @@ Deno.test('a key that is turned off still registers, so it can be turned on', as
   assert.equal(overlay.WS.registrations.length, 1);
   assert.deepEqual(overlay.WS.registrations[0].paths, [PENALTY_CODE, TEAM_1_SKATERS, TEAM_2_SKATERS]);
 });
+
+Deno.test('the key logs the fit it settles on', async () => {
+  const shrunk = await loadOverlay({
+    state: withCodes(),
+    dom: { available: 100, codeWidth: 80, fontSize: 15 },
+    search: '?debug=true'
+  });
+
+  shrunk.buildPenaltyCodeKey();
+  shrunk.buildPenaltyCodeKey();
+
+  assert.deepEqual(
+    shrunk.logs.filter((line) => line.startsWith('Penalty code key')),
+    ['Penalty code key reduced from 15px to 9px to fit one line.', 'Penalty code key rebuilt with 2 code(s).']
+  );
+
+  const fitted = await loadOverlay({
+    state: withCodes(),
+    dom: { available: 400, codeWidth: 80, fontSize: 15 },
+    search: '?debug=true'
+  });
+
+  fitted.buildPenaltyCodeKey();
+  assert.ok(fitted.logs.includes('Penalty code key fits one line at its configured size.'));
+});
